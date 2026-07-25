@@ -20,8 +20,9 @@ jobs:
         run: |
           YEAR=$(date +%Y)
           cat > banner.txt <<EOF
-          ArchiveTune ($YEAR)
+          Yuma Player ($YEAR)
           © Rukamori — github.com/rukamori
+          © MuwMix — github.com/muwmx
           GPL-3.0 License | Contributors: see git history
           Do not remove or alter this notice. - Per GPL-3.0 Section 4 & Section 5
           EOF
@@ -55,7 +56,6 @@ jobs:
           python3 <<'PY'
           from pathlib import Path
 
-          archive_marker = "ArchiveTune ("
           license_marker = "GPL-3.0 License | Contributors: see git history"
           total_removed = 0
 
@@ -72,7 +72,7 @@ jobs:
                       break
 
                   header = text[:end + 2]
-                  if archive_marker not in header or license_marker not in header:
+                  if license_marker not in header:
                       break
 
                   text = text[end + 2:].lstrip("\r\n")
@@ -114,10 +114,9 @@ jobs:
                   print(f"{path}: {count}")
               sys.exit(1)
 
-          print("Every Kotlin file has at most one ArchiveTune header.")
+          print("Every Kotlin file has at most one header.")
           PY
 
       - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Kotlin Header
-          
