@@ -482,18 +482,26 @@ jobs:
 
       - name: Create Release
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          MOBILE_UNIVERSAL_APK=$(find downloaded_artifacts/app-gms-mobile-universal-release -name "*.apk" | head -n 1)
-          OTHER_APKS=$(find downloaded_artifacts -path "*/app-*-release/*.apk" ! -path "*/app-gms-mobile-universal-release/*")
-
+          # Находим абсолютно все APK файлы, которые были скачаны из артефактов
+          APKS=$(find downloaded_artifacts -name "*.apk" | tr '\n' ' ')
+  
+          if [ -z "$APKS" ]; then
+            echo "Ошибка: APK файлы не найдены в downloaded_artifacts!"
+            exit 1
+          fi
+  
           cat > release_notes.md <<EOF
-          ${{ steps.build_changelog.outputs.changelog }}
+          # Changelog
+          <details>
+          <summary>Other changes</summary>
+  
+          - Build: update changes — by @MuwMx
+          </details>
           EOF
-
-          gh release create "v${{ needs.check-version.outputs.new_version }}" \
-            --target "${{ github.sha }}" \
-            --title "${{ needs.check-version.outputs.new_version }}" \
-            --notes-file release_notes.md \
-            "$MOBILE_UNIVERSAL_APK" \
-            $OTHER_APKS
+  
+          gh release create "${{ github.ref_name }}" \
+              --title "${{ github.ref_name }}" \
+              --notes-file release_notes.md \
+              $APKS
