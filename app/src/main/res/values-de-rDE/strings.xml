@@ -689,7 +689,7 @@
     <string name="update_notification_title">Update verfügbar</string>
     <string name="update_notification_text">ArchiveTune %s ist jetzt verfügbar</string>
     <string name="download">Herunterladen</string>
-    <string name="permissions_title">Erlaube ArchiveTune am Besten zu funktionieren</string>
+    <string name="permissions_title">Erlaube YumaPlayer am Besten zu funktionieren</string>
     <string name="permissions_subtitle">Wir verwenden einige Berechtigungen um deine Musik zuverlässig zu spielen und verwalten. Diese kannst du jederzeit in den Systemeinstellungen verändern.</string>
     <string name="permission_storage_title">Speicherzugriff</string>
     <string name="permission_storage_desc">Benötigt um deine heruntergeladene und lokale Audiodateien wiederzugeben.</string>

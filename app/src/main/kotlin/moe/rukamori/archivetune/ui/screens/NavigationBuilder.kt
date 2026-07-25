@@ -373,6 +373,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/content") {
         ContentSettings(navController)
     }
+    composable("settings/player") {
+        ContentSettings(navController)
+    }
     composable("settings/lyrics") {
         LyricsSettings(navController)
     }

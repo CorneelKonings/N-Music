@@ -73,12 +73,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -95,6 +89,9 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
@@ -1044,12 +1041,11 @@ private fun LinkChipRow(
                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("Solana Address", solanaAddress)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, "Solana address copied to clipboard!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.solana_address_copied), Toast.LENGTH_SHORT).show()
             },
         )
     }
 }
-
 @Composable
 private fun InteractiveLinkChip(
     label: String,
@@ -1057,29 +1053,18 @@ private fun InteractiveLinkChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.93f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessHigh),
-        label = "chipScale",
-    )
+    val colors = LocalYumaColors.current
+    val shape = RoundedCornerShape(12.dp)
 
-    Surface(
+    Box(
         modifier =
             modifier
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }.clip(RoundedCornerShape(12.dp))
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onClick,
+                .yumaClickable(pressedScale = 0.93f, onClick = onClick)
+                .yumaGlassCard(
+                    shape = shape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
                 ),
-        shape = RoundedCornerShape(12.dp),
-        color = Color.Transparent,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),

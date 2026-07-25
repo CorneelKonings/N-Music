@@ -335,17 +335,23 @@ fun PlayerMenu(
         EqualizerDialog(
             onDismiss = { showEqualizerDialog = false },
             openSystemEqualizer = {
-                val intent =
-                    Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                        putExtra(
-                            AudioEffect.EXTRA_AUDIO_SESSION,
-                            playerConnection.localPlayer.audioSessionId,
-                        )
-                        putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
-                        putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                try {
+                    val intent =
+                        Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                            putExtra(
+                                AudioEffect.EXTRA_AUDIO_SESSION,
+                                playerConnection.localPlayer.audioSessionId,
+                            )
+                            putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                            putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                        }
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        activityResultLauncher.launch(intent)
+                    } else {
+                        Toast.makeText(context, context.getString(R.string.system_equalizer_not_found), Toast.LENGTH_SHORT).show()
                     }
-                if (intent.resolveActivity(context.packageManager) != null) {
-                    activityResultLauncher.launch(intent)
+                } catch (_: Exception) {
+                    Toast.makeText(context, context.getString(R.string.system_equalizer_not_found), Toast.LENGTH_SHORT).show()
                 }
             },
         )

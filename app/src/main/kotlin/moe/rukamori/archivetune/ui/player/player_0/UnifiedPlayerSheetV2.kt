@@ -59,7 +59,9 @@ import android.media.audiofx.AudioEffect
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.LocalPlayerConnection
 import kotlin.math.roundToInt
 
@@ -396,15 +398,21 @@ fun UnifiedPlayerSheetV2(
             EqualizerDialog(
                 onDismiss = { showEqualizerDialog = false },
                 openSystemEqualizer = {
-                    val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                        playerConnection?.localPlayer?.audioSessionId?.let {
-                            putExtra(AudioEffect.EXTRA_AUDIO_SESSION, it)
+                    try {
+                        val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                            playerConnection?.localPlayer?.audioSessionId?.let {
+                                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, it)
+                            }
+                            putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                            putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
                         }
-                        putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
-                        putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-                    }
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        activityResultLauncher.launch(intent)
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            activityResultLauncher.launch(intent)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.system_equalizer_not_found), Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (_: Exception) {
+                        Toast.makeText(context, context.getString(R.string.system_equalizer_not_found), Toast.LENGTH_SHORT).show()
                     }
                 }
             )

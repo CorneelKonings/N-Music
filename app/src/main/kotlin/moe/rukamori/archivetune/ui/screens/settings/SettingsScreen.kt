@@ -13,7 +13,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -24,6 +26,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -124,44 +128,57 @@ fun SettingsScreen(
             settingsGroups.flatMap { it.items }
         }
 
-    Scaffold(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.settings),
-                        fontWeight = FontWeight.Bold,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF14151C),
+                        Color(0xFF090A0E)
                     )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = navController::navigateUp,
-                        onLongClick = navController::backToMain,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = stringResource(R.string.back_button_desc),
-                        )
-                    }
-                },
-                colors =
-                    TopAppBarDefaults.largeTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                scrollBehavior = scrollBehavior,
+                )
             )
-        },
-    ) { innerPadding ->
+    ) {
+        Scaffold(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                LargeFlexibleTopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.settings),
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = navController::navigateUp,
+                            onLongClick = navController::backToMain,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_back),
+                                contentDescription = stringResource(R.string.back_button_desc),
+                            )
+                        }
+                    },
+                    colors =
+                        TopAppBarDefaults.largeTopAppBarColors(
+                            containerColor = Color.Transparent,
+                            scrolledContainerColor = Color.Transparent,
+                        ),
+                    scrollBehavior = scrollBehavior,
+                )
+            },
+        ) { innerPadding ->
         LazyColumn(
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            /* verticalArrangement = Arrangement.spacedBy(2.dp), */
             modifier =
                 Modifier
                     .fillMaxSize()
@@ -227,4 +244,5 @@ fun SettingsScreen(
             }
         }
     }
+}
 }

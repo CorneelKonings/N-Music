@@ -76,6 +76,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
@@ -171,6 +173,84 @@ fun PreferenceEntry(
     isEnabled: Boolean = true,
     shape: Shape? = null,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed && isEnabled && onClick != null) 0.96f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        label = "prefScale",
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0x0DFFFFFF))
+            .then(
+                if (isEnabled && onClick != null) {
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onClick
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .alpha(if (isEnabled) 1f else 0.5f)
+            .padding(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (icon != null) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.CenterVertically),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CompositionLocalProvider(LocalContentColor provides Color.White.copy(alpha = 0.8f)) {
+                        icon()
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+            }
+
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f),
+            ) {
+                ProvideTextStyle(MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold, color = Color.White)) {
+                    title()
+                }
+                if (description != null) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.65f),
+                    )
+                }
+                content?.invoke()
+            }
+
+            if (trailingContent != null) {
+                Spacer(Modifier.width(8.dp))
+                Box(modifier = Modifier.align(Alignment.CenterVertically)) {
+                    trailingContent()
+                }
+            }
+        }
+    }
+
+    /*
     val inGroup = LocalPreferenceInGroup.current
     val groupPosition = LocalPreferenceGroupPosition.current
     val preferenceIconShape = rememberPreferenceIconShape()
@@ -179,75 +259,6 @@ fun PreferenceEntry(
             preferenceItemShapeForPosition(groupPosition)
         }
     val resolvedShape = shape ?: preferenceItemShape
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessHigh),
-        label = "prefScale",
-    )
-
-    val rowContent: @Composable () -> Unit = {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = PreferenceEntryMinHeight)
-                    .then(if (isEnabled && onClick != null) Modifier.focusable() else Modifier)
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = LocalIndication.current,
-                        enabled = isEnabled && onClick != null,
-                        onClick = onClick ?: {},
-                    ).alpha(if (isEnabled) 1f else 0.5f)
-                    .padding(
-                        horizontal = PreferenceEntryHorizontalPadding,
-                        vertical = PreferenceEntryVerticalPadding,
-                    ),
-        ) {
-            if (icon != null) {
-                Box(
-                    modifier =
-                        Modifier
-                            .align(Alignment.CenterVertically)
-                            .size(44.dp)
-                            .clip(preferenceIconShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary) {
-                        icon()
-                    }
-                }
-                Spacer(Modifier.width(16.dp))
-            }
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.weight(1f),
-            ) {
-                ProvideTextStyle(MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) {
-                    title()
-                }
-                if (description != null) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                content?.invoke()
-            }
-
-            if (trailingContent != null) {
-                Spacer(Modifier.width(16.dp))
-                Box(modifier = Modifier.align(Alignment.CenterVertically)) {
-                    trailingContent()
-                }
-            }
-        }
-    }
 
     Card(
         shape = resolvedShape,
@@ -269,6 +280,7 @@ fun PreferenceEntry(
     ) {
         rowContent()
     }
+    */
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1104,7 +1116,7 @@ fun PreferenceGroup(
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = PreferenceGroupHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             scope.items.forEachIndexed { index, itemContent ->
                 val position =

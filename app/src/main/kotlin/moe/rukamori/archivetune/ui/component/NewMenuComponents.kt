@@ -40,6 +40,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 
 @Composable
 fun NewActionButton(
@@ -51,31 +55,31 @@ fun NewActionButton(
     backgroundColor: Color = Color.Unspecified,
     contentColor: Color = Color.Unspecified,
 ) {
-    val containerColor = if (backgroundColor.isSpecified) backgroundColor else MaterialTheme.colorScheme.surfaceContainerHigh
-    val actionContentColor = if (contentColor.isSpecified) contentColor else MaterialTheme.colorScheme.onSurfaceVariant
+    val colors = LocalYumaColors.current
+    val containerColor = if (backgroundColor.isSpecified) backgroundColor else colors.glassBorder.copy(alpha = 0.08f)
+    val actionContentColor = if (contentColor.isSpecified) contentColor else colors.textPrimary
 
-    FilledTonalButton(
-        onClick = onClick,
+    Box(
         modifier =
             modifier
                 .fillMaxWidth()
-                .heightIn(min = 96.dp),
-        enabled = enabled,
-        shape = ButtonDefaults.squareShape,
-        colors =
-            ButtonDefaults.filledTonalButtonColors(
-                containerColor = containerColor,
-                contentColor = actionContentColor,
-            ),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
+                .heightIn(min = 84.dp)
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(16.dp),
+                    backgroundColor = containerColor,
+                    borderColor = colors.glassBorder,
+                )
+                .yumaClickable(enabled = enabled, onClick = onClick)
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Box(
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(24.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 icon()
@@ -83,8 +87,9 @@ fun NewActionButton(
 
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = actionContentColor,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -121,12 +126,11 @@ fun NewMenuItem(
             content()
         }
     } else {
-        Surface(
-            onClick = onClick,
-            enabled = enabled,
-            modifier = modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            color = Color.Transparent,
+        Box(
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .yumaClickable(enabled = enabled, onClick = onClick),
         ) {
             content()
         }
@@ -138,11 +142,12 @@ fun NewMenuSectionHeader(
     text: String,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalYumaColors.current
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
+        color = colors.textSecondary,
         modifier = modifier.padding(horizontal = 20.dp, vertical = 12.dp),
     )
 }
@@ -203,6 +208,7 @@ fun NewMenuContent(
     menuItems: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalYumaColors.current
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -212,8 +218,8 @@ fun NewMenuContent(
 
         if (actionGrid != null && menuItems != null) {
             HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = colors.glassBorder,
             )
         }
 
@@ -230,19 +236,20 @@ fun NewIconButton(
     backgroundColor: Color = Color.Unspecified,
     contentColor: Color = Color.Unspecified,
 ) {
-    val containerColor = if (backgroundColor.isSpecified) backgroundColor else MaterialTheme.colorScheme.surfaceContainerHigh
-    val iconContentColor = if (contentColor.isSpecified) contentColor else MaterialTheme.colorScheme.onSurfaceVariant
+    val colors = LocalYumaColors.current
+    val containerColor = if (backgroundColor.isSpecified) backgroundColor else colors.glassBorder.copy(alpha = 0.08f)
+    val iconContentColor = if (contentColor.isSpecified) contentColor else colors.textPrimary
 
-    FilledTonalIconButton(
-        onClick = onClick,
-        modifier = modifier,
-        enabled = enabled,
-        shapes = IconButtonDefaults.shapes(),
-        colors =
-            IconButtonDefaults.filledTonalIconButtonColors(
-                containerColor = containerColor,
-                contentColor = iconContentColor,
-            ),
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .yumaGlassCard(
+                shape = RoundedCornerShape(12.dp),
+                backgroundColor = containerColor,
+                borderColor = colors.glassBorder
+            )
+            .yumaClickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
         icon()
     }
@@ -257,7 +264,7 @@ fun NewMenuContainer(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 16.dp)
                 .padding(bottom = 32.dp),
     ) {
         content()
@@ -269,10 +276,16 @@ fun MenuSurfaceSection(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Surface(
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = modifier.fillMaxWidth(),
+    val colors = LocalYumaColors.current
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(20.dp),
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                ),
     ) {
         Column(content = content)
     }

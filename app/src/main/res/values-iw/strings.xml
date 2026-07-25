@@ -192,7 +192,7 @@
     <string name="disable_animations">השבתת הנפשות</string>
     <string name="palette_cyberpunk">סייברפאנק</string>
     <string name="added_n_songs_to_n_playlists">נוספו %1$d שירים ל%2$d פלייליסטים</string>
-    <string name="playback_requires_youtube_music_confirmation">אשר את ההפעלה ב- YouTube Music, ולאחר מכן חזור אל ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_confirmation">אשר את ההפעלה ב- YouTube Music, ולאחר מכן חזור אל YumaPlayer.</string>
     <string name="proxy_connection_failed">חיבור הפרוקסי נכשל: %s</string>
     <string name="font_preference_default">ברירת מחדל</string>
     <string name="unknown">לא ידוע</string>
@@ -345,7 +345,7 @@
     <string name="stream_bypass_proxy_desc">השתמש בכתובת ה-IP הישירה שלך להשמעת הזרם כדי למנוע אי-התאמה בכתובות ה-IP</string>
     <string name="external_downloader_not_installed">אפליקציית הורדה חיצונית לא מותקנת</string>
     <string name="sort_by_most_played">הכי מושמע</string>
-    <string name="archivetune_canvas">קנבס ArchiveTune</string>
+    <string name="archivetune_canvas">קנבס YumaPlayer</string>
     <string name="slider_style_wavy">גלי</string>
     <string name="more">עוד</string>
     <string name="pause_on_device_mute">השהה כאשר עוצמת הקול של המכשיר היא 0</string>
@@ -366,7 +366,7 @@
         <item quantity="other">%d שירים</item>
     </plurals>
     <string name="duplicates">כפילויות</string>
-    <string name="widget_tap_to_open">לחץ כדי לפתוח את ArchiveTune</string>
+    <string name="widget_tap_to_open">לחץ כדי לפתוח את YumaPlayer</string>
     <string name="queue_autoplaying_similar">הפעלה אוטומטית של מוזיקה דומה</string>
     <string name="eq_waiting_for_audio_session">ממתין לסשן שמע</string>
     <string name="shuffle">ערבוב</string>
@@ -793,7 +793,7 @@
     <string name="update_notification_title">עדכון זמין</string>
     <string name="update_notification_text">ArchiveTune %s זמין כעת</string>
     <string name="download">הורדה</string>
-    <string name="permissions_title">אפשר ל-ArchiveTune לפעול בצורה הטובה ביותר</string>
+    <string name="permissions_title">אפשר ל-YumaPlayer לפעול בצורה הטובה ביותר</string>
     <string name="permissions_subtitle">אנו משתמשים במספר הרשאות כדי להשמיע ולנהל את המוזיקה שלך בצורה אמינה. ניתן לשנות אותן בכל עת בהגדרות המערכת.</string>
     <string name="permission_storage_title">גישה לאחסון</string>
     <string name="permission_storage_desc">נדרש לקריאת קבצי אודיו שהורדת ומקומיים לצורך השמעה.</string>
@@ -853,10 +853,10 @@
     <string name="together_error_state">שגיאה</string>
     <string name="got_it">הבנתי</string>
     <string name="together_dont_show_again">אל תציג את זה שוב</string>
-    <string name="together_welcome_title">ברוכים הבאים ל-ArchiveTune ביחד</string>
+    <string name="together_welcome_title">ברוכים הבאים ל-YumaPlayer ביחד</string>
     <string name="together_welcome_body">Music Together מאפשר למספר מכשירים לשתף סשן חי עם תור מסונכרן והשמעה.</string>
     <string name="together_welcome_host_title">אירוח סשן</string>
-    <string name="together_welcome_host_body">הקישו על התחל סשן, לאחר מכן שתפו את קישור הסשן. השאירו את ArchiveTune פתוח ברקע בזמן האירוח.</string>
+    <string name="together_welcome_host_body">הקישו על התחל סשן, לאחר מכן שתפו את קישור הסשן. השאירו את YumaPlayer פתוח ברקע בזמן האירוח.</string>
     <string name="together_welcome_join_title">הצטרפות ממכשיר אחר</string>
     <string name="together_welcome_join_body">פתחו את הקישור המשותף, או הזינו את הקוד והקישו על הצטרף. התור וההשמעה שלכם יעקבו אחר המארח.</string>
     <string name="together_welcome_permissions_title">הרשאות ובטיחות</string>
@@ -954,18 +954,18 @@
     <string name="updates_channel_warning_acknowledgement">הערה: הורדה מ-Github עוקפת ישירות כל סינון נוסף שבוצע על ידי החנות שממנה ייתכן שהתקנת את האפליקציה במקור.\nבהמשך השימוש, הנך מאשר כי גרסאות ליליות עשויות להיות לא יציבות וכי השימוש בהן על אחריותך בלבד.</string>
     <string name="updates_daily_channel_confirmation">עבור לערוץ היומי כדי לקבל עדכונים מהמאגר היומי-לילי.\n\nגרסאות יומיות מתפרסמות אוטומטית בכל יום מענף הפיתוח האחרון.\nהערה: הורדה מ-Github עוקפת ישירות כל סינון נוסף שבוצע על ידי החנות שממנה התקנת את האפליקציה במקור.</string>
     <string name="download_complete">ההורדה הושלמה</string>
-    <string name="onboarding_welcome_title">ברוכים הבאים ל- ArchiveTune</string>
+    <string name="onboarding_welcome_title">ברוכים הבאים ל- YumaPlayer</string>
     <string name="onboarding_welcome_subtitle">הגדר השמעה, מוזיקה מקומית ועדכון הרשאות לפני שתתחיל להאזין.</string>
     <string name="onboarding_permissions_title">בדיקת הרשאות</string>
     <string name="onboarding_permissions_subtitle">הענק רק את מה שאתה רוצה כעת. תוכל להמשיך ולאפשר הרשאות מאוחר יותר.</string>
     <string name="onboarding_community_title">הישארו מחוברים</string>
-    <string name="onboarding_community_subtitle">עקבו אחר הפיתוח, דווחו על בעיות או תמכו ב-ArchiveTune.</string>
+    <string name="onboarding_community_subtitle">עקבו אחר הפיתוח, דווחו על בעיות או תמכו ב-YumaPlayer.</string>
     <string name="onboarding_finish">התחל להאזין</string>
     <string name="onboarding_gms_variant">מהדורת GMS</string>
     <string name="onboarding_foss_variant">מהדורת FOSS</string>
     <string name="onboarding_version_label">גרסה %1$s</string>
     <string name="onboarding_empty_title">הגדרה לא זמינה</string>
-    <string name="onboarding_empty_subtitle">המשך ל-ArchiveTune.</string>
+    <string name="onboarding_empty_subtitle">המשך ל-YumaPlayer.</string>
     <string name="onboarding_error_generic">לא ניתן היה לטעון את ההגדרות</string>
     <string name="onboarding_permission_allowed_by_install">מורשה על ידי התקנה</string>
     <string name="onboarding_permission_unavailable">לא זמין</string>

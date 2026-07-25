@@ -292,7 +292,7 @@
     <string name="contrast">Контраст</string>
     <string name="brightness">Яркость</string>
     <string name="custom_value">Пользовательское</string>
-    <string name="archivetune_canvas">ArchiveTune Canvas</string>
+    <string name="archivetune_canvas">YumaPlayer Canvas</string>
     <string name="archivetune_canvas_desc">Анимировать обложку альбома при воспроизведении (С помощью BetterLyrics)</string>
     <string name="show_button1_description">Включить видимость кнопки 1 в Discord Rich Presence</string>
     <string name="show_button2_description">Включить видимость кнопки 2 в Discord Rich Presence</string>
@@ -528,9 +528,9 @@
     <string name="update_notification_channel_name">Обновления приложения</string>
     <string name="update_notification_channel_desc">Уведомления для новых обновлений приложения</string>
     <string name="update_notification_title">Доступно обновление</string>
-    <string name="update_notification_text">ArchiveTune %s теперь доступен</string>
+    <string name="update_notification_text">YumaPlayer %s теперь доступен</string>
     <string name="download">Загрузить</string>
-    <string name="permissions_title">Разрешите ArchiveTune работать лучше</string>
+    <string name="permissions_title">Разрешите YumaPlayer работать лучше</string>
     <string name="permissions_subtitle">Мы используем несколько разрешений чтобы надёжно воспроизводить и управлять вашей музыкой. Вы всегда можете изменить их в системных настройках.</string>
     <string name="permission_storage_title">Доступ к хранилищу</string>
     <string name="permission_storage_desc">Необходим чтобы читать ваши загруженные и локальные аудиофайлы для воспроизведения.</string>
@@ -539,7 +539,7 @@
     <string name="allow">Разрешить</string>
     <string name="you_might_like">Вам может понравиться</string>
     <string name="refresh_suggestions">Обновить предложения</string>
-    <string name="music_together">ArchiveTune Music Together</string>
+    <string name="music_together">YumaPlayer Music Together</string>
     <string name="together_display_name">Отображаемое имя</string>
     <string name="together_display_name_placeholder">Ваше имя</string>
     <string name="together_port">Порт сессии</string>

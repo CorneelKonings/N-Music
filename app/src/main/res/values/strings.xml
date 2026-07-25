@@ -121,7 +121,7 @@
     <string name="radio">Radio</string>
     <string name="cast">Cast</string>
     <string name="cast_devices">Cast devices</string>
-    <string name="cast_sheet_subtitle">Choose where ArchiveTune plays</string>
+    <string name="cast_sheet_subtitle">Choose where YumaPlayer plays</string>
     <string name="cast_available_devices">Available devices</string>
     <string name="cast_searching_devices">Searching for devices</string>
     <string name="cast_no_devices">No Cast devices found</string>
@@ -140,7 +140,7 @@
     <string name="play">Play</string>
     <string name="widget_pause">Pause</string>
     <string name="widget_previous">Previous</string>
-    <string name="widget_tap_to_open">Tap to open ArchiveTune</string>
+    <string name="widget_tap_to_open">Tap to open YumaPlayer</string>
     <string name="widget_insights_title">Listening Insights</string>
     <string name="widget_recommendations">Recommendations</string>
     <string name="widget_listening_time_empty">No listening time yet</string>
@@ -324,7 +324,7 @@
     <string name="app_icon_available">Available icons</string>
     <string name="app_icon_builtin">Built in</string>
     <string name="app_icon_community">Community icon</string>
-    <string name="app_icon_builtin_description">Original ArchiveTune icon</string>
+    <string name="app_icon_builtin_description">Original YumaPlayer icon</string>
     <string name="app_icon_identifier">ID %1$s</string>
     <string name="app_icon_community_notice">Community icons are created by users and may change over time.</string>
     <plurals name="app_icon_count">
@@ -433,7 +433,7 @@
     <string name="contrast">Contrast</string>
     <string name="brightness">Brightness</string>
     <string name="custom_value">Custom value</string>
-    <string name="archivetune_canvas">ArchiveTune Canvas</string>
+    <string name="archivetune_canvas">YumaPlayer Canvas</string>
     <string name="archivetune_canvas_desc">Animate album artwork while playing (Powered by BetterLyrics)</string>
     <string name="player_background_style_v8_v9_desc">Unavailable with V8 and V9 player styles</string>
     <string name="show_button1_description">Toggle visibility of button 1 in Discord Rich Presence</string>
@@ -476,9 +476,9 @@
     <string name="login">Login</string>
     <string name="not_logged_in">Not logged in</string>
     <string name="playback_confirmation_required">Playback confirmation required</string>
-    <string name="playback_requires_youtube_music_confirmation">Confirm playback in YouTube Music, then return to ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_confirmation">Confirm playback in YouTube Music, then return to YumaPlayer.</string>
     <string name="playback_login_refresh_required">Refresh YouTube Music login</string>
-    <string name="playback_requires_youtube_music_login_refresh">Refresh your YouTube Music login, then return to ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_login_refresh">Refresh your YouTube Music login, then return to YumaPlayer.</string>
     <string name="could_not_open_youtube_music">Could not open YouTube Music</string>
     <string name="playback_error_code">Code</string>
     <string name="playback_error_http">HTTP</string>
@@ -562,6 +562,8 @@
     <string name="tap_to_activate_equalizer">Tap to activate equalizer</string>
     <string name="eq_waiting_for_audio_session">Waiting for audio session</string>
     <string name="eq_open_system_equalizer">Open system equalizer</string>
+    <string name="solana_address_copied">Solana address copied to clipboard!</string>
+    <string name="system_equalizer_not_found">System equalizer not found on this device</string>
     <string name="eq_presets">Presets</string>
     <string name="eq_flat">Flat</string>
     <string name="eq_profiles">Profiles</string>
@@ -637,12 +639,12 @@
     <string name="restore_failed">Failed to restore backup</string>
     <string name="discord_integration">Discord Integration</string>
     <string name="account_integrations_summary">Discord, Last.fm, Libre.fm, ListenBrainz</string>
-    <string name="discord_login_description">Connect your Discord account with OAuth so ArchiveTune can publish Rich Presence.</string>
+    <string name="discord_login_description">Connect your Discord account with OAuth so YumaPlayer can publish Rich Presence.</string>
     <string name="discord_open_authorization">Open Discord authorization</string>
     <string name="discord_waiting_for_authorization">Waiting for Discord authorization...</string>
     <string name="discord_authorization_success">Discord account connected</string>
     <string name="discord_authorization_failed">Discord authorization failed</string>
-    <string name="discord_account_ready">ArchiveTune is ready to publish Rich Presence for your listening session.</string>
+    <string name="discord_account_ready">YumaPlayer is ready to publish Rich Presence for your listening session.</string>
     <string name="discord_reauthorize_required_title">Discord session expired</string>
     <string name="discord_reauthorize_required_description">Rich Presence cannot be shown until you authorize Discord again.</string>
     <string name="discord_reauthorize_action">Reauthorize</string>
@@ -857,10 +859,10 @@
     <string name="update_notification_channel_name">App Updates</string>
     <string name="update_notification_channel_desc">Notifications for new app updates</string>
     <string name="update_notification_title">Update Available</string>
-    <string name="update_notification_text">ArchiveTune %s is now available</string>
+    <string name="update_notification_text">YumaPlayer %s is now available</string>
     <string name="download">Download</string>
     <string name="download_complete">Download complete</string>
-    <string name="permissions_title">Allow ArchiveTune to work best</string>
+    <string name="permissions_title">Allow YumaPlayer to work best</string>
     <string name="permissions_subtitle">We use a few permissions to play and manage your music reliably. You can change these anytime in system settings.</string>
     <string name="permission_storage_title">Storage access</string>
     <string name="permission_storage_desc">Required to read your downloaded and local audio files for playback.</string>

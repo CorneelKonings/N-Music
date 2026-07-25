@@ -653,7 +653,7 @@
     <string name="update_notification_title">Pembaruan Tersedia</string>
     <string name="update_notification_text">ArchiveTune %s kini tersedia</string>
     <string name="download">Unduh</string>
-    <string name="permissions_title">Izinkan ArchiveTune bekerja dengan optimal</string>
+    <string name="permissions_title">Izinkan YumaPlayer bekerja dengan optimal</string>
     <string name="permissions_subtitle">Kami menggunakan beberapa izin untuk memutar dan mengelola musik Anda dengan andal. Anda dapat mengubahnya kapan saja di pengaturan sistem.</string>
     <string name="permission_storage_title">Akses penyimpanan</string>
     <string name="permission_storage_desc">Diperlukan untuk membaca file audio lokal dan unduhan Anda untuk diputar.</string>
@@ -801,7 +801,7 @@
     <string name="library_top_mixes_refresh">Segarkan mix</string>
     <string name="library_top_mixes_configure_ai">Konfigurasikan AI</string>
     <string name="library_top_mixes_ai_not_configured_title">Konfigurasikan AI untuk membuat mix</string>
-    <string name="library_top_mixes_ai_not_configured_desc">Integrasi AI diperlukan sebelum ArchiveTune dapat membuat mix teratas pribadi.</string>
+    <string name="library_top_mixes_ai_not_configured_desc">Integrasi AI diperlukan sebelum YumaPlayer dapat membuat mix teratas pribadi.</string>
     <string name="library_top_mixes_no_recent_history_title">Tidak ada riwayat mix mendengarkan saat ini</string>
     <string name="library_top_mixes_no_recent_history">Dengarkan lagu lainnya, kemudian segarkan untuk membuat mix AI dari riwayat mendengarkan anda.</string>
     <string name="library_top_mixes_failed">Gagal membuat mix teratas</string>

@@ -254,11 +254,7 @@ class PlayerViewModel @Inject constructor(
                 saveLyrics(action.text)
             }
             is PlayerAction.StartRadio -> playerConnection?.startRadioSeamlessly()
-            is PlayerAction.OpenArtist -> { /* Open artist */ }
-            is PlayerAction.OpenAlbum -> { /* Open album */ }
-            is PlayerAction.AddToPlaylist -> { /* Add to playlist */ }
-            is PlayerAction.TogglePin -> { /* Toggle pin */ }
-            else -> { /* Фолбэк для остальных экшенов */ }
+            else -> { /* Обработка в UI или узкоспециализированных холдерах */ }
         }
     }
 

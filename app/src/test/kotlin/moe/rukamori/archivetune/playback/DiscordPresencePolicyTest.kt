@@ -4,11 +4,11 @@
  * GPL-3.0 License | Contributors: see git history
  */
 
-package re.muwmix.yumaplayer.playback
+package moe.rukamori.archivetune.playback
 
 import androidx.media3.common.Player
-import re.muwmix.yumaplayer.db.entities.Song
-import re.muwmix.yumaplayer.db.entities.SongEntity
+import moe.rukamori.archivetune.db.entities.Song
+import moe.rukamori.archivetune.db.entities.SongEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test

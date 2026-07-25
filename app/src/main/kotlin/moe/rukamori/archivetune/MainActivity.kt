@@ -2193,7 +2193,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeIn(tween(250))
                                         } else {
-                                            fadeIn(tween(250)) + slideInHorizontally { it / 2 }
+                                            fadeIn(tween(250)) + slideInHorizontally { it }
                                         }
                                     },
                                     exitTransition = {
@@ -2204,7 +2204,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeOut(tween(200))
                                         } else {
-                                            fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
+                                            fadeOut(tween(200)) + slideOutHorizontally { -it }
                                         }
                                     },
                                     popEnterTransition = {
@@ -2218,7 +2218,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeIn(tween(250))
                                         } else {
-                                            fadeIn(tween(250)) + slideInHorizontally { -it / 2 }
+                                            fadeIn(tween(250)) + slideInHorizontally { -it }
                                         }
                                     },
                                     popExitTransition = {
@@ -2232,7 +2232,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeOut(tween(200))
                                         } else {
-                                            fadeOut(tween(200)) + slideOutHorizontally { it / 2 }
+                                            fadeOut(tween(200)) + slideOutHorizontally { it }
                                         }
                                     },
                                     modifier =

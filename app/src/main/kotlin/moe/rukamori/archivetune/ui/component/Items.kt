@@ -148,24 +148,10 @@ inline fun ListItem(
     crossinline trailingContent: @Composable RowScope.() -> Unit = {},
     isActive: Boolean = false,
 ) {
-    val titleColor =
-        if (isActive) {
-            MaterialTheme.colorScheme.onSecondaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        }
-    val subtitleContentColor =
-        if (isActive) {
-            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        }
-    val trailingContentColor =
-        if (isActive) {
-            MaterialTheme.colorScheme.onSecondaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        }
+    val yumaColors = moe.rukamori.archivetune.ui.theme.LocalYumaColors.current
+    val titleColor = if (isActive) yumaColors.textPrimary else yumaColors.textPrimary.copy(alpha = 0.85f)
+    val subtitleContentColor = if (isActive) yumaColors.textPrimary.copy(alpha = 0.75f) else yumaColors.textSecondary
+    val trailingContentColor = if (isActive) yumaColors.textPrimary else yumaColors.textSecondary
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -178,7 +164,7 @@ inline fun ListItem(
                     if (isActive) {
                         Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                            .background(yumaColors.glassBorder.copy(alpha = 0.2f))
                     } else {
                         Modifier
                     },

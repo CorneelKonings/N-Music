@@ -8,12 +8,9 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,8 +57,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import coil3.compose.AsyncImage
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
+
+private val localFont = FontFamily(
+    Font(R.font.google_sans_regular, FontWeight.Normal),
+    Font(R.font.google_sans_bold, FontWeight.Bold)
+)
 
 @Composable
 fun SettingsProfileHeader(
@@ -258,31 +265,19 @@ fun SettingsUpdateBanner(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) SettingsAnimations.PressScale else 1f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "updateScale",
-    )
+    val colors = LocalYumaColors.current
+    val shape = RoundedCornerShape(SettingsDimensions.BannerCardCornerRadius)
 
-    Card(
+    Box(
         modifier =
             modifier
                 .fillMaxWidth()
-                .scale(scale)
-                .focusable()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onClick,
-                ),
-        shape = RoundedCornerShape(SettingsDimensions.BannerCardCornerRadius),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                .yumaGlassCard(
+                    shape = shape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                )
+                .yumaClickable(onClick = onClick),
     ) {
         Row(
             modifier =
@@ -344,35 +339,29 @@ fun SettingsGroupCard(
     group: SettingsGroup,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalYumaColors.current
     Column(modifier = modifier) {
         Text(
             text = group.title.uppercase(),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = colors.textSecondary,
             letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing * 1.2f,
             modifier =
                 Modifier.padding(
-                    horizontal = SettingsDimensions.SectionHeaderHorizontalPadding,
-                    vertical = SettingsDimensions.SectionHeaderBottomPadding,
+                    horizontal = 12.dp,
+                    vertical = 8.dp,
                 ),
         )
 
-        Card(
-            shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column {
-                group.items.forEachIndexed { index, item ->
-                    SettingsRow(
-                        item = item,
-                        showDivider = index < group.items.size - 1,
-                    )
-                }
+            group.items.forEach { item ->
+                SettingsRow(
+                    item = item,
+                    showDivider = false,
+                )
             }
         }
     }
@@ -384,46 +373,56 @@ fun SettingsRow(
     showDivider: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalYumaColors.current
     val effectiveAccent =
         if (item.accentColor.isSpecified) {
             item.accentColor
         } else {
-            MaterialTheme.colorScheme.primary
+            colors.textPrimary
         }
 
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "rowScale",
-    )
-    val bgAlpha by animateFloatAsState(
-        targetValue = if (isPressed) 0.06f else 0f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "rowBgAlpha",
-    )
-
-    Column(modifier = modifier) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .yumaClickable(onClick = item.onClick)
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(16.dp),
+                )
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
         Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                    }.background(MaterialTheme.colorScheme.primary.copy(alpha = bgAlpha))
-                    .focusable()
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = item.onClick,
-                    ).padding(
-                        horizontal = SettingsDimensions.RowHorizontalPadding,
-                        vertical = SettingsDimensions.RowVerticalPadding,
-                    ),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (item.showUpdateIndicator) {
+                BadgedBox(
+                    badge = {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(8.dp),
+                        )
+                    },
+                ) {
+                    Icon(
+                        painter = item.icon,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.8f),
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            } else {
+                Icon(
+                    painter = item.icon,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            /*
             Box(
                 modifier =
                     Modifier
@@ -432,53 +431,35 @@ fun SettingsRow(
                         .background(effectiveAccent.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {
-                if (item.showUpdateIndicator) {
-                    BadgedBox(
-                        badge = {
-                            Badge(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(8.dp),
-                            )
-                        },
-                    ) {
-                        Icon(
-                            painter = item.icon,
-                            contentDescription = null,
-                            tint = effectiveAccent,
-                            modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
-                        )
-                    }
-                } else {
-                    Icon(
-                        painter = item.icon,
-                        contentDescription = null,
-                        tint = effectiveAccent,
-                        modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
-                    )
-                }
+                ...
             }
-
             Spacer(modifier = Modifier.width(14.dp))
+            */
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = localFont,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 item.subtitle?.let { subtitle ->
-                    Spacer(modifier = Modifier.height(1.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
                         color =
                             if (item.showUpdateIndicator) {
                                 effectiveAccent
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
+                                Color.White.copy(alpha = 0.65f)
                             },
-                        maxLines = 1,
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        fontFamily = localFont,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -558,79 +539,53 @@ fun SettingsSegmentedItem(
         } else {
             MaterialTheme.colorScheme.surface
         }
-    val shape = remember(index, count) { segmentedSettingsItemShape(index, count) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) SettingsAnimations.PressScale else 1f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "settingsSegmentScale",
-    )
+    /* val shape = remember(index, count) { segmentedSettingsItemShape(index, count) } */
+    val shape = RoundedCornerShape(16.dp)
+    val colors = LocalYumaColors.current
 
-    Card(
+    Box(
         modifier =
             modifier
                 .fillMaxWidth()
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }.clip(shape)
-                .focusable()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = item.onClick,
+                .yumaClickable(onClick = item.onClick)
+                .yumaGlassCard(
+                    shape = shape,
                 ),
-        shape = shape,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 88.dp)
-                    .padding(horizontal = 22.dp, vertical = 14.dp),
+                    .heightIn(min = 76.dp)
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(52.dp)
-                        .clip(CircleShape)
-                        .background(effectiveAccent),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (item.showUpdateIndicator) {
-                    BadgedBox(
-                        badge = {
-                            Badge(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(9.dp),
-                            )
-                        },
-                    ) {
-                        Icon(
-                            painter = item.icon,
-                            contentDescription = null,
-                            tint = iconContentColor,
-                            modifier = Modifier.size(26.dp),
+            if (item.showUpdateIndicator) {
+                BadgedBox(
+                    badge = {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(8.dp),
                         )
-                    }
-                } else {
+                    },
+                ) {
                     Icon(
                         painter = item.icon,
                         contentDescription = null,
-                        tint = iconContentColor,
-                        modifier = Modifier.size(26.dp),
+                        tint = Color.White.copy(alpha = 0.8f),
+                        modifier = Modifier.size(24.dp),
                     )
                 }
+            } else {
+                Icon(
+                    painter = item.icon,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.size(24.dp),
+                )
             }
 
-            Spacer(modifier = Modifier.width(18.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -638,9 +593,10 @@ fun SettingsSegmentedItem(
             ) {
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = localFont,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -648,9 +604,11 @@ fun SettingsSegmentedItem(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        fontFamily = localFont,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -670,6 +628,14 @@ fun SettingsSegmentedItem(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_right),
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.3f),
+                modifier = Modifier.size(24.dp),
+            )
         }
     }
 }

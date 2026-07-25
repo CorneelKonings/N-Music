@@ -63,7 +63,7 @@ fun buildSettingsGroups(
                             title = stringResource(R.string.settings_playback_title),
                             subtitle = stringResource(R.string.settings_playback_subtitle),
                             accentColor = MaterialTheme.colorScheme.tertiary,
-                            onClick = { navController.navigate("settings/player") },
+                            onClick = { navController.navigate("settings/content") },
                         ),
                         SettingsItem(
                             key = "behavior",

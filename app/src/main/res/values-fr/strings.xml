@@ -445,7 +445,7 @@
     <string name="update_notification_channel_name">Mises à jour de l\'application</string>
     <string name="update_notification_channel_desc">Notifications pour les nouvelles mises à jour de l\'application</string>
     <string name="update_notification_title">Mise à jour disponible</string>
-    <string name="update_notification_text">ArchiveTune %s est désormais disponible</string>
+    <string name="update_notification_text">YumaPlayer %s est désormais disponible</string>
     <string name="download">Télécharger</string>
     <string name="added_to_playlist">Ajouté à %s</string>
     <string name="added_n_songs_to_playlist">Ajout de %1$d titres à %2$s</string>
@@ -453,7 +453,7 @@
     <string name="added_n_songs_to_n_playlists">Ajout de %1$d titres à %2$d playlists</string>
     <string name="smart_trimmer">Smart Trimmer</string>
     <string name="smart_trimmer_description">Smart Trimmer gère de manière dynamique le cache d\'images et le cache des titres, en supprimant les anciennes entrées afin d\'économiser de l\'espace disque.</string>
-    <string name="permissions_title">Permettre à ArchiveTune de fonctionner de manière optimale</string>
+    <string name="permissions_title">Permettre à YumaPlayer de fonctionner de manière optimale</string>
     <string name="permissions_subtitle">Nous utilisons quelques autorisations pour lire et gérer votre musique de manière fiable. Vous pouvez les modifier à tout moment dans les paramètres système.</string>
     <string name="permission_storage_title">Accès au stockage</string>
     <string name="permission_storage_desc">Nécessaire pour lire vos fichiers audio téléchargés et locaux en vue de leur lecture.</string>
@@ -512,7 +512,7 @@
     <string name="pitch_mode_multiplier_short">x</string>
     <string name="archivetune_canvas_desc">Animer les pochettes d\'album pendant la lecture (technologie BetterLyrics)</string>
     <string name="restore_success">Sauvegarde restaurée avec succès</string>
-    <string name="archivetune_canvas">ArchiveTune Canvas</string>
+    <string name="archivetune_canvas">YumaPlayer Canvas</string>
     <string name="change_playlist_cover">Changer la couverture de la playlist</string>
     <string name="together_participants">Participants</string>
     <string name="together_connected_count">%1$d connectés</string>
@@ -537,7 +537,7 @@
     <string name="no_releases">Aucune version disponible</string>
     <string name="you_might_like">Vous pourriez aimer</string>
     <string name="refresh_suggestions">Actualiser les suggestions</string>
-    <string name="music_together">ArchiveTune Music Together</string>
+    <string name="music_together">YumaPlayer Music Together</string>
     <string name="together_display_name">Nom d\'affichage</string>
     <string name="together_display_name_placeholder">Votre nom</string>
     <string name="together_port">Port de session</string>
@@ -583,10 +583,10 @@
     <string name="together_error_state">Erreur</string>
     <string name="got_it">Compris</string>
     <string name="together_dont_show_again">Ne plus afficher ce message</string>
-    <string name="together_welcome_title">Bienvenue sur ArchiveTune Music Together</string>
+    <string name="together_welcome_title">Bienvenue sur YumaPlayer Music Together</string>
     <string name="together_welcome_body">Music Together permet à plusieurs appareils de partager une session en direct avec une file d\'attente et une lecture synchronisées.</string>
     <string name="together_welcome_host_title">Organiser une session</string>
-    <string name="together_welcome_host_body">Appuyez sur « Démarrer la session », puis partagez le lien de la session. Laissez ArchiveTune ouvert en arrière-plan pendant l\'hébergement.</string>
+    <string name="together_welcome_host_body">Appuyez sur « Démarrer la session », puis partagez le lien de la session. Laissez YumaPlayer ouvert en arrière-plan pendant l\'hébergement.</string>
     <string name="together_welcome_join_title">Se connecter depuis un autre appareil</string>
     <string name="together_welcome_join_body">Ouvrez le lien partagé ou saisissez le code et appuyez sur Rejoindre. Votre file d\'attente et la lecture suivront celle de l\'hôte.</string>
     <string name="together_welcome_permissions_title">Autorisations et sécurité</string>
@@ -636,9 +636,9 @@
     <string name="blur_intensity">Intensité du flou</string>
     <string name="blur_intensity_value">%1$d dp</string>
     <string name="playback_confirmation_required">Confirmation de lecture requise</string>
-    <string name="playback_requires_youtube_music_confirmation">Confirmez la lecture dans YouTube Music, puis retournez dans ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_confirmation">Confirmez la lecture dans YouTube Music, puis retournez dans YumaPlayer.</string>
     <string name="playback_login_refresh_required">Actualiser la connexion à YouTube Music</string>
-    <string name="playback_requires_youtube_music_login_refresh">Actualisez votre connexion YouTube Music, puis retournez sur ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_login_refresh">Actualisez votre connexion YouTube Music, puis retournez sur YumaPlayer.</string>
     <string name="wakelock">Maintenir le processeur actif pendant la lecture</string>
     <string name="wakelock_desc">Empêche le système d\'interrompre la lecture musicale en maintenant un verrou de réveil du processeur</string>
     <string name="external_downloader">Téléchargeur Externe</string>
