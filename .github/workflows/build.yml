@@ -217,7 +217,7 @@ jobs:
         with:
           releaseDir: ${{ steps.release_dir.outputs.release_dir }}/
           signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
-          keyAlias: ${{ secrets.KEY_ALIAS }}
+          keyAlias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
           buildToolsVersion: 35.0.0
