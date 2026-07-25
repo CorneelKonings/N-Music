@@ -193,7 +193,7 @@ class AboutContributorsRepository
 
         private companion object {
             const val ContributorsLimit = 20
-            const val GitHubOwner = "ArchiveTuneApp"
-            const val GitHubRepo = "ArchiveTune"
+            const val GitHubOwner = "MuwMix"
+            const val GitHubRepo = "YumaPlayer"
         }
     }

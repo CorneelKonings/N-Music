@@ -345,7 +345,7 @@ fun DiscordSettings(navController: NavController) {
     val (button2CustomUrl) =
         rememberPreference(
             key = DiscordActivityButton2CustomUrlKey,
-            defaultValue = "https://github.com/ArchiveTuneApp/ArchiveTune",
+            defaultValue = "https://github.com/MuwMx/YumaPlayer",
         )
 
     val (activityType, onActivityTypeChange) =
@@ -1230,7 +1230,7 @@ fun RichPresence(
     button2Label: String = "Go to ArchiveTune",
     button2Enabled: Boolean = true,
     button2UrlSource: String = "custom",
-    button2CustomUrl: String = "https://github.com/ArchiveTuneApp/ArchiveTune",
+    button2CustomUrl: String = "https://github.com/MuwMx/YumaPlayer",
     isPlaying: Boolean = false,
 ) {
     val context = LocalContext.current

@@ -83,7 +83,7 @@ fun StarDialog(
 
             FilledTonalButton(
                 onClick = {
-                    uriHandler.openUri("https://github.com/ArchiveTuneApp/ArchiveTune")
+                    uriHandler.openUri("https://github.com/MuwMx/YumaPlayer")
                     onSupport()
                 },
                 modifier = Modifier.fillMaxWidth(),
