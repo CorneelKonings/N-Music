@@ -815,6 +815,43 @@ private fun AboutSuccessContent(
             }
         }
 
+        item(key = "support", contentType = "about_support") {
+            AboutContentContainer {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "☕ Support the project / Buy me a coffee",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "• Ko-fi: https://ko-fi.com/muwmix",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable { onOpenUri("https://ko-fi.com/muwmix") }
+                        )
+                        Text(
+                            text = "• Solana (SOL):\nDT3ckdbNuiQMR1mrCpBXCMrhLB19GckVv3YfxsLLiF8z",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
         /*
          * ====================================================================
          * ЗАКОММЕНТИРОВАНО: Секции команды, респектеров и контрибьюторов

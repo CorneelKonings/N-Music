@@ -184,19 +184,19 @@ class AboutViewModel @Inject constructor(
                 id = "telegram",
                 iconResId = R.drawable.ic_telegram,
                 labelResId = R.string.about_content_desc_telegram,
-                url = "https://t.me/YOUR_TELEGRAM", // 👈 ЗАМЕНИ НА СВОЙ ТЕЛЕГРАМ
+                url = "https://t.me/spot_app_player",
             ),
             AboutLinkUiModel(
                 id = "github",
                 iconResId = R.drawable.ic_github,
                 labelResId = R.string.about_content_desc_github,
-                url = "https://github.com/MuwMx/YumaPlayer", // 👈 ЗАМЕНИ НА СВОЙ РЕПОЗИТОРИЙ
+                url = "https://github.com/MuwMx/YumaPlayer",
             ),
             AboutLinkUiModel(
                 id = "donate",
                 iconResId = R.drawable.ic_coffe,
                 labelResId = R.string.about_content_desc_donate,
-                url = "https://ko-fi.com/muwmix", // 👈 ЗАМЕНИ НА СВОЙ ДОНАТ
+                url = "https://ko-fi.com/muwmix",
             ),
         ),
         leadDeveloper = TeamMember(
