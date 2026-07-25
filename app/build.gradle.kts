@@ -37,11 +37,11 @@ val hasReleaseSigningConfig =
         releaseKeyPassword != null
 
 android {
-    namespace = "moe.rukamori.archivetune"
+    namespace = "re.muwmix.yumaplayer"
     compileSdk = 37
 
     defaultConfig {
-    applicationId = "moe.rukamori.archivetune"
+    applicationId = "re.muwmix.yumaplayer"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
