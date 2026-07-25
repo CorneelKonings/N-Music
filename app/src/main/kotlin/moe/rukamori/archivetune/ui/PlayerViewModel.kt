@@ -253,10 +253,20 @@ class PlayerViewModel @Inject constructor(
             is PlayerAction.SaveLyrics -> {
                 saveLyrics(action.text)
             }
-            is PlayerAction.TranslateLyrics -> {
-                translateLyrics(action.langCode, action.useAi)
-            }
-            else -> { /* Временный фолбэк для остальных экшенов */ }
+            is PlayerAction.StartRadio -> playerConnection?.startRadioSeamlessly()
+            is PlayerAction.OpenArtist -> { /* Open artist */ }
+            is PlayerAction.OpenAlbum -> { /* Open album */ }
+            is PlayerAction.AddToPlaylist -> { /* Add to playlist */ }
+            is PlayerAction.TogglePin -> { /* Toggle pin */ }
+            else -> { /* Фолбэк для остальных экшенов */ }
+        }
+    }
+
+    fun requestSheetCollapse() {
+        _uiState.update { it.copy(isSheetCollapseRequested = true) }
+        viewModelScope.launch {
+            delay(150)
+            _uiState.update { it.copy(isSheetCollapseRequested = false) }
         }
     }
 

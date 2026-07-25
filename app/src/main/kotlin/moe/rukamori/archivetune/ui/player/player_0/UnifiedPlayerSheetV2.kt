@@ -51,6 +51,16 @@ import moe.rukamori.archivetune.ui.player.player_0.sett.PlayerMenuScreen
 import moe.rukamori.archivetune.ui.state.PlayerSheetState
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
+import moe.rukamori.archivetune.ui.menu.EqualizerDialog
+import moe.rukamori.archivetune.ui.menu.TempoPitchDialog
+import moe.rukamori.archivetune.ui.menu.AddToPlaylistDialog
+import androidx.activity.compose.BackHandler
+import android.media.audiofx.AudioEffect
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import moe.rukamori.archivetune.LocalPlayerConnection
 import kotlin.math.roundToInt
 
 @Composable
@@ -70,10 +80,17 @@ fun UnifiedPlayerSheetV2(
     onLyricsClick: () -> Unit = {}
 ) {
     val density = LocalDensity.current
+    val context = LocalContext.current
+    val playerConnection = LocalPlayerConnection.current
+
+    val activityResultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
 
     var isLyricsMenuVisible by remember { mutableStateOf(false) }
     var showSettingsMenu by remember { mutableStateOf(false) }
     var menuInitialScreen by remember { mutableStateOf(PlayerMenuScreen.SETTINGS) }
+    var showEqualizerDialog by remember { mutableStateOf(false) }
+    var showPitchTempoDialog by remember { mutableStateOf(false) }
+    var showAddToPlaylistDialog by remember { mutableStateOf(false) }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val screenHeightDp = maxHeight
@@ -368,7 +385,43 @@ fun UnifiedPlayerSheetV2(
             updateState = updateState,
             onBackgroundStyleChanged = onBackgroundStyleChanged,
             onImmersiveChanged = onImmersiveChanged,
+            onOpenEqualizer = { showSettingsMenu = false; showEqualizerDialog = true },
+            onOpenPlaybackSpeed = { showSettingsMenu = false; showPitchTempoDialog = true },
+            onOpenAddToPlaylist = { showSettingsMenu = false; showAddToPlaylistDialog = true },
             onAction = onAction
         )
+
+        // Диалог Эквалайзера
+        if (showEqualizerDialog) {
+            EqualizerDialog(
+                onDismiss = { showEqualizerDialog = false },
+                openSystemEqualizer = {
+                    val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                        playerConnection?.localPlayer?.audioSessionId?.let {
+                            putExtra(AudioEffect.EXTRA_AUDIO_SESSION, it)
+                        }
+                        putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                        putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                    }
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        activityResultLauncher.launch(intent)
+                    }
+                }
+            )
+        }
+
+        // Диалог Скорости воспроизведения
+        if (showPitchTempoDialog) {
+            TempoPitchDialog(onDismiss = { showPitchTempoDialog = false })
+        }
+
+        // Диалог Добавления в плейлист
+        if (showAddToPlaylistDialog && state.trackUrl.isNotBlank()) {
+            AddToPlaylistDialog(
+                isVisible = showAddToPlaylistDialog,
+                onGetSong = { listOf(state.trackUrl) },
+                onDismiss = { showAddToPlaylistDialog = false }
+            )
+        }
     }
 }

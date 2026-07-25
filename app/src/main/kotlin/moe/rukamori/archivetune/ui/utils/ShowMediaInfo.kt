@@ -18,35 +18,26 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,11 +45,8 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -71,13 +59,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import moe.rukamori.archivetune.LocalDatabase
 import moe.rukamori.archivetune.LocalPlayerConnection
@@ -85,6 +77,11 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.models.MediaInfo
 import moe.rukamori.archivetune.ui.component.LocalBottomSheetPageState
+
+private val localFont = FontFamily(
+    Font(R.font.google_sans_regular, FontWeight.Normal),
+    Font(R.font.google_sans_bold, FontWeight.Bold)
+)
 
 private enum class MediaInfoTab(
     @StringRes val labelRes: Int,
@@ -256,7 +253,7 @@ fun ShowMediaInfo(videoId: String) {
         state = rememberLazyListState(),
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item(contentType = "Hero") {
             MediaInfoHeroCard(
@@ -266,40 +263,16 @@ fun ShowMediaInfo(videoId: String) {
                 sectionLabel = informationLabel,
                 isLoading = info == null,
                 loadingText = pleaseWaitText,
-                closeText = closeText,
-                onClose = bottomSheetPageState::dismiss,
             )
         }
 
         item(contentType = "Actions") {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                FilledTonalButton(
-                    onClick = { copyToClipboard(context, videoId) },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.copy),
-                        contentDescription = null,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = copyText)
-                }
-
-                OutlinedButton(
-                    onClick = { shareMediaLink(context, mediaUrl) },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_share),
-                        contentDescription = null,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = shareText)
-                }
-            }
+            MediaInfoActionButton(
+                text = copyText,
+                iconRes = R.drawable.copy,
+                onClick = { copyToClipboard(context, videoId) },
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
         if (quickFacts.isNotEmpty()) {
@@ -315,6 +288,9 @@ fun ShowMediaInfo(videoId: String) {
                             label = {
                                 Text(
                                     text = fact.text,
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontFamily = localFont,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
@@ -323,13 +299,19 @@ fun ShowMediaInfo(videoId: String) {
                                 Icon(
                                     painter = painterResource(fact.iconRes),
                                     contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(16.dp)
                                 )
                             },
-                            colors =
-                                AssistChipDefaults.assistChipColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    labelColor = MaterialTheme.colorScheme.onSurface,
-                                ),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = Color(0x14FFFFFF),
+                                labelColor = Color.White,
+                            ),
+                            border = AssistChipDefaults.assistChipBorder(
+                                enabled = true,
+                                borderColor = Color(0x1FFFFFFF)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         )
                     }
                 }
@@ -337,45 +319,10 @@ fun ShowMediaInfo(videoId: String) {
         }
 
         item(contentType = "Tabs") {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                MediaInfoTab.entries.forEachIndexed { index, tab ->
-                    val checked = selectedTab == tab
-                    ToggleButton(
-                        checked = checked,
-                        onCheckedChange = {
-                            if (!checked) {
-                                selectedTab = tab
-                            }
-                        },
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .height(52.dp),
-                        shapes =
-                            when (index) {
-                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                MediaInfoTab.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                            },
-                        colors =
-                            ToggleButtonDefaults.toggleButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            ),
-                    ) {
-                        Text(
-                            text = stringResource(tab.labelRes),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
+            MediaInfoTabSelector(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it }
+            )
         }
 
         item(contentType = "SelectedContent") {
@@ -386,10 +333,9 @@ fun ShowMediaInfo(videoId: String) {
             ) { tab ->
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .animateContentSize(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize(),
                 ) {
                     when (tab) {
                         MediaInfoTab.Information -> {
@@ -451,6 +397,108 @@ fun ShowMediaInfo(videoId: String) {
     }
 }
 
+/**
+ * Фирменная стильная кнопка действия YumaPlayer с правильной иконкой 18dp
+ */
+@Composable
+private fun MediaInfoActionButton(
+    text: String,
+    iconRes: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        label = "ActionButtonBounce"
+    )
+
+    Box(
+        modifier = modifier
+            .height(42.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0x1AFFFFFF))
+            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(14.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = text,
+                tint = Color.White,
+                modifier = Modifier.size(18.dp) // 👈 Фиксированный аккуратный размер иконки
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = localFont
+            )
+        }
+    }
+}
+
+/**
+ * Переключатель вкладок в дизайне YumaPlayer
+ */
+@Composable
+private fun MediaInfoTabSelector(
+    selectedTab: MediaInfoTab,
+    onTabSelected: (MediaInfoTab) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0x0DFFFFFF))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        MediaInfoTab.entries.forEach { tab ->
+            val isSelected = selectedTab == tab
+            val tabInteraction = remember { MutableInteractionSource() }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(38.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (isSelected) Color(0x28FFFFFF) else Color.Transparent)
+                    .clickable(
+                        interactionSource = tabInteraction,
+                        indication = null
+                    ) { onTabSelected(tab) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(tab.labelRes),
+                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.5f),
+                    fontSize = 13.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    fontFamily = localFont,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun MediaInfoHeroCard(
     title: String,
@@ -459,38 +507,33 @@ private fun MediaInfoHeroCard(
     sectionLabel: String,
     isLoading: Boolean,
     loadingText: String,
-    closeText: String,
-    onClose: () -> Unit,
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(20.dp))
+            .background(Color(0x12FFFFFF))
+            .padding(16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Surface(
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.size(88.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0x1AFFFFFF),
+                modifier = Modifier.size(80.dp),
             ) {
                 if (artworkModel != null) {
                     AsyncImage(
                         model = artworkModel,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .clip(MaterialTheme.shapes.large),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(16.dp)),
                     )
                 } else {
                     Box(
@@ -499,14 +542,15 @@ private fun MediaInfoHeroCard(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.tertiaryContainer,
-                            modifier = Modifier.size(44.dp),
+                            color = Color(0x22FFFFFF),
+                            modifier = Modifier.size(40.dp),
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.music_note),
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -515,25 +559,30 @@ private fun MediaInfoHeroCard(
             }
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = sectionLabel,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontFamily = localFont
                 )
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = localFont,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 13.sp,
+                    fontFamily = localFont,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -542,24 +591,20 @@ private fun MediaInfoHeroCard(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 4.dp)
                     ) {
                         CircularWavyProgressIndicator(
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(18.dp),
+                            color = Color.White
                         )
                         Text(
                             text = loadingText,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontSize = 12.sp,
+                            fontFamily = localFont
                         )
                     }
                 }
-            }
-
-            IconButton(onClick = onClose) {
-                Icon(
-                    painter = painterResource(R.drawable.close),
-                    contentDescription = closeText,
-                )
             }
         }
     }
@@ -571,34 +616,41 @@ private fun MediaInfoDetailCard(
     copyContentDescription: String,
     onCopy: (String) -> Unit,
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(20.dp))
+            .background(Color(0x12FFFFFF))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             items.forEachIndexed { index, item ->
                 ListItem(
                     overlineContent = {
-                        Text(text = item.label)
+                        Text(
+                            text = item.label,
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontSize = 11.sp,
+                            fontFamily = localFont
+                        )
                     },
                     headlineContent = {
-                        if (item.multiline) {
-                            Text(text = item.value)
-                        } else {
-                            Text(
-                                text = item.value,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
+                        Text(
+                            text = item.value,
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = localFont,
+                            maxLines = if (item.multiline) Int.MAX_VALUE else 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     },
                     trailingContent = {
                         Icon(
                             painter = painterResource(R.drawable.copy),
                             contentDescription = copyContentDescription,
+                            tint = Color.White.copy(alpha = 0.4f),
+                            modifier = Modifier.size(18.dp) // 👈 Фиксированный аккуратный размер иконки
                         )
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -608,6 +660,7 @@ private fun MediaInfoDetailCard(
                 if (index != items.lastIndex) {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
+                        color = Color(0x1AFFFFFF)
                     )
                 }
             }
@@ -622,19 +675,17 @@ private fun MediaInfoNarrativeCard(
     copyText: String,
     onCopy: () -> Unit,
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(20.dp))
+            .background(Color(0x12FFFFFF))
+            .padding(16.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -643,23 +694,24 @@ private fun MediaInfoNarrativeCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = localFont
                 )
-                OutlinedButton(onClick = onCopy) {
-                    Icon(
-                        painter = painterResource(R.drawable.copy),
-                        contentDescription = null,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = copyText)
-                }
+                MediaInfoActionButton(
+                    text = copyText,
+                    iconRes = R.drawable.copy,
+                    onClick = onCopy
+                )
             }
 
             Text(
                 text = body,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 13.sp,
+                fontFamily = localFont,
+                lineHeight = 18.sp
             )
         }
     }
@@ -668,38 +720,39 @@ private fun MediaInfoNarrativeCard(
 @Composable
 private fun MediaInfoMetricsGrid(metrics: List<MediaInfoMetric>) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         metrics.chunked(2).forEach { rowMetrics ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 rowMetrics.forEach { metric ->
-                    ElevatedCard(
-                        modifier = Modifier.weight(1f),
-                        colors =
-                            CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                            ),
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(16.dp))
+                            .background(Color(0x12FFFFFF))
+                            .padding(14.dp)
                     ) {
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 text = stringResource(metric.labelRes),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = Color.White.copy(alpha = 0.5f),
+                                fontSize = 11.sp,
+                                fontFamily = localFont
                             )
                             Text(
                                 text = metric.value,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = localFont
                             )
                         }
                     }
@@ -718,31 +771,32 @@ private fun MediaInfoPendingCard(
     title: String,
     message: String,
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(20.dp))
+            .background(Color(0x12FFFFFF))
+            .padding(20.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            LoadingIndicator(modifier = Modifier.size(40.dp))
+            LoadingIndicator(modifier = Modifier.size(36.dp), color = Color.White)
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = localFont
             )
             Text(
                 text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f),
+                fontSize = 12.sp,
+                fontFamily = localFont
             )
         }
     }

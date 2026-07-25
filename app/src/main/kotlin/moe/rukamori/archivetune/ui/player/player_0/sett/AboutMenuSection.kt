@@ -29,21 +29,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.constants.SpeedDialSongIdsKey
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.runtime.setValue
+import moe.rukamori.archivetune.utils.SpeedDialPin
+import moe.rukamori.archivetune.utils.SpeedDialPinType
+import moe.rukamori.archivetune.utils.parseSpeedDialPins
+import moe.rukamori.archivetune.utils.serializeSpeedDialPins
+import moe.rukamori.archivetune.utils.toggleSpeedDialPin
+import moe.rukamori.archivetune.utils.rememberPreference
 
-// На самый верх файла настроек, сразу под импортами:
 private val localFont = FontFamily(
     Font(R.font.google_sans_regular, FontWeight.Normal),
     Font(R.font.google_sans_bold, FontWeight.Bold)
 )
 
-// ==========================================
-// ЭКРАН 1: ОСНОВНЫЕ НАСТРОЙКИ
-// ==========================================
 @Composable
 fun SettingsMenuContent(
     state: PlayerUiState,
@@ -51,6 +54,10 @@ fun SettingsMenuContent(
     onNavigateToAbout: () -> Unit,
     onNavigateToCustomization: () -> Unit,
     onNavigateToSleepTimer: () -> Unit,
+    onNavigateToDetails: () -> Unit,
+    onOpenEqualizer: () -> Unit,
+    onOpenPlaybackSpeed: () -> Unit,
+    onOpenAddToPlaylist: () -> Unit,
     onAction: (PlayerAction) -> Unit
 ) {
     val uriHandler = LocalUriHandler.current
@@ -58,6 +65,14 @@ fun SettingsMenuContent(
     val softUpdateInteraction = remember { MutableInteractionSource() }
     val isSoftUpdatePressed by softUpdateInteraction.collectIsPressedAsState()
     val softUpdateScale by animateFloatAsState(if (isSoftUpdatePressed) 0.96f else 1f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium))
+
+    val (speedDialSongIds, onSpeedDialSongIdsChange) = rememberPreference(SpeedDialSongIdsKey, "")
+    val speedDialPins = remember(speedDialSongIds) { parseSpeedDialPins(speedDialSongIds) }
+    val songId = state.trackUrl
+    val songPin = remember(songId) { SpeedDialPin(type = SpeedDialPinType.SONG, id = songId) }
+    val isPinned = remember(speedDialPins, songPin) {
+        speedDialPins.any { it.type == songPin.type && it.id == songPin.id }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -69,21 +84,18 @@ fun SettingsMenuContent(
             modifier = Modifier.padding(start = 4.dp, bottom = 16.dp)
         )
 
-        // Ряд разделен на три аккуратные кнопки
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 1. Поделиться
             MenuRowButton(
                 iconRes = R.drawable.ic_share,
                 onClick = { onAction(PlayerAction.Share) },
                 modifier = Modifier.weight(1f)
             )
 
-            // Умный derivedStateOf для форматирования тиков без перерисовки соседних слоев
             val sleepTimerText by remember(state.sleepTimerRemainingSeconds) {
                 derivedStateOf {
                     val totalSecs = state.sleepTimerRemainingSeconds
@@ -95,7 +107,6 @@ fun SettingsMenuContent(
                 }
             }
 
-            // 2. Таймер сна
             MenuRowButton(
                 iconRes = R.drawable.ic_sleep_timer,
                 timerText = sleepTimerText,
@@ -106,8 +117,6 @@ fun SettingsMenuContent(
             )
         }
 
-
-        // Возвращаем твой оригинальный рабочий Box для обновлений
         if (updateState is UpdateState.SoftUpdate) {
             Box(
                 modifier = Modifier
@@ -138,8 +147,7 @@ fun SettingsMenuContent(
             }
         }
 
-        // Переход в Кастомизацию
-        SettingsMenuRow(
+        CompactMenuRow(
             title = "Interface & Visuals",
             subtitle = "Blur, Glow, and background styles",
             iconResId = R.drawable.ic_palette,
@@ -147,15 +155,76 @@ fun SettingsMenuContent(
             showArrow = true
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // Кнопка About & Support
-        SettingsMenuRow(
-            title = "About & Support",
-            subtitle = "App info and links",
-            iconResId = R.drawable.ic_about,
-            onClick = onNavigateToAbout,
+        CompactMenuRow(
+            title = "Start Radio",
+            subtitle = "Radio from current track",
+            iconResId = R.drawable.radio,
+            onClick = { onAction(PlayerAction.StartRadio) }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        CompactMenuRow(
+            title = "Add to Playlist",
+            subtitle = "Add to custom playlist",
+            iconResId = R.drawable.playlist_add,
+            onClick = onOpenAddToPlaylist,
             showArrow = true
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        CompactMenuRow(
+            title = "Download",
+            subtitle = "Save track offline",
+            iconResId = R.drawable.download,
+            onClick = { onAction(PlayerAction.DownloadTrack) }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        CompactMenuRow(
+            title = "Track Details",
+            subtitle = "Codec, bitrate, file info",
+            iconResId = R.drawable.ic_about,
+            onClick = onNavigateToDetails,
+            showArrow = true
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        CompactMenuRow(
+            title = "Equalizer",
+            subtitle = "System audio effects",
+            iconResId = R.drawable.equalizer,
+            onClick = onOpenEqualizer,
+            showArrow = true
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        CompactMenuRow(
+            title = "Playback Speed",
+            subtitle = "Tempo and pitch settings",
+            iconResId = R.drawable.speed,
+            onClick = onOpenPlaybackSpeed,
+            showArrow = true
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        CompactMenuRow(
+            title = if (isPinned) "Unpin Track" else "Pin Track",
+            subtitle = if (isPinned) "Remove from Speed Dial" else "Pin to Speed Dial",
+            iconResId = if (isPinned) R.drawable.bookmark_filled else R.drawable.bookmark,
+            isActive = isPinned,
+            activeIconTint = Color(state.vibrantColor),
+            onClick = {
+                val updated = toggleSpeedDialPin(speedDialPins, songPin)
+                onSpeedDialSongIdsChange(serializeSpeedDialPins(updated))
+            }
         )
     }
 }
@@ -167,8 +236,6 @@ fun AboutMenuSection(
     onAction: (PlayerAction) -> Unit,
     onDismissRequest: () -> Unit
 ) {
-    val uriHandler = LocalUriHandler.current
-
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "About & Support",
@@ -178,6 +245,87 @@ fun AboutMenuSection(
             fontFamily = localFont,
             modifier = Modifier.padding(start = 4.dp, bottom = 16.dp)
         )
+    }
+}
+
+/**
+ * Компактная строка меню настроек плеера.
+ * Минимальная высота 44dp (Touch Target).
+ * Иконка 20dp, шрифты 14sp/11sp, отступы 10dp.
+ */
+@Composable
+fun CompactMenuRow(
+    title: String,
+    subtitle: String,
+    iconResId: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    showArrow: Boolean = false,
+    isActive: Boolean = false,
+    activeIconTint: Color = Color.White,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        label = "CompactRowScale"
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 44.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (isActive) activeIconTint.copy(alpha = 0.15f) else Color(0x0DFFFFFF))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = iconResId),
+                contentDescription = title,
+                tint = if (isActive) activeIconTint else Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(20.dp)
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    color = if (isActive) activeIconTint else Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = localFont
+                )
+                Spacer(modifier = Modifier.height(1.dp))
+                Text(
+                    text = subtitle,
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = 11.sp,
+                    lineHeight = 13.sp,
+                    fontFamily = localFont
+                )
+            }
+            if (showArrow) {
+                Spacer(modifier = Modifier.width(6.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_arrow_right),
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.3f),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
     }
 }
 
@@ -330,7 +478,6 @@ fun SleepTimerMenuContent(
                     .background(Color(0x12FFFFFF))
                     .clickable(interactionSource = plusInteraction, indication = null) {
                         if (isTimerActive) {
-                            // Если запущен — просто накидываем 5 минут к текущим секундам без перезапуска
                             onAction(PlayerAction.AdjustSleepTimer(5))
                         } else {
                             if (selectedMinutes < 120) selectedMinutes += 5

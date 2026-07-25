@@ -23,6 +23,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.key
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -244,6 +245,7 @@ import moe.rukamori.archivetune.ui.component.shimmer.ShimmerTheme
 import moe.rukamori.archivetune.ui.components.update.UpdateOverlay
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.player.player_0.UnifiedPlayerSheetV2
+import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.screens.Screens
 import moe.rukamori.archivetune.ui.screens.navigationBuilder
 import moe.rukamori.archivetune.ui.screens.onboarding.OnboardingRoute
@@ -1934,7 +1936,26 @@ class MainActivity : ComponentActivity() {
                                     Box {
                                         UnifiedPlayerSheetV2(
                                             state = uiState,
-                                            onAction = playerViewModel::handleAction,
+                                            onAction = { action ->
+                                                when (action) {
+                                                    is PlayerAction.StartRadio -> {
+                                                        playerConnection?.startRadioSeamlessly()
+                                                    }
+                                                    is PlayerAction.OpenArtist -> {
+                                                        playerConnection?.service?.currentMediaMetadata?.value?.artists?.firstOrNull()?.id?.let { artistId ->
+                                                            navController.navigate("artist/$artistId")
+                                                            playerViewModel.requestSheetCollapse()
+                                                        }
+                                                    }
+                                                    is PlayerAction.OpenAlbum -> {
+                                                        playerConnection?.service?.currentMediaMetadata?.value?.album?.id?.let { albumId ->
+                                                            navController.navigate("album/$albumId")
+                                                            playerViewModel.requestSheetCollapse()
+                                                        }
+                                                    }
+                                                    else -> playerViewModel.handleAction(action)
+                                                }
+                                            },
                                             onLyricsClick = { playerViewModel.setLyricsVisible(true) },
                                             onCloseLyricsClick = { playerViewModel.setLyricsVisible(false) },
                                             onSearchLyricsClick = { playerViewModel.fetchLyrics() },
@@ -2272,8 +2293,13 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        BackHandler(enabled = playerBottomSheetState.isExpanded) {
-                            playerBottomSheetState.collapseSoft()
+                        key(uiState.isLyricsVisible, playerExpansionFraction > 0.05f) {
+                            BackHandler(enabled = uiState.isLyricsVisible || playerExpansionFraction > 0.05f) {
+                                when {
+                                    uiState.isLyricsVisible -> playerViewModel.setLyricsVisible(false)
+                                    playerExpansionFraction > 0.05f -> playerViewModel.requestSheetCollapse()
+                                }
+                            }
                         }
 
                         BottomSheetMenu(

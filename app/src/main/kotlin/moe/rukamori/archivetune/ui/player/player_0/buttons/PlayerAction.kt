@@ -43,9 +43,18 @@ sealed interface PlayerAction {
     data class SaveLyrics(val text: String) : PlayerAction
     data class TranslateLyrics(val langCode: String, val useAi: Boolean) : PlayerAction
 
-    // Навигация по метаданным
+    // Навигация по метаданным и функции плеера
     object OpenAlbum : PlayerAction
     object OpenArtist : PlayerAction
+    object StartRadio : PlayerAction
+    object AddToPlaylist : PlayerAction
+    object TogglePin : PlayerAction
+
+    // Дополнительные действия с треком
+    object DownloadTrack : PlayerAction
+    object ShowDetails : PlayerAction
+    object OpenEqualizer : PlayerAction
+    object OpenPlaybackSpeed : PlayerAction
 }
 
 enum class LyricsMenuScreen { MAIN, EDIT, TRANSLATE, SYNC_OFFSET }

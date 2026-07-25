@@ -4,7 +4,7 @@
  * GPL-3.0 License | Contributors: see git history
  */
 
-package moe.rukamori.archivetune.playback
+package re.muwmix.yumaplayer.playback
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
