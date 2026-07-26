@@ -26,6 +26,11 @@ data class SavedAccount(
     val selectedYtmPlaylists: String,
 )
 
+@Immutable
+data class SavedAccountCollection(
+    val accounts: List<SavedAccount>,
+)
+
 private val savedAccountJson = Json { ignoreUnknownKeys = true }
 
 fun decodeSavedAccounts(raw: String): List<SavedAccount> {

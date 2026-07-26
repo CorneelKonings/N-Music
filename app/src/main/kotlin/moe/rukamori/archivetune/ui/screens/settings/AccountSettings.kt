@@ -21,6 +21,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -85,6 +86,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -95,6 +97,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -102,6 +105,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
 import moe.rukamori.archivetune.App.Companion.forgetAccount
 import moe.rukamori.archivetune.BuildConfig
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
@@ -123,11 +129,15 @@ import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.InfoLabel
 import moe.rukamori.archivetune.ui.component.TextFieldDialog
 import moe.rukamori.archivetune.ui.screens.buildLoginRoute
+import moe.rukamori.archivetune.ui.screens.settings.account.AccountSettingsViewModel
 import moe.rukamori.archivetune.ui.state.UpdateState
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.PreferenceStore
 import moe.rukamori.archivetune.utils.SavedAccount
+import moe.rukamori.archivetune.utils.SavedAccountCollection
 import moe.rukamori.archivetune.utils.Updater
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.decodeSavedAccounts
@@ -145,11 +155,6 @@ private val AvatarSize = 88.dp
 private val QuickTileIconSize = 48.dp
 private val RowIconSize = 42.dp
 private const val PressScale = 0.96f
-
-@Immutable
-private data class SavedAccountCollection(
-    val accounts: List<SavedAccount>,
-)
 
 @Composable
 fun AccountSettings(
@@ -275,87 +280,109 @@ fun AccountSettings(
         onSavedAccountsJsonChange(encodeSavedAccounts(existing.filter { it.id != account.id }))
     }
 
-    Scaffold(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = accountLabel,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = navController::navigateUp,
-                        onLongClick = navController::backToMain,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = null,
-                        )
-                    }
-                },
-                actions = {
-                    OutlinedIconButton(
-                        onClick = { showTokenEditor = true },
-                        colors =
-                            IconButtonDefaults.outlinedIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                contentColor = MaterialTheme.colorScheme.primary,
-                            ),
-                        border = null,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.token),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
+    val primaryAccent = MaterialTheme.colorScheme.primary
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val bgTopColor = remember(primaryAccent, surfaceColor) {
+        primaryAccent.copy(alpha = 0.22f).compositeOver(surfaceColor)
+    }
+    val bgMidColor = remember(primaryAccent, surfaceColor) {
+        primaryAccent.copy(alpha = 0.06f).compositeOver(surfaceColor)
+    }
 
-                    if (hasUpdate) {
-                        BadgedBox(
-                            badge = {
-                                Badge(containerColor = MaterialTheme.colorScheme.error)
-                            },
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        bgTopColor,
+                        bgMidColor,
+                        surfaceColor
+                    )
+                )
+            )
+    ) {
+        Scaffold(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                LargeFlexibleTopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                text = accountLabel,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = navController::navigateUp,
+                            onLongClick = navController::backToMain,
                         ) {
-                            OutlinedIconButton(
-                                onClick = { uriHandler.openUri(Updater.getLatestDownloadUrl()) },
-                                colors =
-                                    IconButtonDefaults.outlinedIconButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                    ),
-                                border = null,
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_back),
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                    actions = {
+                        OutlinedIconButton(
+                            onClick = { showTokenEditor = true },
+                            colors =
+                                IconButtonDefaults.outlinedIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f),
+                                    contentColor = MaterialTheme.colorScheme.primary,
+                                ),
+                            border = null,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.token),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+
+                        if (hasUpdate) {
+                            BadgedBox(
+                                badge = {
+                                    Badge(containerColor = MaterialTheme.colorScheme.error)
+                                },
                             ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.update),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                )
+                                OutlinedIconButton(
+                                    onClick = { uriHandler.openUri(Updater.getLatestDownloadUrl()) },
+                                    colors =
+                                        IconButtonDefaults.outlinedIconButtonColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        ),
+                                    border = null,
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.update),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
                             }
                         }
-                    }
-                },
-                windowInsets = TopAppBarDefaults.windowInsets,
-                colors =
-                    TopAppBarDefaults.largeTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { innerPadding ->
+                    },
+                    windowInsets = TopAppBarDefaults.windowInsets,
+                    colors =
+                        TopAppBarDefaults.largeTopAppBarColors(
+                            containerColor = Color.Transparent,
+                            scrolledContainerColor = Color.Transparent,
+                        ),
+                    scrollBehavior = scrollBehavior,
+                )
+            },
+        ) { innerPadding ->
         LazyColumn(
             modifier =
                 Modifier
@@ -375,6 +402,9 @@ fun AccountSettings(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             item {
+                val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
+                val accountUiState by accountSettingsViewModel.uiState.collectAsStateWithLifecycle()
+
                 ProfileIdentityCard(
                     isLoggedIn = isLoggedIn,
                     accountName = displayName,
@@ -385,6 +415,8 @@ fun AccountSettings(
                     activeInnerTubeCookie = innerTubeCookie,
                     activeDataSyncId = dataSyncId,
                     accountChannelsState = accountChannelsState,
+                    extractedColorHex = accountUiState.extractedColorHex,
+                    onAvatarPixelsReady = accountSettingsViewModel::processAvatarPixels,
                     onPrimaryAction = {
                         if (isLoggedIn) {
                             navController.navigate("account")
@@ -519,6 +551,7 @@ fun AccountSettings(
             }
         }
     }
+}
 
     if (showTokenEditor) {
         TokenEditorDialog(
@@ -615,6 +648,8 @@ private fun ProfileIdentityCard(
     activeInnerTubeCookie: String,
     activeDataSyncId: String,
     accountChannelsState: AccountChannelsState,
+    extractedColorHex: String? = null,
+    onAvatarPixelsReady: (IntArray) -> Unit = {},
     onPrimaryAction: () -> Unit,
     onSecondaryAction: () -> Unit,
     onSaveAccount: () -> Unit,
@@ -623,13 +658,6 @@ private fun ProfileIdentityCard(
     onRemoveAccount: (SavedAccount) -> Unit,
     onAddAnotherAccount: () -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) PressScale else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessHigh),
-        label = "heroScale",
-    )
     var accountMenuExpanded by remember { mutableStateOf(false) }
     val menuChevronRotation by animateFloatAsState(
         targetValue = if (accountMenuExpanded) 180f else 0f,
@@ -637,61 +665,69 @@ private fun ProfileIdentityCard(
         label = "accountMenuChevron",
     )
 
-    Card(
+    val colors = LocalYumaColors.current
+    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
+    val context = LocalContext.current
+
+    val extractedColor = remember(extractedColorHex) {
+        extractedColorHex?.let {
+            try {
+                Color(android.graphics.Color.parseColor(it))
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    val gradientStart = extractedColor?.copy(alpha = 0.35f)
+        ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+
+    Box(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                },
-        shape = CardShape,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        onClick = onPrimaryAction,
-        interactionSource = interactionSource,
+                .clip(cardShape)
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            gradientStart,
+                            colors.glassBackground,
+                        )
+                    )
+                )
+                .border(1.dp, colors.glassBorder, cardShape),
     ) {
-        Column(
+        Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
-                                    MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0f),
-                                ),
-                        ),
-                    ).padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Box(contentAlignment = Alignment.BottomEnd) {
                 Box(
                     modifier =
                         Modifier
-                            .size(AvatarSize)
+                            .size(50.dp)
+                            .shadow(4.dp, CircleShape)
                             .clip(CircleShape)
                             .background(
                                 Brush.radialGradient(
                                     colors =
                                         listOf(
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
+                                            (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.20f),
                                             MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f),
                                         ),
                                 ),
                             ).border(
-                                width = 2.dp,
+                                width = 1.5.dp,
                                 brush =
                                     Brush.linearGradient(
                                         colors =
                                             listOf(
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.40f),
-                                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.30f),
+                                                (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.70f),
+                                                (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.20f),
                                             ),
                                     ),
                                 shape = CircleShape,
@@ -700,8 +736,22 @@ private fun ProfileIdentityCard(
                 ) {
                     if (isLoggedIn && !accountImageUrl.isNullOrBlank()) {
                         AsyncImage(
-                            model = accountImageUrl,
+                            model = ImageRequest.Builder(context)
+                                .data(accountImageUrl)
+                                .size(64, 64)
+                                .allowHardware(false)
+                                .build(),
                             contentDescription = null,
+                            onSuccess = { success ->
+                                val bmp = success.result.image.toBitmap()
+                                val w = bmp.width
+                                val h = bmp.height
+                                if (w > 0 && h > 0) {
+                                    val pixels = IntArray(w * h)
+                                    bmp.getPixels(pixels, 0, w, 0, 0, w, h)
+                                    onAvatarPixelsReady(pixels)
+                                }
+                            },
                             modifier =
                                 Modifier
                                     .fillMaxSize()
@@ -715,8 +765,8 @@ private fun ProfileIdentityCard(
                                     if (isLoggedIn) R.drawable.account else R.drawable.login,
                                 ),
                             contentDescription = null,
-                            modifier = Modifier.size(38.dp),
-                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(26.dp),
+                            tint = extractedColor ?: MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
@@ -728,14 +778,14 @@ private fun ProfileIdentityCard(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp),
+                        color = extractedColor ?: MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 painter = painterResource(R.drawable.check),
                                 contentDescription = null,
-                                modifier = Modifier.size(14.dp),
+                                modifier = Modifier.size(11.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
@@ -744,106 +794,54 @@ private fun ProfileIdentityCard(
             }
 
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                AnimatedContent(
-                    targetState = accountName,
-                    transitionSpec = {
-                        (
-                            fadeIn(spring(stiffness = Spring.StiffnessLow)) togetherWith
-                                fadeOut(spring(stiffness = Spring.StiffnessHigh))
-                        )
-                    },
-                    label = "nameTransition",
-                ) { name ->
+                Text(
+                    text = accountName,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                if (accountHandle.isNotBlank()) {
                     Text(
-                        text = name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold,
+                        text = accountHandle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                }
-
-                if (accountHandle.isNotBlank()) {
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.65f),
-                        modifier = Modifier.padding(top = 6.dp),
-                    ) {
-                        Text(
-                            text = accountHandle,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-
-                if (!isLoggedIn) {
+                } else if (!isLoggedIn) {
                     Text(
                         text = stringResource(R.string.not_logged_in),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f),
                     )
                 }
-            }
 
-            accountEmail
-                .takeIf { it.isNotBlank() }
-                ?.let { email ->
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.55f),
-                    ) {
-                        Text(
-                            text = email,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.80f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
-                        )
-                    }
-                }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(top = 4.dp),
-            ) {
-                Box {
+                Box(modifier = Modifier.padding(top = 4.dp)) {
                     SplitButtonLayout(
                         leadingButton = {
                             SplitButtonDefaults.ElevatedLeadingButton(
                                 onClick = onPrimaryAction,
                                 colors =
                                     ButtonDefaults.elevatedButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        containerColor = colors.glassBackground,
+                                        contentColor = MaterialTheme.colorScheme.primary,
                                     ),
                                 elevation =
                                     ButtonDefaults.elevatedButtonElevation(
-                                        defaultElevation = 1.dp,
+                                        defaultElevation = 0.dp,
                                         pressedElevation = 0.dp,
                                     ),
+                                modifier = Modifier.yumaClickable(pressedScale = 0.94f, onClick = onPrimaryAction),
                             ) {
-                                Icon(
-                                    painter =
-                                        painterResource(
-                                            if (isLoggedIn) R.drawable.account else R.drawable.login,
-                                        ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                                Spacer(Modifier.width(8.dp))
                                 Text(
                                     text = if (isLoggedIn) stringResource(R.string.account) else stringResource(R.string.login),
+                                    style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.SemiBold,
                                 )
                             }
@@ -852,29 +850,30 @@ private fun ProfileIdentityCard(
                             SplitButtonDefaults.ElevatedTrailingButton(
                                 checked = accountMenuExpanded,
                                 onCheckedChange = { accountMenuExpanded = it },
-                                enabled = isLoggedIn || savedAccounts.accounts.isNotEmpty(),
                                 colors =
                                     ButtonDefaults.elevatedButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        containerColor = colors.glassBackground,
+                                        contentColor = MaterialTheme.colorScheme.primary,
                                     ),
                                 elevation =
                                     ButtonDefaults.elevatedButtonElevation(
-                                        defaultElevation = 1.dp,
+                                        defaultElevation = 0.dp,
                                         pressedElevation = 0.dp,
                                     ),
+                                modifier = Modifier.yumaClickable(pressedScale = 0.94f, onClick = { accountMenuExpanded = !accountMenuExpanded }),
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.expand_more),
                                     contentDescription = null,
                                     modifier =
                                         Modifier
-                                            .size(SplitButtonDefaults.TrailingIconSize)
+                                            .size(16.dp)
                                             .rotate(menuChevronRotation),
                                 )
                             }
                         },
                     )
+
                     DropdownMenu(
                         expanded = accountMenuExpanded,
                         onDismissRequest = { accountMenuExpanded = false },
@@ -916,12 +915,7 @@ private fun ProfileIdentityCard(
                                         Icon(
                                             painter = painterResource(R.drawable.account),
                                             contentDescription = null,
-                                            tint =
-                                                if (isActive) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                                },
+                                            tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(20.dp),
                                         )
                                     },
@@ -934,26 +928,14 @@ private fun ProfileIdentityCard(
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
-                        Text(
-                            text = stringResource(R.string.saved_accounts),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        )
-                        if (savedAccounts.accounts.isEmpty()) {
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = stringResource(R.string.no_saved_accounts),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                },
-                                onClick = {},
-                                enabled = false,
+                        if (savedAccounts.accounts.isNotEmpty()) {
+                            Text(
+                                text = stringResource(R.string.saved_accounts),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                             )
-                        } else {
                             savedAccounts.accounts.forEach { account ->
                                 val isActive = account.innerTubeCookie == activeInnerTubeCookie
                                 DropdownMenuItem(
@@ -981,12 +963,7 @@ private fun ProfileIdentityCard(
                                         Icon(
                                             painter = painterResource(R.drawable.account),
                                             contentDescription = null,
-                                            tint =
-                                                if (isActive) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                                },
+                                            tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(20.dp),
                                         )
                                     },
@@ -995,10 +972,7 @@ private fun ProfileIdentityCard(
                                             onClick = { onRemoveAccount(account) },
                                             modifier = Modifier.size(32.dp),
                                             border = null,
-                                            colors =
-                                                IconButtonDefaults.outlinedIconButtonColors(
-                                                    contentColor = MaterialTheme.colorScheme.error,
-                                                ),
+                                            colors = IconButtonDefaults.outlinedIconButtonColors(contentColor = MaterialTheme.colorScheme.error),
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.delete),
@@ -1015,6 +989,7 @@ private fun ProfileIdentityCard(
                             }
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         }
+
                         if (isLoggedIn) {
                             DropdownMenuItem(
                                 text = {
@@ -1060,16 +1035,26 @@ private fun ProfileIdentityCard(
                         }
                     }
                 }
+            }
 
-                OutlinedButton(
-                    onClick = onSecondaryAction,
-                    shapes = ButtonDefaults.shapes(),
-                ) {
-                    Text(
-                        text = if (isLoggedIn) stringResource(R.string.action_logout) else stringResource(R.string.advanced_login),
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
+            Box(
+                modifier =
+                    Modifier
+                        .yumaClickable(
+                            pressedScale = 0.94f,
+                            onClick = onSecondaryAction,
+                        )
+                        .border(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.40f), RoundedCornerShape(12.dp))
+                        .background(colors.glassBackground, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = if (isLoggedIn) stringResource(R.string.action_logout) else stringResource(R.string.advanced_login),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
         }
     }
@@ -1166,6 +1151,9 @@ private fun ExpressiveSectionCard(
     title: String,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val colors = LocalYumaColors.current
+    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = title,
@@ -1175,14 +1163,12 @@ private fun ExpressiveSectionCard(
             modifier = Modifier.padding(start = 6.dp),
         )
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = CardShape,
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(cardShape)
+                .background(colors.glassBackground)
+                .border(1.dp, colors.glassBorder, cardShape)
         ) {
             Column(
                 modifier = Modifier.padding(vertical = 4.dp),
@@ -1203,8 +1189,8 @@ private fun ExpressiveActionRow(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessHigh),
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
         label = "rowScale",
     )
     val tint = accent ?: MaterialTheme.colorScheme.primary
@@ -1217,10 +1203,11 @@ private fun ExpressiveActionRow(
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
-                }.clip(InnerTileShape)
+                }
+                .clip(InnerTileShape)
                 .clickable(
                     interactionSource = interactionSource,
-                    indication = androidx.compose.material3.ripple(),
+                    indication = null,
                     onClick = onClick,
                 ),
     ) {
@@ -1272,15 +1259,12 @@ private fun ExpressiveSwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    val containerColor by animateColorAsState(
-        targetValue =
-            if (checked) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-            } else {
-                Color.Transparent
-            },
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "switchRowBg",
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        label = "switchRowScale",
     )
 
     Box(
@@ -1288,9 +1272,16 @@ private fun ExpressiveSwitchRow(
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 6.dp, vertical = 2.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
                 .clip(InnerTileShape)
-                .background(containerColor)
-                .clickable { onCheckedChange(!checked) },
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = { onCheckedChange(!checked) }
+                ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),

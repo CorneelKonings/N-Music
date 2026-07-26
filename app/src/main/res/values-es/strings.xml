@@ -817,12 +817,12 @@
     <string name="display">Pantalla</string>
     <string name="romanization">Alfabeto latino</string>
     <string name="account_integrations_summary">Discord, Last.fm, Libre.fm, ListenBrainz</string>
-    <string name="discord_login_description">Conecta tu cuenta de Discord mediante OAuth para que ArchiveTune pueda publicar información de presencia enriquecida.</string>
+    <string name="discord_login_description">Conecta tu cuenta de Discord mediante OAuth para que YumaPlayer pueda publicar información de presencia enriquecida.</string>
     <string name="discord_open_authorization">Conéctate a Discord</string>
     <string name="discord_waiting_for_authorization">Esperando la autorización de Discord...</string>
     <string name="discord_authorization_success">Cuenta de Discord conectada</string>
     <string name="discord_authorization_failed">Falló la autenticación en Discord.</string>
-    <string name="discord_account_ready">ArchiveTune está listo para publicar tu Rich Presence (estado) de tu sesión de escucha.</string>
+    <string name="discord_account_ready">YumaPlayer está listo para publicar tu Rich Presence (estado) de tu sesión de escucha.</string>
     <string name="discord_connection_settings">Conexión</string>
     <string name="discord_activity_content">Actividad</string>
     <string name="discord_refresh_success">Se ha actualizado la presencia en Discord.</string>
@@ -884,7 +884,7 @@
     </plurals>
     <string name="app_icon_community_notice">Los iconos de la comunidad los crean los usuarios y pueden cambiar con el tiempo.</string>
     <string name="app_icon_identifier">ID %1$s</string>
-    <string name="app_icon_builtin_description">Icono original de ArchiveTune</string>
+    <string name="app_icon_builtin_description">Icono original de YumaPlayer</string>
     <string name="app_icon_community">Icono de la comunidad</string>
     <string name="app_icon_builtin">Integrado en</string>
     <string name="app_icon_available">Iconos disponibles</string>

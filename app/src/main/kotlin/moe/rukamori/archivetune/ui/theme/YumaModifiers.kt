@@ -1,6 +1,5 @@
 /*
  * YumaPlayer (2026) | Modified work by MuwMix
- * ArchiveTune (2026) | Original work by © Rukamori
  * GPL-3.0 License | Contributors: see git history
  */
 
@@ -34,10 +33,11 @@ import androidx.compose.ui.unit.dp
  */
 import androidx.compose.ui.graphics.Brush
 
+@Composable
 fun Modifier.yumaGlassCard(
     shape: Shape = RoundedCornerShape(16.dp),
-    backgroundColor: Color = Color(0x0DFFFFFF),
-    borderColor: Color = Color.Transparent
+    backgroundColor: Color = LocalYumaColors.current.glassBackground,
+    borderColor: Color = LocalYumaColors.current.glassBorder
 ): Modifier {
     val mod = this
         .clip(shape)

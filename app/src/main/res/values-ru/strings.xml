@@ -586,10 +586,10 @@
     <string name="together_error_state">Ошибка</string>
     <string name="got_it">Ясно</string>
     <string name="together_dont_show_again">Не показывать снова</string>
-    <string name="together_welcome_title">Добро пожаловать в ArchiveTune Music Together</string>
+    <string name="together_welcome_title">Добро пожаловать в YumaPlayer Music Together</string>
     <string name="together_welcome_body">Music Together позволяет нескольким устройствам делить сессию в реальном времени с синхронизированными очередью и воспроизведением.</string>
     <string name="together_welcome_host_title">Захостить сессию</string>
-    <string name="together_welcome_host_body">Нажмите Начать сессию, потом поделитесь ссылкой сессии. Держите ArchiveTune открытым в фоне во время хостинга.</string>
+    <string name="together_welcome_host_body">Нажмите Начать сессию, потом поделитесь ссылкой сессии. Держите YumaPlayer открытым в фоне во время хостинга.</string>
     <string name="together_welcome_join_title">Присоединиться с другого устройства</string>
     <string name="together_welcome_join_body">Откройте ссылку с которой вами поделились, или введите код и нажмите Присоединиться. Ваши очередь и воспроизведение будут следовать хосту.</string>
     <string name="together_welcome_permissions_title">Разрешения и безопасность</string>
@@ -645,9 +645,9 @@
     <string name="blur_intensity">Сила размытия</string>
     <string name="blur_intensity_value">%1$d dp</string>
     <string name="playback_confirmation_required">Необходимо подтверждение воспроизведения</string>
-    <string name="playback_requires_youtube_music_confirmation">Подтвердите воспроизведение в YouTube Music, потом вернитесь в ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_confirmation">Подтвердите воспроизведение в YouTube Music, потом вернитесь в YumaPlayer.</string>
     <string name="playback_login_refresh_required">Обновить вход в YouTube Music</string>
-    <string name="playback_requires_youtube_music_login_refresh">Обновите ваш вход в YouTube Music, потом вернитесь в ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_login_refresh">Обновите ваш вход в YouTube Music, потом вернитесь в YumaPlayer.</string>
     <string name="internet">Интернет</string>
     <string name="internet_warning_title">Предупреждение об безопасности и использовании</string>
     <string name="internet_warning_doh">DNS через HTTPS работает только в том случае, если в вашей стране заблокирован YouTube. Если YouTube активно блокирует ваш регион, рассмотрите возможность использования прокси-сервера или VPN.</string>
@@ -692,7 +692,7 @@
     <string name="playlist_suggestion_source_content">Контент плейлиста</string>
     <string name="playlist_suggestion_source_both">Название плейлиста и контент</string>
     <string name="po_token_account_notice_title">Использовать тот же аккаунт</string>
-    <string name="po_token_account_notice_body">Войдите тут с тем же аккаунтом Google который вы использовали для входа в YouTube Music в ArchiveTune перед генерацией PO токена.</string>
+    <string name="po_token_account_notice_body">Войдите тут с тем же аккаунтом Google который вы использовали для входа в YouTube Music в YumaPlayer перед генерацией PO токена.</string>
     <string name="po_token_account_notice_same_account">Если этот WebView использует другой аккаунт, сгенерированный токен не будет нормально работать.</string>
     <string name="po_token_account_notice_mismatch">Используйте подходящий аккаунт, завершите вход, потом откройте youtube.com/account и сгенерируйте токен с этой страницы.</string>
     <string name="album_backdrop">Размытие фона</string>

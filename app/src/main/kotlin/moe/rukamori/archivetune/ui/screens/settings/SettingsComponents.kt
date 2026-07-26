@@ -387,9 +387,12 @@ fun SettingsRow(
                 .fillMaxWidth()
                 .yumaClickable(onClick = item.onClick)
                 .yumaGlassCard(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius),
                 )
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(
+                    horizontal = SettingsDimensions.RowHorizontalPadding,
+                    vertical = SettingsDimensions.RowVerticalPadding
+                ),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -408,7 +411,7 @@ fun SettingsRow(
                         painter = item.icon,
                         contentDescription = null,
                         tint = Color.White.copy(alpha = 0.8f),
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                     )
                 }
             } else {
@@ -416,7 +419,7 @@ fun SettingsRow(
                     painter = item.icon,
                     contentDescription = null,
                     tint = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                 )
             }
 
@@ -439,10 +442,10 @@ fun SettingsRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.title,
-                    color = Color.White,
-                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = localFont,
+                    color = colors.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -450,15 +453,14 @@ fun SettingsRow(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = localFont,
                         color =
                             if (item.showUpdateIndicator) {
                                 effectiveAccent
                             } else {
-                                Color.White.copy(alpha = 0.65f)
+                                colors.textSecondary
                             },
-                        fontSize = 11.sp,
-                        lineHeight = 14.sp,
-                        fontFamily = localFont,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -540,7 +542,7 @@ fun SettingsSegmentedItem(
             MaterialTheme.colorScheme.surface
         }
     /* val shape = remember(index, count) { segmentedSettingsItemShape(index, count) } */
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
     val colors = LocalYumaColors.current
 
     Box(
@@ -556,8 +558,10 @@ fun SettingsSegmentedItem(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 76.dp)
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .padding(
+                        horizontal = SettingsDimensions.RowHorizontalPadding,
+                        vertical = SettingsDimensions.RowVerticalPadding
+                    ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (item.showUpdateIndicator) {
@@ -573,7 +577,7 @@ fun SettingsSegmentedItem(
                         painter = item.icon,
                         contentDescription = null,
                         tint = Color.White.copy(alpha = 0.8f),
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                     )
                 }
             } else {
@@ -581,7 +585,7 @@ fun SettingsSegmentedItem(
                     painter = item.icon,
                     contentDescription = null,
                     tint = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                 )
             }
 
@@ -593,10 +597,10 @@ fun SettingsSegmentedItem(
             ) {
                 Text(
                     text = item.title,
-                    color = Color.White,
-                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = localFont,
+                    color = colors.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -604,10 +608,9 @@ fun SettingsSegmentedItem(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
-                        color = Color.White.copy(alpha = 0.65f),
-                        fontSize = 11.sp,
-                        lineHeight = 14.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         fontFamily = localFont,
+                        color = colors.textSecondary,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -634,7 +637,7 @@ fun SettingsSegmentedItem(
                 painter = painterResource(R.drawable.ic_arrow_right),
                 contentDescription = null,
                 tint = Color.White.copy(alpha = 0.3f),
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(SettingsDimensions.ChevronSize),
             )
         }
     }

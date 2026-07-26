@@ -399,7 +399,7 @@
     <string name="player_stream_client_android_vr_desc">署名復号なしで直接ストリーミングし、最高速度を提供。ほとんどのユーザーに適している。</string>
     <string name="player_stream_client_web_remix">Web Remix</string>
     <string name="player_stream_client_web_remix_desc">速度と引き換えに拡張フォーマットをサポート。JavaScript署名復号により起動に約5〜10秒の遅延が発生。</string>
-    <string name="player_stream_client_archivetune_extractor">YumaPlayer Extractor</string>
+    <string name="player_stream_client_archivetune_extractor">Yuma Extractor</string>
     <string name="player_stream_client_archivetune_extractor_desc">再生ストリームにYumaPlayerバックエンド抽出器を使用。Auto High Quality Audioを推奨。</string>
     <string name="settings_section_player_content">プレイヤーとコンテンツ</string>
     <string name="settings_appearance_subtitle">テーマ、レイアウト、ビジュアルスタイル</string>
@@ -567,7 +567,7 @@
     <string name="about_position_lead_dev">え？</string>
     <string name="about_position_developers">開発者 | チーム</string>
     <string name="about_position_mo_agamy">ベースフレームワーク | Metrolist</string>
-    <string name="about_position_zion_huang">InnerTuneの作成者 · Metrolist、ArchiveTune、その他フォークの基盤</string>
+    <string name="about_position_zion_huang">InnerTuneの作成者 · Metrolist、YumaPlayer、その他フォークの基盤</string>
     <string name="about_content_desc_github">GitHub</string>
     <string name="about_content_desc_website">ウェブサイト</string>
     <string name="about_content_desc_discord">Discord</string>

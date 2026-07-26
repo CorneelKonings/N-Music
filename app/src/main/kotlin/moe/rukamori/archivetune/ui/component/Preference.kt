@@ -16,8 +16,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -95,6 +95,8 @@ import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.HISTORY_DURATION_DEFAULT
 import moe.rukamori.archivetune.constants.HISTORY_DURATION_RANGE
+import moe.rukamori.archivetune.ui.screens.settings.SettingsDimensions
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import kotlin.math.roundToInt
 
 val LocalPreferenceInGroup = compositionLocalOf { false }
@@ -103,12 +105,12 @@ enum class PreferenceGroupPosition { Single, First, Middle, Last }
 
 val LocalPreferenceGroupPosition = compositionLocalOf<PreferenceGroupPosition?> { null }
 
-private val PreferenceGroupLargeCorner = 28.dp
-private val PreferenceGroupSmallCorner = 6.dp
-private val PreferenceGroupHorizontalPadding = 26.dp
-private val PreferenceEntryMinHeight = 88.dp
-private val PreferenceEntryHorizontalPadding = 22.dp
-private val PreferenceEntryVerticalPadding = 18.dp
+private val PreferenceGroupLargeCorner = SettingsDimensions.GroupCardCornerRadius
+private val PreferenceGroupSmallCorner = 4.dp
+private val PreferenceGroupHorizontalPadding = SettingsDimensions.ScreenHorizontalPadding
+private val PreferenceEntryMinHeight = 0.dp
+private val PreferenceEntryHorizontalPadding = SettingsDimensions.RowHorizontalPadding
+private val PreferenceEntryVerticalPadding = SettingsDimensions.RowVerticalPadding
 
 @Composable
 private fun rememberPreferenceIconShape(): Shape = MaterialShapes.Ghostish.toShape()
@@ -181,16 +183,17 @@ fun PreferenceEntry(
         label = "prefScale",
     )
 
-    Box(
-        modifier = modifier
+    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
+    val colors = LocalYumaColors.current
+    val isInGroup = LocalPreferenceInGroup.current
+
+    val boxModifier = if (isInGroup) {
+        modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x0DFFFFFF))
             .then(
                 if (isEnabled && onClick != null) {
                     Modifier.clickable(
@@ -203,8 +206,39 @@ fun PreferenceEntry(
                 }
             )
             .alpha(if (isEnabled) 1f else 0.5f)
-            .padding(16.dp)
-    ) {
+            .padding(
+                horizontal = SettingsDimensions.RowHorizontalPadding,
+                vertical = SettingsDimensions.RowVerticalPadding
+            )
+    } else {
+        modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(cardShape)
+            .background(colors.glassBackground)
+            .border(1.dp, colors.glassBorder, cardShape)
+            .then(
+                if (isEnabled && onClick != null) {
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onClick
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .alpha(if (isEnabled) 1f else 0.5f)
+            .padding(
+                horizontal = SettingsDimensions.RowHorizontalPadding,
+                vertical = SettingsDimensions.RowVerticalPadding
+            )
+    }
+
+    Box(modifier = boxModifier) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -1103,6 +1137,9 @@ fun PreferenceGroup(
 
     if (itemCount == 0) return
 
+    val colors = LocalYumaColors.current
+    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
+
     Column(modifier = modifier) {
         if (title != null) {
             PreferenceGroupTitle(
@@ -1111,26 +1148,36 @@ fun PreferenceGroup(
             )
         }
 
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PreferenceGroupHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = PreferenceGroupHorizontalPadding)
+                .clip(cardShape)
+                .background(colors.glassBackground)
+                .border(1.dp, colors.glassBorder, cardShape)
         ) {
-            scope.items.forEachIndexed { index, itemContent ->
-                val position =
-                    when {
-                        itemCount == 1 -> PreferenceGroupPosition.Single
-                        index == 0 -> PreferenceGroupPosition.First
-                        index == itemCount - 1 -> PreferenceGroupPosition.Last
-                        else -> PreferenceGroupPosition.Middle
+            Column(modifier = Modifier.fillMaxWidth()) {
+                scope.items.forEachIndexed { index, itemContent ->
+                    val position =
+                        when {
+                            itemCount == 1 -> PreferenceGroupPosition.Single
+                            index == 0 -> PreferenceGroupPosition.First
+                            index == itemCount - 1 -> PreferenceGroupPosition.Last
+                            else -> PreferenceGroupPosition.Middle
+                        }
+                    CompositionLocalProvider(
+                        LocalPreferenceInGroup provides true,
+                        LocalPreferenceGroupPosition provides position,
+                    ) {
+                        itemContent()
                     }
-                CompositionLocalProvider(
-                    LocalPreferenceInGroup provides true,
-                    LocalPreferenceGroupPosition provides position,
-                ) {
-                    itemContent()
+                    if (index < itemCount - 1) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = SettingsDimensions.DividerStartIndent),
+                            thickness = SettingsDimensions.DividerThickness,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                        )
+                    }
                 }
             }
         }

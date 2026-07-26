@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.screens.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
@@ -120,7 +121,10 @@ fun YumaPreferenceRow(
                     Modifier
                 }
             )
-            .padding(16.dp)
+            .padding(
+                horizontal = SettingsDimensions.RowHorizontalPadding,
+                vertical = SettingsDimensions.RowVerticalPadding
+            )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -202,7 +206,7 @@ fun YumaSwitchPreferenceRow(
         modifier = modifier
             .fillMaxWidth()
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius))
             .background(Brush.verticalGradient(listOf(Color(0x1AFFFFFF), Color(0x08FFFFFF))))
             .clickable(
                 interactionSource = interactionSource,
@@ -210,7 +214,10 @@ fun YumaSwitchPreferenceRow(
                 enabled = enabled,
                 onClick = { onCheckedChange(!checked) }
             )
-            .padding(16.dp)
+            .padding(
+                horizontal = SettingsDimensions.RowHorizontalPadding,
+                vertical = SettingsDimensions.RowVerticalPadding
+            )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

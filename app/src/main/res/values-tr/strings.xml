@@ -507,7 +507,7 @@
     <string name="library_top_mixes_refresh">Mix\'leri yenile</string>
     <string name="library_top_mixes_configure_ai">YZ\'yi Yapılandır</string>
     <string name="library_top_mixes_ai_not_configured_title">Mix oluşturmak için YZ\'yi yapılandır</string>
-    <string name="library_top_mixes_ai_not_configured_desc">ArchiveTune\'un kişisel mix oluşturabilmesi için YZ yapılandırması gereklidir.</string>
+    <string name="library_top_mixes_ai_not_configured_desc">YumaPlayer\'un kişisel mix oluşturabilmesi için YZ yapılandırması gereklidir.</string>
     <string name="library_top_mixes_no_recent_history_title">Henüz yakın zamanda dinlenenler mix\'i oluşturulmamış</string>
     <string name="together_welcome_join_title">Başka bir cihazdan katıl</string>
     <string name="together_welcome_join_body">Paylaşılan bağlantıyı açın veya kodu girip Katıl\'a basın. Oynatma sıranız ve playback ana cihazı takip edecek.</string>

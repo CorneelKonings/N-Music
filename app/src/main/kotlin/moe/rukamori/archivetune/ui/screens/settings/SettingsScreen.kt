@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -37,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -128,14 +130,32 @@ fun SettingsScreen(
             settingsGroups.flatMap { it.items }
         }
 
+    val scrimAlpha by remember {
+        derivedStateOf {
+            val offset = listState.firstVisibleItemScrollOffset
+            val index = listState.firstVisibleItemIndex
+            if (index > 0) 0.85f else (offset / 100f).coerceIn(0f, 0.85f)
+        }
+    }
+
+    val primaryAccent = MaterialTheme.colorScheme.primary
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val bgTopColor = remember(primaryAccent, surfaceColor) {
+        primaryAccent.copy(alpha = 0.22f).compositeOver(surfaceColor)
+    }
+    val bgMidColor = remember(primaryAccent, surfaceColor) {
+        primaryAccent.copy(alpha = 0.06f).compositeOver(surfaceColor)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF14151C),
-                        Color(0xFF090A0E)
+                        bgTopColor,
+                        bgMidColor,
+                        surfaceColor
                     )
                 )
             )
@@ -148,36 +168,50 @@ fun SettingsScreen(
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
-                LargeFlexibleTopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.settings),
-                            fontWeight = FontWeight.Bold,
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = navController::navigateUp,
-                            onLongClick = navController::backToMain,
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.arrow_back),
-                                contentDescription = stringResource(R.string.back_button_desc),
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.surface.copy(alpha = scrimAlpha),
+                                        Color.Transparent
+                                    )
+                                )
                             )
-                        }
-                    },
-                    colors =
-                        TopAppBarDefaults.largeTopAppBarColors(
-                            containerColor = Color.Transparent,
-                            scrolledContainerColor = Color.Transparent,
-                        ),
-                    scrollBehavior = scrollBehavior,
-                )
+                    )
+                    LargeFlexibleTopAppBar(
+                        title = {
+                            Text(
+                                text = stringResource(R.string.settings),
+                                fontWeight = FontWeight.Bold,
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = navController::navigateUp,
+                                onLongClick = navController::backToMain,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.arrow_back),
+                                    contentDescription = stringResource(R.string.back_button_desc),
+                                )
+                            }
+                        },
+                        colors =
+                            TopAppBarDefaults.largeTopAppBarColors(
+                                containerColor = Color.Transparent,
+                                scrolledContainerColor = Color.Transparent,
+                            ),
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
             },
         ) { innerPadding ->
         LazyColumn(
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SectionSpacing),
             /* verticalArrangement = Arrangement.spacedBy(2.dp), */
             modifier =
                 Modifier
