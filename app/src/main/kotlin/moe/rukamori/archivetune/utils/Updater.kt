@@ -335,37 +335,44 @@ object Updater {
         }
 
     suspend fun getCommitHistory(
-        count: Int = 20,
-        branch: String = "dev",
+        count: Int = 30,
+        branch: String = "",
     ): Result<List<GitCommit>> =
         runCatching {
-            if (!isUpdaterDistribution) {
-                return@runCatching emptyList()
+            val url = if (branch.isNotBlank()) {
+                "https://api.github.com/repos/MuwMx/YumaPlayer/commits?sha=$branch&per_page=$count"
+            } else {
+                "https://api.github.com/repos/MuwMx/YumaPlayer/commits?per_page=$count"
             }
-
-            val response =
-                client
-                    .get("https://api.github.com/repos/MuwMx/YumaPlayer/commits?sha=$branch&per_page=$count")
-                    .bodyAsText()
-            val jsonArray = JSONArray(response)
-            val commits = mutableListOf<GitCommit>()
-            for (i in 0 until jsonArray.length()) {
-                val commitObj = jsonArray.getJSONObject(i)
-                val commit = commitObj.getJSONObject("commit")
-                val authorObj = commit.optJSONObject("author")
-                val githubAuthorObj = commitObj.optJSONObject("author")
-                commits.add(
-                    GitCommit(
-                        sha = commitObj.optString("sha", "").take(7),
-                        message = commit.optString("message", "").lines().firstOrNull() ?: "",
-                        author = authorObj?.optString("name", "Unknown") ?: "Unknown",
-                        date = authorObj?.optString("date", "") ?: "",
-                        url = commitObj.optString("html_url", ""),
-                        authorAvatarUrl = githubAuthorObj?.optString("avatar_url")?.takeIf { it.isNotBlank() },
-                    ),
-                )
+            val response = client.get(url) {
+                headers {
+                    append("User-Agent", "YumaPlayerApp")
+                    append("Accept", "application/vnd.github+json")
+                }
+            }.bodyAsText()
+            if (response.startsWith("[")) {
+                val jsonArray = JSONArray(response)
+                val commits = mutableListOf<GitCommit>()
+                for (i in 0 until jsonArray.length()) {
+                    val commitObj = jsonArray.getJSONObject(i)
+                    val commit = commitObj.getJSONObject("commit")
+                    val authorObj = commit.optJSONObject("author")
+                    val githubAuthorObj = commitObj.optJSONObject("author")
+                    commits.add(
+                        GitCommit(
+                            sha = commitObj.optString("sha", "").take(7),
+                            message = commit.optString("message", "").lines().firstOrNull() ?: "",
+                            author = authorObj?.optString("name", "Unknown") ?: "Unknown",
+                            date = authorObj?.optString("date", "") ?: "",
+                            url = commitObj.optString("html_url", ""),
+                            authorAvatarUrl = githubAuthorObj?.optString("avatar_url")?.takeIf { it.isNotBlank() },
+                        ),
+                    )
+                }
+                commits
+            } else {
+                emptyList()
             }
-            commits
         }
 
     fun getLatestDownloadUrl(): String {

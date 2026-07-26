@@ -28,9 +28,10 @@ fun buildSettingsGroups(
     context: Context,
 ): List<SettingsGroup> =
     buildList {
+        // Группа 1: Учётная запись
         add(
             SettingsGroup(
-                title = stringResource(R.string.settings),
+                title = stringResource(R.string.account),
                 items =
                     listOf(
                         SettingsItem(
@@ -41,14 +42,16 @@ fun buildSettingsGroups(
                             accentColor = MaterialTheme.colorScheme.primary,
                             onClick = { navController.navigate("settings/account") },
                         ),
-                        SettingsItem(
-                            key = "stats",
-                            icon = painterResource(R.drawable.stats),
-                            title = stringResource(R.string.settings_stats_title),
-                            subtitle = stringResource(R.string.settings_stats_subtitle),
-                            accentColor = MaterialTheme.colorScheme.primary,
-                            onClick = { navController.navigate("stats") },
-                        ),
+                    ),
+            ),
+        )
+
+        // Группа 2: Интерфейс и Внешний вид
+        add(
+            SettingsGroup(
+                title = stringResource(R.string.appearance),
+                items =
+                    listOf(
                         SettingsItem(
                             key = "appearance",
                             icon = painterResource(R.drawable.ic_palette),
@@ -58,57 +61,18 @@ fun buildSettingsGroups(
                             onClick = { navController.navigate("settings/appearance") },
                         ),
                         SettingsItem(
-                            key = "playback",
-                            icon = painterResource(R.drawable.music_note),
-                            title = stringResource(R.string.settings_playback_title),
-                            subtitle = stringResource(R.string.settings_playback_subtitle),
-                            accentColor = MaterialTheme.colorScheme.tertiary,
-                            onClick = { navController.navigate("settings/content") },
-                        ),
-                        SettingsItem(
-                            key = "behavior",
-                            icon = painterResource(R.drawable.swipe),
-                            title = stringResource(R.string.settings_behavior_title),
-                            subtitle = stringResource(R.string.settings_behavior_subtitle),
+                            key = "stats",
+                            icon = painterResource(R.drawable.stats),
+                            title = stringResource(R.string.settings_stats_title),
+                            subtitle = stringResource(R.string.settings_stats_subtitle),
                             accentColor = MaterialTheme.colorScheme.primary,
-                            onClick = { navController.navigate("settings/privacy") },
-                        ),
-                        SettingsItem(
-                            key = "lyrics",
-                            icon = painterResource(R.drawable.lyrics),
-                            title = stringResource(R.string.lyrics),
-                            subtitle = stringResource(R.string.settings_lyrics_subtitle),
-                            accentColor = MaterialTheme.colorScheme.secondary,
-                            onClick = { navController.navigate("settings/lyrics") },
-                        ),
-                        SettingsItem(
-                            key = "integration",
-                            icon = painterResource(R.drawable.auto_awesome),
-                            title = stringResource(R.string.integration),
-                            subtitle = stringResource(R.string.settings_integration_subtitle),
-                            accentColor = MaterialTheme.colorScheme.secondary,
-                            onClick = { navController.navigate("settings/integration") },
-                        ),
-                        SettingsItem(
-                            key = "ai_integration",
-                            icon = painterResource(R.drawable.ai),
-                            title = stringResource(R.string.ai_integration),
-                            subtitle = stringResource(R.string.ai_integration_desc),
-                            accentColor = MaterialTheme.colorScheme.secondary,
-                            onClick = { navController.navigate("settings/ai_integration") },
-                        ),
-                        SettingsItem(
-                            key = "backup_restore",
-                            icon = painterResource(R.drawable.backup),
-                            title = stringResource(R.string.backup_restore),
-                            subtitle = stringResource(R.string.settings_backup_restore_subtitle),
-                            accentColor = MaterialTheme.colorScheme.primary,
-                            onClick = { navController.navigate("settings/backup_restore") },
+                            onClick = { navController.navigate("stats") },
                         ),
                     ),
             ),
         )
 
+        // Группа 3: Воспроизведение и Контент
         add(
             SettingsGroup(
                 title = stringResource(R.string.settings_section_player_content),
@@ -122,6 +86,16 @@ fun buildSettingsGroups(
                                 subtitle = stringResource(R.string.settings_content_subtitle),
                                 accentColor = MaterialTheme.colorScheme.primary,
                                 onClick = { navController.navigate("settings/content") },
+                            ),
+                        )
+                        add(
+                            SettingsItem(
+                                key = "lyrics",
+                                icon = painterResource(R.drawable.lyrics),
+                                title = stringResource(R.string.lyrics),
+                                subtitle = stringResource(R.string.settings_lyrics_subtitle),
+                                accentColor = MaterialTheme.colorScheme.secondary,
+                                onClick = { navController.navigate("settings/lyrics") },
                             ),
                         )
                         add(
@@ -146,6 +120,16 @@ fun buildSettingsGroups(
                         )
                         add(
                             SettingsItem(
+                                key = "backup_restore",
+                                icon = painterResource(R.drawable.backup),
+                                title = stringResource(R.string.backup_restore),
+                                subtitle = stringResource(R.string.settings_backup_restore_subtitle),
+                                accentColor = MaterialTheme.colorScheme.primary,
+                                onClick = { navController.navigate("settings/backup_restore") },
+                            ),
+                        )
+                        add(
+                            SettingsItem(
                                 key = "storage",
                                 icon = painterResource(R.drawable.storage),
                                 title = stringResource(R.string.storage),
@@ -156,12 +140,32 @@ fun buildSettingsGroups(
                         )
                         add(
                             SettingsItem(
-                                key = "developer_options",
-                                icon = painterResource(R.drawable.experiment),
-                                title = stringResource(R.string.settings_developer_options_title),
-                                subtitle = stringResource(R.string.settings_developer_options_subtitle),
-                                accentColor = MaterialTheme.colorScheme.tertiary,
-                                onClick = { navController.navigate("settings/misc") },
+                                key = "ai_integration",
+                                icon = painterResource(R.drawable.ai),
+                                title = stringResource(R.string.ai_integration),
+                                subtitle = stringResource(R.string.ai_integration_desc),
+                                accentColor = MaterialTheme.colorScheme.secondary,
+                                onClick = { navController.navigate("settings/ai_integration") },
+                            ),
+                        )
+                    },
+            ),
+        )
+
+        // Группа 4: О приложении и системе
+        add(
+            SettingsGroup(
+                title = stringResource(R.string.settings_about_subtitle),
+                items =
+                    buildList {
+                        add(
+                            SettingsItem(
+                                key = "behavior",
+                                icon = painterResource(R.drawable.swipe),
+                                title = stringResource(R.string.settings_behavior_title),
+                                subtitle = stringResource(R.string.settings_behavior_subtitle),
+                                accentColor = MaterialTheme.colorScheme.primary,
+                                onClick = { navController.navigate("settings/privacy") },
                             ),
                         )
                         if (isAndroid12OrLater) {
@@ -182,27 +186,11 @@ fun buildSettingsGroups(
                                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                             context.startActivity(intent)
                                         } catch (e: Exception) {
-                                            when (e) {
-                                                is ActivityNotFoundException,
-                                                is SecurityException,
-                                                -> {
-                                                    Toast
-                                                        .makeText(
-                                                            context,
-                                                            R.string.open_app_settings_error,
-                                                            Toast.LENGTH_LONG,
-                                                        ).show()
-                                                }
-
-                                                else -> {
-                                                    Toast
-                                                        .makeText(
-                                                            context,
-                                                            R.string.open_app_settings_error,
-                                                            Toast.LENGTH_LONG,
-                                                        ).show()
-                                                }
-                                            }
+                                            Toast.makeText(
+                                                context,
+                                                R.string.open_app_settings_error,
+                                                Toast.LENGTH_LONG,
+                                            ).show()
                                         }
                                     },
                                 ),
@@ -240,6 +228,16 @@ fun buildSettingsGroups(
                                 subtitle = stringResource(R.string.settings_about_subtitle),
                                 accentColor = MaterialTheme.colorScheme.secondary,
                                 onClick = { navController.navigate("settings/about") },
+                            ),
+                        )
+                        add(
+                            SettingsItem(
+                                key = "developer_options",
+                                icon = painterResource(R.drawable.experiment),
+                                title = stringResource(R.string.settings_developer_options_title),
+                                subtitle = stringResource(R.string.settings_developer_options_subtitle),
+                                accentColor = MaterialTheme.colorScheme.tertiary,
+                                onClick = { navController.navigate("settings/misc") },
                             ),
                         )
                     },

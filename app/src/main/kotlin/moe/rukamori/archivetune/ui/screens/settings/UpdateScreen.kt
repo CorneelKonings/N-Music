@@ -422,20 +422,18 @@ fun UpdateScreen(
     }
 
     LaunchedEffect(updateChannel) {
-        if (!BuildConfig.UPDATER_AVAILABLE) {
-            isLoadingCommits = false
-            return@LaunchedEffect
-        }
-
-        val versionResult =
-            when (updateChannel) {
-                UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestDailyNightlyVersionName()
-                else -> Updater.getLatestVersionName()
-            }
-        versionResult.onSuccess {
-            latestVersion = it
-            if (!Updater.isUpdateAvailable(it, BuildConfig.VERSION_NAME)) {
-                onUpToDate()
+        isLoadingCommits = true
+        if (BuildConfig.UPDATER_AVAILABLE) {
+            val versionResult =
+                when (updateChannel) {
+                    UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestDailyNightlyVersionName()
+                    else -> Updater.getLatestVersionName()
+                }
+            versionResult.onSuccess {
+                latestVersion = it
+                if (!Updater.isUpdateAvailable(it, BuildConfig.VERSION_NAME)) {
+                    onUpToDate()
+                }
             }
         }
 

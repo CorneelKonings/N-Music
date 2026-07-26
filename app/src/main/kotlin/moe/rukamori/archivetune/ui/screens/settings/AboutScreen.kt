@@ -83,16 +83,30 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.border
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.ui.component.IconButton
+import moe.rukamori.archivetune.utils.ColorExtractor
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 // Закомментированы неиспользуемые сейчас импорты для чистоты
@@ -903,12 +917,15 @@ private fun AboutIdentityCard(
     onOpenUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalYumaColors.current
+    val cardShape = MaterialTheme.shapes.extraLarge
+
     Card(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
+        modifier = modifier.border(1.dp, colors.glassBorder, cardShape),
+        shape = cardShape,
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                containerColor = colors.glassBackground,
             ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
@@ -1094,25 +1111,58 @@ private fun LeadDeveloperSection(
     onOpenUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var extractedColorHex by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         AboutSectionHeader(title = stringResource(R.string.about_lead_developer))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        val colors = LocalYumaColors.current
+        val cardShape = MaterialTheme.shapes.extraLarge
+
+        val extractedColor = remember(extractedColorHex) {
+            extractedColorHex?.let {
+                try {
+                    Color(android.graphics.Color.parseColor(it))
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        }
+
+        val gradientStart = extractedColor?.copy(alpha = 0.35f)
+            ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(cardShape)
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            gradientStart,
+                            colors.glassBackground,
+                        )
+                    )
+                )
+                .border(1.dp, colors.glassBorder, cardShape)
         ) {
             TeamMemberListItem(
                 member = member,
                 onOpenUri = onOpenUri,
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                containerColor = Color.Transparent,
+                extractedColor = extractedColor,
+                onAvatarPixelsReady = { pixels ->
+                    scope.launch(Dispatchers.IO) {
+                        val hex = ColorExtractor.extractVibrantHex(pixels)
+                        withContext(Dispatchers.Main) {
+                            extractedColorHex = hex
+                        }
+                    }
+                },
                 avatarSize = 72.dp,
                 minHeight = 104.dp,
             )
@@ -1195,6 +1245,8 @@ private fun TeamMemberListItem(
     onOpenUri: (String) -> Unit,
     containerColor: Color,
     modifier: Modifier = Modifier,
+    extractedColor: Color? = null,
+    onAvatarPixelsReady: ((IntArray) -> Unit)? = null,
     avatarSize: Dp = 56.dp,
     minHeight: Dp = 88.dp,
 ) {
@@ -1207,6 +1259,7 @@ private fun TeamMemberListItem(
                 Modifier.clickable { onOpenUri(profileUrl) }
             }
         }
+    val context = LocalContext.current
 
     ListItem(
         modifier =
@@ -1216,15 +1269,60 @@ private fun TeamMemberListItem(
                 .then(itemClickModifier),
         colors = ListItemDefaults.colors(containerColor = containerColor),
         leadingContent = {
-            AsyncImage(
-                model = member.avatarUrl,
-                contentDescription = member.name,
+            Box(
                 modifier =
                     Modifier
                         .size(avatarSize)
+                        .shadow(4.dp, CircleShape)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            )
+                        .background(
+                            Brush.radialGradient(
+                                colors =
+                                    listOf(
+                                        (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.20f),
+                                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f),
+                                    ),
+                            ),
+                        ).border(
+                            width = 1.5.dp,
+                            brush =
+                                Brush.linearGradient(
+                                    colors =
+                                        listOf(
+                                            (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.70f),
+                                            (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.20f),
+                                        ),
+                                ),
+                            shape = CircleShape,
+                        ),
+                contentAlignment = Alignment.Center,
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(member.avatarUrl)
+                        .size(128, 128)
+                        .allowHardware(false)
+                        .build(),
+                    contentDescription = member.name,
+                    onSuccess = { success ->
+                        if (onAvatarPixelsReady != null) {
+                            val bmp = success.result.image.toBitmap()
+                            val w = bmp.width
+                            val h = bmp.height
+                            if (w > 0 && h > 0) {
+                                val pixels = IntArray(w * h)
+                                bmp.getPixels(pixels, 0, w, 0, 0, w, h)
+                                onAvatarPixelsReady(pixels)
+                            }
+                        }
+                    },
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+            }
         },
         headlineContent = {
             Text(
