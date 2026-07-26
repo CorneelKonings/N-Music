@@ -1104,12 +1104,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         } else {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+                            if (navController.currentDestination?.route != screen.route) {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         }
                     }
@@ -2193,7 +2195,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeIn(tween(250))
                                         } else {
-                                            fadeIn(tween(250)) + slideInHorizontally { it }
+                                             fadeIn(tween(250)) + slideInHorizontally { it / 2 }
                                         }
                                     },
                                     exitTransition = {
@@ -2204,7 +2206,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeOut(tween(200))
                                         } else {
-                                            fadeOut(tween(200)) + slideOutHorizontally { -it }
+                                             fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
                                         }
                                     },
                                     popEnterTransition = {
