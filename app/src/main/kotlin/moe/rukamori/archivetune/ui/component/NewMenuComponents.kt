@@ -109,11 +109,39 @@ fun NewMenuItem(
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
+    val sizedLeadingContent: @Composable (() -> Unit)? =
+        if (leadingContent != null) {
+            {
+                Box(
+                    modifier = Modifier.size(22.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    leadingContent()
+                }
+            }
+        } else {
+            null
+        }
+
+    val sizedTrailingContent: @Composable (() -> Unit)? =
+        if (trailingContent != null) {
+            {
+                Box(
+                    modifier = Modifier.size(22.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    trailingContent()
+                }
+            }
+        } else {
+            null
+        }
+
     val content: @Composable () -> Unit = {
         ListItem(
             headlineContent = headlineContent,
-            leadingContent = leadingContent,
-            trailingContent = trailingContent,
+            leadingContent = sizedLeadingContent,
+            trailingContent = sizedTrailingContent,
             supportingContent = supportingContent,
             modifier = Modifier.padding(horizontal = 4.dp),
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),

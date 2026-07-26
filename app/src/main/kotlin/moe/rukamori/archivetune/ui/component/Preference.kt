@@ -97,6 +97,7 @@ import moe.rukamori.archivetune.constants.HISTORY_DURATION_DEFAULT
 import moe.rukamori.archivetune.constants.HISTORY_DURATION_RANGE
 import moe.rukamori.archivetune.ui.screens.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
 import kotlin.math.roundToInt
 
 val LocalPreferenceInGroup = compositionLocalOf { false }
@@ -514,41 +515,57 @@ private fun <T> PreferenceSelectionBottomSheet(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 26.dp)
-                    .padding(bottom = 12.dp),
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp),
         ) {
             ProvideTextStyle(
-                MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             ) {
                 Box(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(top = 18.dp, bottom = 22.dp),
+                            .padding(top = 12.dp, bottom = 16.dp),
                 ) {
                     title()
                 }
             }
 
-            LazyColumn(
+            val glassShape = RoundedCornerShape(24.dp)
+            val colors = LocalYumaColors.current
+
+            Box(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 520.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 24.dp),
+                        .clip(glassShape)
+                        .background(colors.glassBackground)
+                        .border(1.dp, colors.glassBorder, glassShape),
             ) {
-                itemsIndexed(
-                    items = values,
-                    key = { index, value -> preferenceOptionKey(index, value) },
-                    contentType = { _, _ -> "preference_option" },
-                ) { _, value ->
-                    PreferenceSelectionOption(
-                        text = valueText(value),
-                        description = valueDescription?.invoke(value),
-                        selected = value == selectedValue,
-                        onClick = { onValueSelected(value) },
-                    )
+                LazyColumn(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 480.dp),
+                ) {
+                    itemsIndexed(
+                        items = values,
+                        key = { index, value -> preferenceOptionKey(index, value) },
+                        contentType = { _, _ -> "preference_option" },
+                    ) { index, value ->
+                        PreferenceSelectionOption(
+                            text = valueText(value),
+                            description = valueDescription?.invoke(value),
+                            selected = value == selectedValue,
+                            onClick = { onValueSelected(value) },
+                        )
+                        if (index < values.size - 1) {
+                            HorizontalDivider(
+                                thickness = 1.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -563,58 +580,57 @@ private fun PreferenceSelectionOption(
     onClick: () -> Unit,
 ) {
     val containerColor =
-        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
+        if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent
     val contentColor =
-        if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
     val descriptionColor =
-        if (selected) contentColor.copy(alpha = 0.78f) else MaterialTheme.colorScheme.onSurfaceVariant
+        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
 
-    Row(
+    Box(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .heightIn(min = if (description == null) 72.dp else 96.dp)
-                .clip(MaterialTheme.shapes.extraLarge)
                 .background(containerColor)
-                .selectable(
-                    selected = selected,
-                    onClick = onClick,
-                    role = Role.RadioButton,
-                ).padding(horizontal = 24.dp, vertical = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
+                .yumaClickable(pressedScale = 0.97f, onClick = onClick)
+                .padding(horizontal = 20.dp, vertical = 14.dp),
     ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                color = contentColor,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (description != null) {
-                Spacer(Modifier.height(4.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f),
+            ) {
                 Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = descriptionColor,
-                    maxLines = 3,
+                    text = text,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    color = contentColor,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (description != null) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = descriptionColor,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-        }
 
-        if (selected) {
-            Spacer(Modifier.width(16.dp))
-            Icon(
-                painter = painterResource(R.drawable.check),
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(28.dp),
-            )
+            if (selected) {
+                Spacer(Modifier.width(12.dp))
+                Icon(
+                    painter = painterResource(R.drawable.check),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
     }
 }
