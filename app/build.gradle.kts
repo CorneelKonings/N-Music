@@ -26,15 +26,20 @@ val discordApplicationIdLong = discordApplicationId.toLongOrNull() ?: 1165706613
 val discordRedirectScheme = "discord-$discordApplicationId"
 val releaseKeystoreFile = file("keystore/release.keystore")
 val releaseStorePassword =
-    System.getenv("STORE_PASSWORD")?.takeIf { it.isNotBlank() }
+    localProperties.getProperty("STORE_PASSWORD")?.takeIf { it.isNotBlank() }
         ?: System.getenv("STORE_PASSWORD")?.takeIf { it.isNotBlank() }
-val releaseKeyAlias = System.getenv("ALIAS")?.takeIf { it.isNotBlank() }
-val releaseKeyPassword = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+val releaseKeyAlias =
+    localProperties.getProperty("ALIAS")?.takeIf { it.isNotBlank() }
+        ?: System.getenv("ALIAS")?.takeIf { it.isNotBlank() }
+val releaseKeyPassword =
+    localProperties.getProperty("KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+        ?: System.getenv("KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+
 val hasReleaseSigningConfig =
     releaseKeystoreFile.isFile &&
-        releaseStorePassword != null &&
-        releaseKeyAlias != null &&
-        releaseKeyPassword != null
+            releaseStorePassword != null &&
+            releaseKeyAlias != null &&
+            releaseKeyPassword != null
 
 android {
     namespace = "moe.rukamori.archivetune"
@@ -178,7 +183,7 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = false
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -396,7 +401,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
             "-opt-in=kotlin.RequiresOptIn"
         )
         // Suppress warnings
-        suppressWarnings.set(true)
+//        suppressWarnings.set(true)
     }
 }
 

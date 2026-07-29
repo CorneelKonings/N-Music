@@ -1219,11 +1219,11 @@ fun LocalPlaylistScreen(
             if (!selection) {
                 itemsIndexed(
                     items = if (isSearching) filteredSongs else mutableSongs,
-                    key = { _, song -> song.map.id },
+                    key = { index, song -> "${song.map.id}_$index" },
                 ) { index, song ->
                     ReorderableItem(
                         state = reorderableState,
-                        key = song.map.id,
+                        key = "${song.map.id}_$index",
                         modifier =
                             Modifier.graphicsLayer {
                                 compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen
@@ -1365,11 +1365,11 @@ fun LocalPlaylistScreen(
             } else {
                 itemsIndexed(
                     items = filteredSongs,
-                    key = { _, song -> song.map.id },
+                    key = { index, song -> "${song.map.id}_$index" },
                 ) { index, song ->
                     ReorderableItem(
                         state = reorderableState,
-                        key = song.map.id,
+                        key = "${song.map.id}_$index",
                         modifier =
                             Modifier.graphicsLayer {
                                 compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen

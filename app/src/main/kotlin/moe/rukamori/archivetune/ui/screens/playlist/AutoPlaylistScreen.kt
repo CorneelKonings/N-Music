@@ -785,7 +785,7 @@ fun AutoPlaylistScreen(
                 // Song items
                 itemsIndexed(
                     items = filteredSongs,
-                    key = { _, song -> song.item.id },
+                    key = { index, song -> "${song.item.id}_$index" },
                     contentType = { _, _ -> CONTENT_TYPE_SONG },
                 ) { index, songWrapper ->
                     SongListItem(
