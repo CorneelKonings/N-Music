@@ -842,7 +842,7 @@ fun ArtistScreen(
 
                         itemsIndexed(
                             items = filteredLibrarySongs.take(5),
-                            key = { _, item -> "local_song_${item.id}" },
+                            key = { index, item -> "local_song_${item.id}_$index" },
                             contentType = { _, _ -> CONTENT_TYPE_SONG },
                         ) { index, song ->
                             SongListItem(
@@ -952,11 +952,11 @@ fun ArtistScreen(
                                 contentPadding = PaddingValues(horizontal = 12.dp),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
-                                items(
+                                itemsIndexed(
                                     items = filteredLibraryAlbums,
-                                    key = { album -> "local_album_${album.id}" },
-                                    contentType = { CONTENT_TYPE_ALBUM },
-                                ) { album ->
+                                    key = { index, album -> "local_album_${album.id}_$index" },
+                                    contentType = { _, _ -> CONTENT_TYPE_ALBUM },
+                                ) { index, album ->
                                     AlbumGridItem(
                                         album = album,
                                         isActive = mediaMetadata?.album?.id == album.id,
@@ -1005,11 +1005,11 @@ fun ArtistScreen(
                         }
 
                         if (section.layout == ArtistSectionLayout.LIST && section.items.all { it is SongItem }) {
-                            items(
+                            itemsIndexed(
                                 items = section.items.distinctBy { it.id },
-                                key = { "youtube_song_${it.id}" },
-                                contentType = { CONTENT_TYPE_SONG },
-                            ) { song ->
+                                key = { index, song -> "youtube_song_${song.id}_$index" },
+                                contentType = { _, _ -> CONTENT_TYPE_SONG },
+                            ) { index, song ->
                                 YouTubeListItem(
                                     item = song as SongItem,
                                     isActive = mediaMetadata?.id == song.id,

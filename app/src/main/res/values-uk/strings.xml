@@ -27,6 +27,7 @@
     <string name="this_week">Цього тижня</string>
     <string name="last_week">Минулого тижня</string>
     <string name="most_played_songs">Топ прослуховувань</string>
+    <string name="support_development_message">Якщо %1$s став вашим основним плеєром, розгляньте можливість підтримки розробки. Ви можете поставити зірочку на GitHub або зробити донат, щоб допомогти виходу нових функцій. Дякуємо за підтримку!</string>
     <string name="search">Пошук</string>
     <string name="search_yt_music">Пошук на YouTube Music…</string>
     <string name="search_library">Пошук у бібліотеці…</string>
@@ -153,7 +154,7 @@
     <string name="added_to_n_playlists">Додано до %d плейлістів</string>
     <string name="added_n_songs_to_n_playlists">Додано %1$d пісень до %2$d плейлістів</string>
     <string name="playlist_synced">Плейліст синхронізовано</string>
-    <string name="archivetune_canvas">ArchiveTune Canvas</string>
+    <string name="archivetune_canvas">YumaPlayer Canvas</string>
     <string name="archivetune_canvas_desc">Анімувати обкладинку альбому під час відтворення (за технологією BetterLyrics)</string>
     <string name="tempo_and_pitch">Темп і висота звуку</string>
     <string name="tempo">Темп</string>
@@ -328,9 +329,9 @@
     <string name="login">Логін</string>
     <string name="not_logged_in">Ви не увійшли в систему</string>
     <string name="playback_confirmation_required">Потрібне підтвердження відтворення</string>
-    <string name="playback_requires_youtube_music_confirmation">Підтвердьте відтворення в YouTube Music, а потім поверніться до ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_confirmation">Підтвердьте відтворення в YouTube Music, а потім поверніться до YumaPlayer.</string>
     <string name="playback_login_refresh_required">Оновлення входу в YouTube Music</string>
-    <string name="playback_requires_youtube_music_login_refresh">Оновіть дані для входу в YouTube Music, а потім поверніться до ArchiveTune.</string>
+    <string name="playback_requires_youtube_music_login_refresh">Оновіть дані для входу в YouTube Music, а потім поверніться до YumaPlayer.</string>
     <string name="content_language">Стандартна мова контенту</string>
     <string name="content_country">Стандартна країна походження контенту</string>
     <string name="system_default">Налаштування системи</string>
@@ -566,9 +567,9 @@
     <string name="update_notification_channel_name">Оновлення додатку</string>
     <string name="update_notification_channel_desc">Сповіщення про нові оновлення додатку</string>
     <string name="update_notification_title">Доступно нове оновлення</string>
-    <string name="update_notification_text">ArchiveTune %s тепер доступно</string>
+    <string name="update_notification_text">YumaPlayer %s тепер доступно</string>
     <string name="download">Завантажити</string>
-    <string name="permissions_title">Дозволити ArchiveTune працювати на повну</string>
+    <string name="permissions_title">Дозволити YumaPlayer працювати на повну</string>
     <string name="permissions_subtitle">Для безперебійного відтворення та управління вашою музикою нам потрібні деякі дозволи. Ви можете змінити їх у будь-який час у налаштуваннях системи.</string>
     <string name="permission_storage_title">Доступ до сховища</string>
     <string name="permission_storage_desc">Необхідно для зчитування завантажених та локальних аудіофайлів з метою їх відтворення.</string>
@@ -577,7 +578,7 @@
     <string name="allow">Дозволити</string>
     <string name="you_might_like">Вам може сподобатися</string>
     <string name="refresh_suggestions">Оновити пропозиції</string>
-    <string name="music_together">ArchiveTune Музика разом</string>
+    <string name="music_together">YumaPlayer Музика разом</string>
     <string name="together_display_name">Ім\'я для відображення</string>
     <string name="together_display_name_placeholder">Ваше ім\'я</string>
     <string name="together_port">Порт сесії</string>

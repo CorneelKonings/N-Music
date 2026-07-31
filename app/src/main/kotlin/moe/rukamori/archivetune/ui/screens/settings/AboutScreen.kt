@@ -8,6 +8,7 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -67,6 +69,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -76,13 +84,30 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.border
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.ui.component.IconButton
+import moe.rukamori.archivetune.utils.ColorExtractor
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 // Закомментированы неиспользуемые сейчас импорты для чистоты
@@ -100,6 +125,17 @@ import moe.rukamori.archivetune.viewmodels.AboutUiModel
 import moe.rukamori.archivetune.viewmodels.AboutViewModel
 import moe.rukamori.archivetune.viewmodels.TeamMember
 // import moe.rukamori.archivetune.viewmodels.TeamMemberCollection
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,13 +191,14 @@ private fun AboutScreenContent(
 ) {
     val listState = rememberLazyListState()
 
-    Scaffold(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    SettingsScreenBackground {
+        Scaffold(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             LargeFlexibleTopAppBar(
                 title = {
@@ -183,8 +220,8 @@ private fun AboutScreenContent(
                 },
                 colors =
                     TopAppBarDefaults.largeTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
                     ),
                 actions = {
                     if (state is AboutScreenState.Success) {
@@ -262,6 +299,7 @@ private fun AboutScreenContent(
             onRetryDependencyLicenses = onRetryDependencyLicenses,
         )
     }
+}
 }
 
 @Composable
@@ -815,42 +853,8 @@ private fun AboutSuccessContent(
             }
         }
 
-        item(key = "support", contentType = "about_support") {
-            AboutContentContainer {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    ),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text = "☕ Support the project / Buy me a coffee",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "• Ko-fi: https://ko-fi.com/muwmix",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable { onOpenUri("https://ko-fi.com/muwmix") }
-                        )
-                        Text(
-                            text = "• Solana (SOL):\nDT3ckdbNuiQMR1mrCpBXCMrhLB19GckVv3YfxsLLiF8z",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
+
+
 
         /*
          * ====================================================================
@@ -927,20 +931,75 @@ private fun AboutIdentityCard(
     onOpenUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    val colors = LocalYumaColors.current
+    val cardShape = MaterialTheme.shapes.extraLarge
+    val isDark = isSystemInDarkTheme()
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+
+    val blendMode = if (isDark) BlendMode.Plus else BlendMode.SrcOver
+
+    val spot1Alpha = if (isDark) 0.50f else 0.35f
+    val spot1AlphaMid = if (isDark) 0.20f else 0.12f
+
+    val spot2Alpha = if (isDark) 0.55f else 0.40f
+    val spot2AlphaMid = if (isDark) 0.22f else 0.15f
+
+    val transition = rememberInfiniteTransition(label = "meshGlow")
+    val time by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 12000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "time"
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(cardShape)
+            .drawWithCache {
+                val spot1X = size.width * (0.5f + 0.35f * kotlin.math.cos(time))
+                val spot1Y = size.height * (0.5f + 0.30f * kotlin.math.sin(time))
+
+                val spot2X = size.width * (0.5f + 0.40f * kotlin.math.sin(time + 1.8f))
+                val spot2Y = size.height * (0.5f + 0.35f * kotlin.math.cos(time + 1.8f))
+
+                val spot1Gradient = Brush.radialGradient(
+                    colors = listOf(
+                        primaryColor.copy(alpha = spot1Alpha),
+                        primaryColor.copy(alpha = spot1AlphaMid),
+                        Color.Transparent
+                    ),
+                    center = Offset(spot1X, spot1Y),
+                    radius = size.width * 0.85f
+                )
+
+                val spot2Gradient = Brush.radialGradient(
+                    colors = listOf(
+                        tertiaryColor.copy(alpha = spot2Alpha),
+                        tertiaryColor.copy(alpha = spot2AlphaMid),
+                        Color.Transparent
+                    ),
+                    center = Offset(spot2X, spot2Y),
+                    radius = size.width * 0.90f
+                )
+
+                onDrawBehind {
+                    drawRect(color = colors.glassBackground)
+                    drawRect(brush = spot1Gradient, blendMode = blendMode)
+                    drawRect(brush = spot2Gradient, blendMode = blendMode)
+                }
+            }
+            .border(1.dp, colors.glassBorder, cardShape),
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -978,13 +1037,12 @@ private fun AboutIdentityCard(
                 onOpenUri = onOpenUri,
             )
 
-            // Юридический дисклеймер для GPL-3.0
             Text(
                 text = "Based on ArchiveTune by Rukamori.\nSource code available under GPL-3.0.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }
@@ -1038,6 +1096,9 @@ private fun LinkChipRow(
     onOpenUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val solanaAddress = "DT3ckdbNuiQMR1mrCpBXCMrhLB19GckVv3YfxsLLiF8z"
+
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -1046,27 +1107,65 @@ private fun LinkChipRow(
         repeat(links.size) { index ->
             val link = links[index]
             val label = stringResource(link.labelResId)
-            val onClick =
-                remember(link.url, onOpenUri) {
-                    { onOpenUri(link.url) }
-                }
+            val onClick = remember(link.url, onOpenUri) { { onOpenUri(link.url) } }
 
-            AssistChip(
+            InteractiveLinkChip(
+                label = label,
+                iconResId = link.iconResId,
                 onClick = onClick,
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(link.iconResId),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                },
-                label = {
-                    Text(
-                        text = label,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
+            )
+        }
+        val solanaCopiedMessage = stringResource(R.string.solana_address_copied)
+
+        InteractiveLinkChip(
+            label = "Solana (SOL)",
+            iconResId = R.drawable.ic_solana,
+            onClick = {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("Solana Address", solanaAddress)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(context, solanaCopiedMessage, Toast.LENGTH_SHORT).show()
+            },
+        )
+    }
+}
+@Composable
+private fun InteractiveLinkChip(
+    label: String,
+    iconResId: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalYumaColors.current
+    val shape = RoundedCornerShape(12.dp)
+
+    Box(
+        modifier =
+            modifier
+                .yumaClickable(pressedScale = 0.93f, onClick = onClick)
+                .yumaGlassCard(
+                    shape = shape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                ),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                painter = painterResource(iconResId),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -1078,25 +1177,58 @@ private fun LeadDeveloperSection(
     onOpenUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var extractedColorHex by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         AboutSectionHeader(title = stringResource(R.string.about_lead_developer))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        val colors = LocalYumaColors.current
+        val cardShape = MaterialTheme.shapes.extraLarge
+
+        val extractedColor = remember(extractedColorHex) {
+            extractedColorHex?.let {
+                try {
+                    Color(android.graphics.Color.parseColor(it))
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        }
+
+        val gradientStart = extractedColor?.copy(alpha = 0.35f)
+            ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(cardShape)
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            gradientStart,
+                            colors.glassBackground,
+                        )
+                    )
+                )
+                .border(1.dp, colors.glassBorder, cardShape)
         ) {
             TeamMemberListItem(
                 member = member,
                 onOpenUri = onOpenUri,
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                containerColor = Color.Transparent,
+                extractedColor = extractedColor,
+                onAvatarPixelsReady = { pixels ->
+                    scope.launch(Dispatchers.IO) {
+                        val hex = ColorExtractor.extractVibrantHex(pixels)
+                        withContext(Dispatchers.Main) {
+                            extractedColorHex = hex
+                        }
+                    }
+                },
                 avatarSize = 72.dp,
                 minHeight = 104.dp,
             )
@@ -1179,6 +1311,8 @@ private fun TeamMemberListItem(
     onOpenUri: (String) -> Unit,
     containerColor: Color,
     modifier: Modifier = Modifier,
+    extractedColor: Color? = null,
+    onAvatarPixelsReady: ((IntArray) -> Unit)? = null,
     avatarSize: Dp = 56.dp,
     minHeight: Dp = 88.dp,
 ) {
@@ -1191,6 +1325,7 @@ private fun TeamMemberListItem(
                 Modifier.clickable { onOpenUri(profileUrl) }
             }
         }
+    val context = LocalContext.current
 
     ListItem(
         modifier =
@@ -1200,15 +1335,60 @@ private fun TeamMemberListItem(
                 .then(itemClickModifier),
         colors = ListItemDefaults.colors(containerColor = containerColor),
         leadingContent = {
-            AsyncImage(
-                model = member.avatarUrl,
-                contentDescription = member.name,
+            Box(
                 modifier =
                     Modifier
                         .size(avatarSize)
+                        .shadow(4.dp, CircleShape)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            )
+                        .background(
+                            Brush.radialGradient(
+                                colors =
+                                    listOf(
+                                        (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.20f),
+                                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f),
+                                    ),
+                            ),
+                        ).border(
+                            width = 1.5.dp,
+                            brush =
+                                Brush.linearGradient(
+                                    colors =
+                                        listOf(
+                                            (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.70f),
+                                            (extractedColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.20f),
+                                        ),
+                                ),
+                            shape = CircleShape,
+                        ),
+                contentAlignment = Alignment.Center,
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(member.avatarUrl)
+                        .size(128, 128)
+                        .allowHardware(false)
+                        .build(),
+                    contentDescription = member.name,
+                    onSuccess = { success ->
+                        if (onAvatarPixelsReady != null) {
+                            val bmp = success.result.image.toBitmap()
+                            val w = bmp.width
+                            val h = bmp.height
+                            if (w > 0 && h > 0) {
+                                val pixels = IntArray(w * h)
+                                bmp.getPixels(pixels, 0, w, 0, 0, w, h)
+                                onAvatarPixelsReady(pixels)
+                            }
+                        }
+                    },
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+            }
         },
         headlineContent = {
             Text(

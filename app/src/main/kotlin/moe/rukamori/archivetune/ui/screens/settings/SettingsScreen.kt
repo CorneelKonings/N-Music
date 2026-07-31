@@ -13,7 +13,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -24,6 +26,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -33,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +57,8 @@ import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.state.UpdateState
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.Updater
@@ -63,10 +71,8 @@ fun SettingsScreen(
     onClearUpdateBadge: () -> Unit = {},
 ) {
 
-    // Вычисляем hasUpdate из нового стейта
     val hasUpdate = updateState is UpdateState.SoftUpdate || updateState is UpdateState.CriticalUpdate
 
-    // Для бейджа и текста можно вытащить версию так:
     val latestVersionName = when (updateState) {
         is UpdateState.SoftUpdate -> updateState.versionName
         is UpdateState.CriticalUpdate -> updateState.versionName
@@ -119,49 +125,90 @@ fun SettingsScreen(
     val shouldShowPermissionHint = !isStorageGranted || !isNotificationGranted
     var isUpdateDismissed by remember { mutableStateOf(false) }
     val settingsGroups = buildSettingsGroups(navController, isAndroid12OrLater, hasUpdate, context)
-    val settingsItems =
-        remember(settingsGroups) {
-            settingsGroups.flatMap { it.items }
-        }
 
-    Scaffold(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.settings),
-                        fontWeight = FontWeight.Bold,
+    val scrimAlpha by remember {
+        derivedStateOf {
+            val offset = listState.firstVisibleItemScrollOffset
+            val index = listState.firstVisibleItemIndex
+            if (index > 0) 0.85f else (offset / 100f).coerceIn(0f, 0.85f)
+        }
+    }
+
+    val primaryAccent = MaterialTheme.colorScheme.primary
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val bgTopColor = remember(primaryAccent, surfaceColor) {
+        primaryAccent.copy(alpha = 0.22f).compositeOver(surfaceColor)
+    }
+    val bgMidColor = remember(primaryAccent, surfaceColor) {
+        primaryAccent.copy(alpha = 0.06f).compositeOver(surfaceColor)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        bgTopColor,
+                        bgMidColor,
+                        surfaceColor
                     )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = navController::navigateUp,
-                        onLongClick = navController::backToMain,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = stringResource(R.string.back_button_desc),
-                        )
-                    }
-                },
-                colors =
-                    TopAppBarDefaults.largeTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                scrollBehavior = scrollBehavior,
+                )
             )
-        },
-    ) { innerPadding ->
+    ) {
+        Scaffold(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.surface.copy(alpha = scrimAlpha),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                    )
+                    LargeFlexibleTopAppBar(
+                        title = {
+                            Text(
+                                text = stringResource(R.string.settings),
+                                fontWeight = FontWeight.Bold,
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = navController::navigateUp,
+                                onLongClick = navController::backToMain,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.arrow_back),
+                                    contentDescription = stringResource(R.string.back_button_desc),
+                                )
+                            }
+                        },
+                        colors =
+                            TopAppBarDefaults.largeTopAppBarColors(
+                                containerColor = Color.Transparent,
+                                scrolledContainerColor = Color.Transparent,
+                            ),
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
+            },
+        ) { innerPadding ->
         LazyColumn(
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SectionSpacing),
+            /* verticalArrangement = Arrangement.spacedBy(2.dp), */
             modifier =
                 Modifier
                     .fillMaxSize()
@@ -214,17 +261,28 @@ fun SettingsScreen(
             }
 
             itemsIndexed(
-                items = settingsItems,
-                key = { _, item -> item.key },
-                contentType = { _, _ -> "settings_segment" },
-            ) { index, settingsItem ->
-                SettingsSegmentedItem(
-                    item = settingsItem,
-                    index = index,
-                    count = settingsItems.size,
-                    modifier = Modifier.padding(horizontal = 26.dp),
+                items = settingsGroups,
+                key = { _, group -> group.title },
+                contentType = { _, _ -> "settings_group" },
+            ) { _, group ->
+                SettingsGroupCard(
+                    group = group,
+                    modifier = Modifier.padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
                 )
             }
         }
+    }
+}
+}
+
+@ThemePreviews
+@Composable
+private fun SettingsScreenPreview() {
+    TestThemeWrapper {
+        SettingsScreen(
+            navController = androidx.navigation.compose.rememberNavController(),
+            updateState = UpdateState.NoUpdate,
+            onClearUpdateBadge = {}
+        )
     }
 }

@@ -97,6 +97,7 @@ import moe.rukamori.archivetune.ui.component.LocalBottomSheetPageState
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
+import moe.rukamori.archivetune.ui.component.NewMenuItem
 import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.TextFieldDialog
 import moe.rukamori.archivetune.ui.utils.ShowMediaInfo
@@ -558,86 +559,81 @@ fun SongMenu(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        if (!isLocalSong) {
-            item {
-                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                    ListItem(
+        item {
+            MenuSurfaceSection(modifier = Modifier.padding(vertical = 4.dp)) {
+                Column {
+                    if (!isLocalSong) {
+                        NewMenuItem(
+                            headlineContent = {
+                                Text(
+                                    text =
+                                        stringResource(
+                                            if (song.song.inLibrary == null) {
+                                                R.string.add_to_library
+                                            } else {
+                                                R.string.remove_from_library
+                                            },
+                                        ),
+                                )
+                            },
+                            leadingContent = {
+                                Icon(
+                                    painter =
+                                        painterResource(
+                                            if (song.song.inLibrary == null) {
+                                                R.drawable.library_add
+                                            } else {
+                                                R.drawable.library_add_check
+                                            },
+                                        ),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                onDismiss()
+                                database.query {
+                                    update(song.song.toggleLibrary())
+                                }
+                            },
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 56.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                        )
+                    }
+
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
                                     stringResource(
-                                        if (song.song.inLibrary == null) {
-                                            R.string.add_to_library
+                                        if (isInSpeedDial) {
+                                            R.string.remove_from_speed_dial
                                         } else {
-                                            R.string.remove_from_library
+                                            R.string.pin_to_speed_dial
                                         },
                                     ),
                             )
                         },
                         leadingContent = {
                             Icon(
-                                painter =
-                                    painterResource(
-                                        if (song.song.inLibrary == null) {
-                                            R.drawable.library_add
-                                        } else {
-                                            R.drawable.library_add_check
-                                        },
-                                    ),
+                                painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                onDismiss()
-                                database.query {
-                                    update(song.song.toggleLibrary())
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    )
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-        }
-
-        item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                ListItem(
-                    headlineContent = {
-                        Text(
-                            text =
-                                stringResource(
-                                    if (isInSpeedDial) {
-                                        R.string.remove_from_speed_dial
-                                    } else {
-                                        R.string.pin_to_speed_dial
-                                    },
-                                ),
-                        )
-                    },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
-                            contentDescription = null,
-                        )
-                    },
-                    modifier =
-                        Modifier.clickable {
+                        onClick = {
                             val updatedPins = toggleSpeedDialPin(speedDialPins, songPin)
                             onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
                             onDismiss()
                         },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
+                    )
+                }
             }
         }
 
         item {
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         if (showMutationSection) {

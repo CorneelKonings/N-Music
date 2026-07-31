@@ -98,7 +98,7 @@
     <string name="update_notification_channel_desc">新应用更新通知</string>
     <string name="update_notification_title">更新可用</string>
     <string name="download">下载</string>
-    <string name="permissions_title">让ArchiveTune发挥最佳作用</string>
+    <string name="permissions_title">让YumaPlayer发挥最佳作用</string>
     <string name="permissions_subtitle">我们使用一些权限来可靠地播放和管理您的音乐，你可以随时在系统设置中更改这些</string>
     <string name="permission_storage_title">存储访问</string>
     <string name="permission_storage_desc">播放时必须读取下载的和本地音频文件</string>

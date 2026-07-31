@@ -117,3 +117,9 @@ core.*
 /SOUL.md
 /string_cleaner.py
 /.codexignore
+.agents
+deploy*.py
+/.opencode/
+/opencode.json
+opencode.json
+/.omo/

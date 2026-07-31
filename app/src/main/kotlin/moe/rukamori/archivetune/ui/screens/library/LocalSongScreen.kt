@@ -476,7 +476,7 @@ fun LocalSongScreen(
 
                 itemsIndexed(
                     items = visibleSongs,
-                    key = { _, item -> item.id },
+                    key = { index, item -> "${item.id}_$index" },
                     contentType = { _, _ -> CONTENT_TYPE_SONG },
                 ) { index, song ->
                     SongListItem(

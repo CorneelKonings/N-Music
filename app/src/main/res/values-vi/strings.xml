@@ -326,7 +326,7 @@
     <string name="discord_activity_type">Loại hoạt động</string>
     <string name="dark_theme_follow_system">Theo hệ thống</string>
     <string name="pure_black">Đen thuần</string>
-    <string name="archivetune_canvas">ArchiveTune Canvas</string>
+    <string name="archivetune_canvas">YumaPlayer Canvas</string>
     <string name="archivetune_canvas_desc">Tạo hiệu ứng động cho artwork album khi phát (Được hỗ trợ bởi BetterLyrics)</string>
     <string name="disable_blur">Tắt hiệu ứng làm mờ</string>
     <string name="disable_blur_desc">Tắt hiệu ứng làm mờ trong toàn bộ ứng dụng</string>
@@ -561,10 +561,10 @@
     <string name="update_notification_channel_name">Cập nhật Ứng dụng</string>
     <string name="update_notification_channel_desc">Thông báo cho các cập nhật ứng dụng mới</string>
     <string name="update_notification_title">Cập nhật Có sẵn</string>
-    <string name="update_notification_text">ArchiveTune %s hiện đã có sẵn</string>
+    <string name="update_notification_text">YumaPlayer %s hiện đã có sẵn</string>
     <string name="download">Tải xuống</string>
     <string name="download_complete">Tải xuống hoàn tất</string>
-    <string name="permissions_title">Cho phép ArchiveTune hoạt động tốt nhất</string>
+    <string name="permissions_title">Cho phép YumaPlayer hoạt động tốt nhất</string>
     <string name="permissions_subtitle">Chúng tôi sử dụng một số quyền để phát và quản lý nhạc của bạn một cách đáng tin cậy. Bạn có thể thay đổi những quyền này bất cứ lúc nào trong cài đặt hệ thống.</string>
     <string name="permission_storage_title">Truy cập lưu trữ</string>
     <string name="permission_storage_desc">Cần thiết để đọc các file âm thanh đã tải xuống và cục bộ của bạn để phát nhạc.</string>

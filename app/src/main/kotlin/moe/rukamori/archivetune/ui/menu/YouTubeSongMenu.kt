@@ -94,6 +94,7 @@ import moe.rukamori.archivetune.ui.component.LocalBottomSheetPageState
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
+import moe.rukamori.archivetune.ui.component.NewMenuItem
 import moe.rukamori.archivetune.ui.utils.ShowMediaInfo
 import moe.rukamori.archivetune.utils.SpeedDialPin
 import moe.rukamori.archivetune.utils.SpeedDialPinType
@@ -449,35 +450,33 @@ fun YouTubeSongMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                ListItem(
-                    headlineContent = {
-                        Text(
-                            text =
-                                if (librarySong?.song?.inLibrary != null) {
-                                    stringResource(R.string.remove_from_library)
-                                } else {
-                                    stringResource(R.string.add_to_library)
-                                },
-                        )
-                    },
-                    leadingContent = {
-                        Icon(
-                            painter =
-                                painterResource(
-                                    if (librarySong?.song?.inLibrary !=
-                                        null
-                                    ) {
-                                        R.drawable.library_add_check
+            MenuSurfaceSection(modifier = Modifier.padding(vertical = 4.dp)) {
+                Column {
+                    NewMenuItem(
+                        headlineContent = {
+                            Text(
+                                text =
+                                    if (librarySong?.song?.inLibrary != null) {
+                                        stringResource(R.string.remove_from_library)
                                     } else {
-                                        R.drawable.library_add
+                                        stringResource(R.string.add_to_library)
                                     },
-                                ),
-                            contentDescription = null,
-                        )
-                    },
-                    modifier =
-                        Modifier.clickable {
+                            )
+                        },
+                        leadingContent = {
+                            Icon(
+                                painter =
+                                    painterResource(
+                                        if (librarySong?.song?.inLibrary != null) {
+                                            R.drawable.library_add_check
+                                        } else {
+                                            R.drawable.library_add
+                                        },
+                                    ),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
                             coroutineScope.launch(Dispatchers.IO) {
                                 val shouldAdd = librarySong?.song?.inLibrary == null
                                 val remoteResult = YouTube.likeVideo(song.id, shouldAdd)
@@ -506,38 +505,33 @@ fun YouTubeSongMenu(
                                 }
                             }
                         },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
-            }
-        }
+                    )
 
-        item {
-            Spacer(modifier = Modifier.height(12.dp))
-        }
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 56.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                    )
 
-        item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                ListItem(
-                    headlineContent = {
-                        Text(
-                            text =
-                                stringResource(
-                                    if (isInSpeedDial) {
-                                        R.string.remove_from_speed_dial
-                                    } else {
-                                        R.string.pin_to_speed_dial
-                                    },
-                                ),
-                        )
-                    },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
-                            contentDescription = null,
-                        )
-                    },
-                    modifier =
-                        Modifier.clickable {
+                    NewMenuItem(
+                        headlineContent = {
+                            Text(
+                                text =
+                                    stringResource(
+                                        if (isInSpeedDial) {
+                                            R.string.remove_from_speed_dial
+                                        } else {
+                                            R.string.pin_to_speed_dial
+                                        },
+                                    ),
+                            )
+                        },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
                             coroutineScope.launch {
                                 if (!isInSpeedDial) {
                                     withContext(Dispatchers.IO) {
@@ -552,9 +546,13 @@ fun YouTubeSongMenu(
                                 onDismiss()
                             }
                         },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
+                    )
+                }
             }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         item {

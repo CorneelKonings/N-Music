@@ -4,16 +4,15 @@
  * GPL-3.0 License | Contributors: see git history
  */
 
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 
 package moe.rukamori.archivetune.ui.screens.settings
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,22 +35,39 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
+import moe.rukamori.archivetune.ui.component.IconButton
+import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
+import moe.rukamori.archivetune.R
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.res.painterResource
@@ -60,8 +76,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import coil3.compose.AsyncImage
-import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
+import moe.rukamori.archivetune.ui.component.LocalPreferenceItemIndex
+import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
+
+private val localFont = FontFamily(
+    Font(R.font.google_sans_regular, FontWeight.Normal),
+    Font(R.font.google_sans_bold, FontWeight.Bold)
+)
 
 @Composable
 fun SettingsProfileHeader(
@@ -140,21 +168,19 @@ fun SettingsProfileHeader(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
+                AutoScrollingTextOnDemand(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
                 )
                 subtitle?.let { s ->
-                    Text(
+                    AutoScrollingTextOnDemand(
                         text = s,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                        ),
                     )
                 }
             }
@@ -258,31 +284,19 @@ fun SettingsUpdateBanner(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) SettingsAnimations.PressScale else 1f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "updateScale",
-    )
+    val colors = LocalYumaColors.current
+    val shape = RoundedCornerShape(SettingsDimensions.BannerCardCornerRadius)
 
-    Card(
+    Box(
         modifier =
             modifier
                 .fillMaxWidth()
-                .scale(scale)
-                .focusable()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onClick,
-                ),
-        shape = RoundedCornerShape(SettingsDimensions.BannerCardCornerRadius),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                .yumaGlassCard(
+                    shape = shape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                )
+                .yumaClickable(onClick = onClick),
     ) {
         Row(
             modifier =
@@ -344,34 +358,45 @@ fun SettingsGroupCard(
     group: SettingsGroup,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalYumaColors.current
+    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
+
     Column(modifier = modifier) {
         Text(
             text = group.title.uppercase(),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = colors.textSecondary,
             letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing * 1.2f,
             modifier =
                 Modifier.padding(
-                    horizontal = SettingsDimensions.SectionHeaderHorizontalPadding,
-                    vertical = SettingsDimensions.SectionHeaderBottomPadding,
+                    horizontal = 12.dp,
+                    vertical = 8.dp,
                 ),
         )
 
-        Card(
-            shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        ) {
-            Column {
-                group.items.forEachIndexed { index, item ->
-                    SettingsRow(
-                        item = item,
-                        showDivider = index < group.items.size - 1,
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .yumaGlassCard(
+                        shape = cardShape,
+                        backgroundColor = colors.glassBackground,
+                        borderColor = colors.glassBorder,
                     )
+                    .padding(8.dp),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                group.items.forEachIndexed { index, item ->
+                    CompositionLocalProvider(LocalPreferenceItemIndex provides index) {
+                        SettingsRow(
+                            item = item,
+                            showDivider = false,
+                        )
+                    }
                 }
             }
         }
@@ -384,52 +409,42 @@ fun SettingsRow(
     showDivider: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val colors = LocalYumaColors.current
     val effectiveAccent =
         if (item.accentColor.isSpecified) {
             item.accentColor
         } else {
-            MaterialTheme.colorScheme.primary
+            colors.textPrimary
         }
 
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "rowScale",
-    )
-    val bgAlpha by animateFloatAsState(
-        targetValue = if (isPressed) 0.06f else 0f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "rowBgAlpha",
-    )
-
-    Column(modifier = modifier) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .yumaClickable(onClick = item.onClick)
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(14.dp),
+                    backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
+                    borderColor = Color.Transparent,
+                )
+                .padding(
+                    horizontal = SettingsDimensions.RowHorizontalPadding,
+                    vertical = SettingsDimensions.RowVerticalPadding,
+                ),
+    ) {
         Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                    }.background(MaterialTheme.colorScheme.primary.copy(alpha = bgAlpha))
-                    .focusable()
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = item.onClick,
-                    ).padding(
-                        horizontal = SettingsDimensions.RowHorizontalPadding,
-                        vertical = SettingsDimensions.RowVerticalPadding,
-                    ),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val iconShape = rememberPreferenceIconShape(item.title)
             Box(
-                modifier =
-                    Modifier
-                        .size(SettingsDimensions.RowIconSize)
-                        .clip(CircleShape)
-                        .background(effectiveAccent.copy(alpha = 0.12f)),
+                modifier = Modifier
+                    .size(SettingsDimensions.RowIconSize)
+                    .clip(iconShape)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                        shape = iconShape,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 if (item.showUpdateIndicator) {
@@ -444,7 +459,7 @@ fun SettingsRow(
                         Icon(
                             painter = item.icon,
                             contentDescription = null,
-                            tint = effectiveAccent,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                         )
                     }
@@ -452,7 +467,7 @@ fun SettingsRow(
                     Icon(
                         painter = item.icon,
                         contentDescription = null,
-                        tint = effectiveAccent,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                     )
                 }
@@ -463,23 +478,33 @@ fun SettingsRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = localFont,
+                    color = colors.textPrimary,
+                    maxLines = 1,
+                    modifier = Modifier.basicMarquee(
+                        iterations = Int.MAX_VALUE,
+                        initialDelayMillis = 2000,
+                    ),
                 )
                 item.subtitle?.let { subtitle ->
-                    Spacer(modifier = Modifier.height(1.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
+                        fontFamily = localFont,
                         color =
                             if (item.showUpdateIndicator) {
                                 effectiveAccent
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
+                                colors.textSecondary
                             },
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            initialDelayMillis = 2000,
+                        ),
                     )
                 }
             }
@@ -558,79 +583,55 @@ fun SettingsSegmentedItem(
         } else {
             MaterialTheme.colorScheme.surface
         }
-    val shape = remember(index, count) { segmentedSettingsItemShape(index, count) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) SettingsAnimations.PressScale else 1f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "settingsSegmentScale",
-    )
+    /* val shape = remember(index, count) { segmentedSettingsItemShape(index, count) } */
+    val shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
+    val colors = LocalYumaColors.current
 
-    Card(
+    Box(
         modifier =
             modifier
                 .fillMaxWidth()
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }.clip(shape)
-                .focusable()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = item.onClick,
+                .yumaClickable(onClick = item.onClick)
+                .yumaGlassCard(
+                    shape = shape,
                 ),
-        shape = shape,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 88.dp)
-                    .padding(horizontal = 22.dp, vertical = 14.dp),
+                    .padding(
+                        horizontal = SettingsDimensions.RowHorizontalPadding,
+                        vertical = SettingsDimensions.RowVerticalPadding
+                    ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(52.dp)
-                        .clip(CircleShape)
-                        .background(effectiveAccent),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (item.showUpdateIndicator) {
-                    BadgedBox(
-                        badge = {
-                            Badge(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(9.dp),
-                            )
-                        },
-                    ) {
-                        Icon(
-                            painter = item.icon,
-                            contentDescription = null,
-                            tint = iconContentColor,
-                            modifier = Modifier.size(26.dp),
+            if (item.showUpdateIndicator) {
+                BadgedBox(
+                    badge = {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(8.dp),
                         )
-                    }
-                } else {
+                    },
+                ) {
                     Icon(
                         painter = item.icon,
                         contentDescription = null,
-                        tint = iconContentColor,
-                        modifier = Modifier.size(26.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                     )
                 }
+            } else {
+                Icon(
+                    painter = item.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
+                )
             }
 
-            Spacer(modifier = Modifier.width(18.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -639,8 +640,9 @@ fun SettingsSegmentedItem(
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = localFont,
+                    color = colors.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -648,9 +650,10 @@ fun SettingsSegmentedItem(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = localFont,
+                        color = colors.textSecondary,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -670,6 +673,14 @@ fun SettingsSegmentedItem(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_right),
+                contentDescription = null,
+                tint = colors.textSecondary.copy(alpha = 0.5f),
+                modifier = Modifier.size(SettingsDimensions.ChevronSize),
+            )
         }
     }
 }
@@ -796,6 +807,109 @@ fun SettingsFlatItem(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsScreenBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val primaryAccent = MaterialTheme.colorScheme.primary
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val bgTopColor = remember(primaryAccent, surfaceColor) {
+        primaryAccent.copy(alpha = 0.22f).compositeOver(surfaceColor)
+    }
+    val bgMidColor = remember(primaryAccent, surfaceColor) {
+        primaryAccent.copy(alpha = 0.06f).compositeOver(surfaceColor)
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        bgTopColor,
+                        bgMidColor,
+                        surfaceColor,
+                    )
+                )
+            )
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun YumaSettingsScaffold(
+    title: @Composable () -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onBackLongClick: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
+    scrollable: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    SettingsScreenBackground(modifier = modifier) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                TopAppBar(
+                    title = title,
+                    navigationIcon = {
+                        val backIcon = @Composable {
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_back),
+                                contentDescription = null,
+                            )
+                        }
+
+                        if (onBackLongClick != null) {
+                            IconButton(
+                                onClick = onBackClick,
+                                onLongClick = onBackLongClick,
+                                content = backIcon,
+                            )
+                        } else {
+                            androidx.compose.material3.IconButton(
+                                onClick = onBackClick,
+                                content = backIcon,
+                            )
+                        }
+                    },
+                    actions = actions,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                    ),
+                )
+            },
+        ) { innerPadding ->
+            val baseModifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(
+                    LocalPlayerAwareWindowInsets.current.only(
+                        WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom,
+                    ),
+                )
+                .padding(top = innerPadding.calculateTopPadding())
+
+            if (scrollable) {
+                Column(
+                    modifier = baseModifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = SettingsDimensions.ScreenBottomPadding),
+                    content = content,
+                )
+            } else {
+                Column(
+                    modifier = baseModifier.padding(bottom = SettingsDimensions.ScreenBottomPadding),
+                    content = content,
+                )
             }
         }
     }

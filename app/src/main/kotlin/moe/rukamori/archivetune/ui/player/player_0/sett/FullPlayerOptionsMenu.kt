@@ -8,7 +8,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,9 +29,10 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
+import moe.rukamori.archivetune.ui.utils.ShowMediaInfo
 
 // Состояния суб-навигации
-enum class PlayerMenuScreen { SETTINGS, CUSTOMIZATION, SLEEP_TIMER, ABOUT }
+enum class PlayerMenuScreen { SETTINGS, CUSTOMIZATION, SLEEP_TIMER, ABOUT, DETAILS }
 
 @Composable
 fun FullPlayerOptionsMenu(
@@ -40,6 +43,9 @@ fun FullPlayerOptionsMenu(
     onAction: (PlayerAction) -> Unit,
     onBackgroundStyleChanged: (Boolean) -> Unit,
     onImmersiveChanged: (Boolean) -> Unit,
+    onOpenEqualizer: () -> Unit = {},
+    onOpenPlaybackSpeed: () -> Unit = {},
+    onOpenAddToPlaylist: () -> Unit = {},
     modifier: Modifier = Modifier,
     initialScreen: PlayerMenuScreen = PlayerMenuScreen.SETTINGS
 ) {
@@ -62,10 +68,12 @@ fun FullPlayerOptionsMenu(
     // Обработка системной кнопки "Назад"
     if (expanded) {
         BackHandler {
-            if (currentScreen != PlayerMenuScreen.SETTINGS) {
-                currentScreen = PlayerMenuScreen.SETTINGS
-            } else {
-                onDismissRequest()
+            when {
+                currentScreen == PlayerMenuScreen.DETAILS ||
+                currentScreen == PlayerMenuScreen.CUSTOMIZATION ||
+                currentScreen == PlayerMenuScreen.SLEEP_TIMER ||
+                currentScreen == PlayerMenuScreen.ABOUT -> currentScreen = PlayerMenuScreen.SETTINGS
+                else -> onDismissRequest()
             }
         }
     }
@@ -100,7 +108,7 @@ fun FullPlayerOptionsMenu(
 
             Box(
                 modifier = Modifier
-                    .width(320.dp)
+                    .width(340.dp)
                     .graphicsLayer {
                         this.translationY = translateY
                         this.alpha = alpha
@@ -134,6 +142,10 @@ fun FullPlayerOptionsMenu(
                                     onNavigateToAbout = { currentScreen = PlayerMenuScreen.ABOUT },
                                     onNavigateToCustomization = { currentScreen = PlayerMenuScreen.CUSTOMIZATION },
                                     onNavigateToSleepTimer = { currentScreen = PlayerMenuScreen.SLEEP_TIMER },
+                                    onNavigateToDetails = { currentScreen = PlayerMenuScreen.DETAILS },
+                                    onOpenEqualizer = onOpenEqualizer,
+                                    onOpenPlaybackSpeed = onOpenPlaybackSpeed,
+                                    onOpenAddToPlaylist = onOpenAddToPlaylist,
                                     onAction = onAction
                                 )
                             }
@@ -161,6 +173,19 @@ fun FullPlayerOptionsMenu(
                                     onDismissRequest = onDismissRequest
                                 )
                             }
+                            PlayerMenuScreen.DETAILS -> {
+                                // Показываем информацию о треке (ShowMediaInfo содержит собственный LazyColumn)
+                                val songId = state.trackUrl
+                                if (songId.isNotBlank()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(460.dp)
+                                    ) {
+                                        ShowMediaInfo(videoId = songId)
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -181,11 +206,9 @@ fun FullPlayerOptionsMenu(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
                             ) {
-                                // ФИКС: теперь корректно возвращает из Любого подэкрана назад в настройки
-                                if (currentScreen != PlayerMenuScreen.SETTINGS) {
-                                    currentScreen = PlayerMenuScreen.SETTINGS
-                                } else {
-                                    onDismissRequest()
+                                when {
+                                    currentScreen != PlayerMenuScreen.SETTINGS -> currentScreen = PlayerMenuScreen.SETTINGS
+                                    else -> onDismissRequest()
                                 }
                             }
                             .padding(6.dp)

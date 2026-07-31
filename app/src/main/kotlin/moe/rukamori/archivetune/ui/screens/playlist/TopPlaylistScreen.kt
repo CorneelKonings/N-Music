@@ -756,7 +756,7 @@ fun TopPlaylistScreen(
                     // Song items
                     itemsIndexed(
                         items = filteredSongs,
-                        key = { _, song -> song.item.id },
+                        key = { index, song -> "${song.item.id}_$index" },
                     ) { index, songWrapper ->
                         SongListItem(
                             song = songWrapper.item,

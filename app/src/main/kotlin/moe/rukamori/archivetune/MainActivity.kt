@@ -23,6 +23,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.key
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -152,6 +153,7 @@ import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -244,6 +246,8 @@ import moe.rukamori.archivetune.ui.component.shimmer.ShimmerTheme
 import moe.rukamori.archivetune.ui.components.update.UpdateOverlay
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.player.player_0.UnifiedPlayerSheetV2
+import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
+import moe.rukamori.archivetune.ui.player.update_0.WelcomeOverlay
 import moe.rukamori.archivetune.ui.screens.Screens
 import moe.rukamori.archivetune.ui.screens.navigationBuilder
 import moe.rukamori.archivetune.ui.screens.onboarding.OnboardingRoute
@@ -707,10 +711,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val animatedThemeColor by androidx.compose.animation.animateColorAsState(
+                targetValue = themeColor,
+                animationSpec = tween(durationMillis = 450, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+                label = "animatedThemeColor",
+            )
+
             ArchiveTuneTheme(
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
-                themeColor = themeColor,
+                themeColor = animatedThemeColor,
                 seedPalette = if (!enableDynamicTheme) customThemeSeedPalette else null,
                 disableAnimations = disableAnimations,
                 fontPreference = fontPreference,
@@ -718,13 +728,15 @@ class MainActivity : ComponentActivity() {
             ) {
                 val onboardingViewModel: OnboardingViewModel = hiltViewModel()
                 val onboardingState by onboardingViewModel.screenState.collectAsStateWithLifecycle()
+                val forceTestOnboarding = true
                 val shouldShowOnboarding =
-                    when (val state = onboardingState) {
-                        OnboardingScreenState.Loading -> true
-                        OnboardingScreenState.Empty -> true
-                        is OnboardingScreenState.Error -> false
-                        is OnboardingScreenState.Success -> state.uiState.shouldShowOnboarding
-                    }
+                    forceTestOnboarding ||
+                        when (val state = onboardingState) {
+                            OnboardingScreenState.Loading -> false
+                            OnboardingScreenState.Empty -> true
+                            is OnboardingScreenState.Error -> false
+                            is OnboardingScreenState.Success -> state.uiState.shouldShowOnboarding
+                        }
 
                 if (shouldShowOnboarding) {
                     OnboardingRoute(viewModel = onboardingViewModel)
@@ -759,9 +771,10 @@ class MainActivity : ComponentActivity() {
                         onDispose {}
                     }
 
-                    // ВОТ ОНИ, ТВОИ РОДНЫЕ ИНИЦИАЛИЗАТОРЫ ВНУТРИ COMPOSE:
-//                    val playerViewModel: PlayerViewModel = hiltViewModel()
-                    val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+                    val isLyricsVisible by remember(playerViewModel) {
+                        playerViewModel.uiState.map { it.isLyricsVisible }.distinctUntilChanged()
+                    }.collectAsStateWithLifecycle(false)
+
                     val updateViewModel: UpdateViewModel = hiltViewModel()
                     // Запускаем проверку при старте
                     LaunchedEffect(updateChannel) {
@@ -775,8 +788,6 @@ class MainActivity : ComponentActivity() {
                     val homeViewModel: HomeViewModel = hiltViewModel()
                     val networkBannerViewModel: NetworkBannerViewModel = hiltViewModel()
                     val newsViewModel: NewsViewModel = hiltViewModel()
-                    val allLocalItems by homeViewModel.allLocalItems.collectAsState()
-                    val allYtItems by homeViewModel.allYtItems.collectAsState()
                     val networkBannerState by networkBannerViewModel.bannerState.collectAsStateWithLifecycle()
                     val hasUnreadNews by newsViewModel.hasUnreadNews.collectAsStateWithLifecycle()
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -884,7 +895,7 @@ class MainActivity : ComponentActivity() {
 
                     val shouldShowHomeShuffleButton =
                         currentRoute == Screens.Home.route &&
-                            (allLocalItems.isNotEmpty() || allYtItems.isNotEmpty())
+                            (homeViewModel.allLocalItems.value.isNotEmpty() || homeViewModel.allYtItems.value.isNotEmpty())
 
                     fun getBottomNavPadding(): Dp =
                         if (shouldShowNavigationBar && !useRail) {
@@ -1102,12 +1113,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         } else {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+                            if (navController.currentDestination?.route != screen.route) {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         }
                     }
@@ -1304,22 +1317,19 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         kotlinx.coroutines.delay(3000)
 
-                        withContext(Dispatchers.IO) {
-                            val current = dataStore[LaunchCountKey] ?: 0
-                            val newCount = current + 1
-                            dataStore.edit { prefs ->
-                                prefs[LaunchCountKey] = newCount
-                            }
-                        }
-
-                        val shouldShow =
+                        val (newCount, hasPressed, remindAfter) =
                             withContext(Dispatchers.IO) {
-                                val hasPressed = dataStore[HasPressedStarKey] ?: false
-                                val remindAfter = dataStore[RemindAfterKey] ?: 3
-                                !hasPressed && (dataStore[LaunchCountKey] ?: 0) >= remindAfter
+                                val current = dataStore[LaunchCountKey] ?: 0
+                                val updated = current + 1
+                                dataStore.edit { prefs ->
+                                    prefs[LaunchCountKey] = updated
+                                }
+                                val hp = dataStore[HasPressedStarKey] ?: false
+                                val ra = dataStore[RemindAfterKey] ?: 1
+                                Triple(updated, hp, ra)
                             }
 
-                        if (shouldShow) {
+                        if (!hasPressed && newCount >= remindAfter) {
                             var waited = 0L
                             val waitStep = 500L
                             val maxWait = 30_000L
@@ -1919,8 +1929,7 @@ class MainActivity : ComponentActivity() {
                                                             navController = navController,
                                                             onSearch = { query ->
                                                                 navController.navigate(onlineSearchResultRoute(query))
-                                                                playerViewModel.addSearchHistory(query)
-                                                            },
+                                            },
                                                             onDismiss = { onActiveChange(false) },
                                                             pureBlack = pureBlack,
                                                         )
@@ -1932,20 +1941,14 @@ class MainActivity : ComponentActivity() {
                                 },
                                 bottomBar = {
                                     Box {
-                                        UnifiedPlayerSheetV2(
-                                            state = uiState,
-                                            onAction = playerViewModel::handleAction,
-                                            onLyricsClick = { playerViewModel.setLyricsVisible(true) },
-                                            onCloseLyricsClick = { playerViewModel.setLyricsVisible(false) },
-                                            onSearchLyricsClick = { playerViewModel.fetchLyrics() },
-                                            onSeek = { position -> playerViewModel.seekTo(position.toLong()) },
-                                            onSeekStarted = { playerViewModel.onSeekStarted() },
-                                            onBackgroundStyleChanged = { playerViewModel.setBlurBackgroundEnabled(it) },
-                                            onImmersiveChanged = { playerViewModel.setImmersiveEnabled(it) },
-                                            bottomBarHeight = bottomNavigationBarHeight,
+                                        ScopedPlayerSheet(
+                                            playerViewModel = playerViewModel,
+                                            playerConnection = playerConnection,
+                                            navController = navController,
+                                            bottomNavigationBarHeight = bottomNavigationBarHeight,
                                             onExpansionFractionChanged = { fraction ->
                                                 playerExpansionFraction = fraction
-                                            }
+                                            },
                                         )
 
                                         if (useRail) return@Box
@@ -1999,14 +2002,16 @@ class MainActivity : ComponentActivity() {
                                                 onShuffleClick =
                                                     if (shouldShowHomeShuffleButton) {
                                                         {
+                                                            val localItems = homeViewModel.allLocalItems.value
+                                                            val ytItems = homeViewModel.allYtItems.value
                                                             val useLocalSource =
                                                                 when {
-                                                                    allLocalItems.isNotEmpty() && allYtItems.isNotEmpty() -> {
+                                                                    localItems.isNotEmpty() && ytItems.isNotEmpty() -> {
                                                                         Random.nextFloat() <
                                                                             0.5f
                                                                     }
 
-                                                                    allLocalItems.isNotEmpty() -> {
+                                                                    localItems.isNotEmpty() -> {
                                                                         true
                                                                     }
 
@@ -2017,7 +2022,7 @@ class MainActivity : ComponentActivity() {
 
                                                             coroutineScope.launch(Dispatchers.Main) {
                                                                 if (useLocalSource) {
-                                                                    when (val luckyItem = allLocalItems.random()) {
+                                                                    when (val luckyItem = localItems.random()) {
                                                                         is Song -> {
                                                                             playerConnection?.playQueue(
                                                                                 if (luckyItem.song.isLocal) {
@@ -2048,7 +2053,7 @@ class MainActivity : ComponentActivity() {
                                                                         }
                                                                     }
                                                                 } else {
-                                                                    when (val luckyItem = allYtItems.random()) {
+                                                                    when (val luckyItem = ytItems.random()) {
                                                                         is SongItem -> {
                                                                             playerConnection?.playQueue(
                                                                                 YouTubeQueue.radio(luckyItem.toMediaMetadata()),
@@ -2172,7 +2177,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeIn(tween(250))
                                         } else {
-                                            fadeIn(tween(250)) + slideInHorizontally { it / 2 }
+                                             fadeIn(tween(250)) + slideInHorizontally { it / 2 }
                                         }
                                     },
                                     exitTransition = {
@@ -2183,7 +2188,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeOut(tween(200))
                                         } else {
-                                            fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
+                                             fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
                                         }
                                     },
                                     popEnterTransition = {
@@ -2197,7 +2202,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeIn(tween(250))
                                         } else {
-                                            fadeIn(tween(250)) + slideInHorizontally { -it / 2 }
+                                            fadeIn(tween(250)) + slideInHorizontally { -it }
                                         }
                                     },
                                     popExitTransition = {
@@ -2211,7 +2216,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             fadeOut(tween(200))
                                         } else {
-                                            fadeOut(tween(200)) + slideOutHorizontally { it / 2 }
+                                            fadeOut(tween(200)) + slideOutHorizontally { it }
                                         }
                                     },
                                     modifier =
@@ -2272,8 +2277,13 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        BackHandler(enabled = playerBottomSheetState.isExpanded) {
-                            playerBottomSheetState.collapseSoft()
+                        key(isLyricsVisible, playerExpansionFraction > 0.05f) {
+                            BackHandler(enabled = isLyricsVisible || playerExpansionFraction > 0.05f) {
+                                when {
+                                    isLyricsVisible -> playerViewModel.setLyricsVisible(false)
+                                    playerExpansionFraction > 0.05f -> playerViewModel.requestSheetCollapse()
+                                }
+                            }
                         }
 
                         BottomSheetMenu(
@@ -2679,3 +2689,47 @@ private fun Context.isTvDevice(): Boolean {
         packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
         packageManager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)
 }
+
+@Composable
+private fun ScopedPlayerSheet(
+    playerViewModel: PlayerViewModel,
+    playerConnection: PlayerConnection?,
+    navController: NavController,
+    bottomNavigationBarHeight: Dp,
+    onExpansionFractionChanged: (Float) -> Unit,
+) {
+    val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+    UnifiedPlayerSheetV2(
+        state = uiState,
+        onAction = { action ->
+            when (action) {
+                is PlayerAction.StartRadio -> {
+                    playerConnection?.startRadioSeamlessly()
+                }
+                is PlayerAction.OpenArtist -> {
+                    playerConnection?.service?.currentMediaMetadata?.value?.artists?.firstOrNull()?.id?.let { artistId ->
+                        navController.navigate("artist/$artistId")
+                        playerViewModel.requestSheetCollapse()
+                    }
+                }
+                is PlayerAction.OpenAlbum -> {
+                    playerConnection?.service?.currentMediaMetadata?.value?.album?.id?.let { albumId ->
+                        navController.navigate("album/$albumId")
+                        playerViewModel.requestSheetCollapse()
+                    }
+                }
+                else -> playerViewModel.handleAction(action)
+            }
+        },
+        onLyricsClick = { playerViewModel.setLyricsVisible(true) },
+        onCloseLyricsClick = { playerViewModel.setLyricsVisible(false) },
+        onSearchLyricsClick = { playerViewModel.fetchLyrics() },
+        onSeek = { position -> playerViewModel.seekTo(position.toLong()) },
+        onSeekStarted = { playerViewModel.onSeekStarted() },
+        onBackgroundStyleChanged = { playerViewModel.setBlurBackgroundEnabled(it) },
+        onImmersiveChanged = { playerViewModel.setImmersiveEnabled(it) },
+        bottomBarHeight = bottomNavigationBarHeight,
+        onExpansionFractionChanged = onExpansionFractionChanged,
+    )
+}
+

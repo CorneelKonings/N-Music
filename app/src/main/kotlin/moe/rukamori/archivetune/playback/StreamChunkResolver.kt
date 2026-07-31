@@ -16,7 +16,7 @@ internal fun resolveStreamChunkLength(
     if (chunkLength <= 0L || position < 0L) return null
     if (requestedLength <= 0L && mimeType.requiresOpenEndedRead()) return null
 
-    val remainingLength = knownContentLength?.minus(position)?.takeIf { it > 0L }
+    val remainingLength = knownContentLength?.minus(position)?.coerceAtLeast(0L)
     val resolvedLength =
         listOfNotNull(
             chunkLength,

@@ -41,12 +41,39 @@ fun WelcomeOverlay(
     onDismiss: () -> Unit,
     onTelegramClick: () -> Unit,
 ) {
+    WelcomeOverlayContent(
+        accentColor = Color(state.vibrantColor),
+        cardTopColor = Color(state.darkMutedColor),
+        onDismiss = onDismiss,
+        onTelegramClick = onTelegramClick,
+    )
+}
+
+@Composable
+fun WelcomeOverlay(
+    onDismiss: () -> Unit,
+    onTelegramClick: () -> Unit,
+) {
+    WelcomeOverlayContent(
+        accentColor = Color(0xFF7C4DFF),
+        cardTopColor = Color(0xFF1A1A2E),
+        onDismiss = onDismiss,
+        onTelegramClick = onTelegramClick,
+    )
+}
+
+@Composable
+private fun WelcomeOverlayContent(
+    accentColor: Color,
+    cardTopColor: Color,
+    onDismiss: () -> Unit,
+    onTelegramClick: () -> Unit,
+) {
     val GoogleSans = FontFamily(
         Font(R.font.google_sans_regular, FontWeight.Normal),
         Font(R.font.google_sans_bold, FontWeight.Bold)
     )
 
-    // Анимация для кнопки Телеграма
     val tgInteraction = remember { MutableInteractionSource() }
     val isTgPressed by tgInteraction.collectIsPressedAsState()
     val tgScale by animateFloatAsState(
@@ -68,17 +95,18 @@ fun WelcomeOverlay(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = {} // Блокируем клики по заднему фону
+                onClick = {}
             ),
         contentAlignment = Alignment.Center
     ) {
         val cardGradient = Brush.verticalGradient(
-            colors = listOf(Color(state.darkMutedColor), Color(0xFF161616))
+            colors = listOf(cardTopColor, Color(0xFF161616))
         )
 
         Box(
             modifier = Modifier
-                .width(320.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
                 .clip(RoundedCornerShape(28.dp))
                 .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(28.dp))
                 .background(cardGradient)
@@ -88,32 +116,22 @@ fun WelcomeOverlay(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // ТВОЯ ТЯН: Замени этот Text на свой Image с аниме-артом, когда закинешь в res/drawable
-//                Text(
-//                    text = "(｡♥‿♥｡)",
-//                    fontSize = 32.sp,
-//                    modifier = Modifier.padding(vertical = 8.dp)
-//                )
-
                 Image(
                     painter = painterResource(id = R.drawable.ic_welcome_chara),
-                    contentDescription = "Welcome Character",
+                    contentDescription = null,
                     modifier = Modifier
                         .size(220.dp)
                         .padding(vertical = 12.dp)
-                        // 1. Включаем изолированный слой для блендинга
                         .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-                        // 2. Накладываем маску плавного кругового растворения
                         .drawWithContent {
-                            drawContent() // Рисуем саму тянку
-
+                            drawContent()
                             drawRect(
                                 brush = Brush.radialGradient(
-                                    0.0f to Color.White,        // В самом центре — полная видимость
-                                    0.9f to Color.White,        // До половины радиуса картинка чёткая и плотная
-                                    1.0f to Color.Transparent,  // От 0.5 до 1.0 ПЛАВНО растворяется в ноль
+                                    0.0f to Color.White,
+                                    0.9f to Color.White,
+                                    1.0f to Color.Transparent,
                                     center = center,
-                                    radius = size.width * 0.45f  // Радиус равен половине ширины — аккурат до краёв квадрата
+                                    radius = size.width * 0.45f
                                 ),
                                 blendMode = BlendMode.DstIn
                             )
@@ -143,13 +161,12 @@ fun WelcomeOverlay(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Кнопка закрытия
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .graphicsLayer { scaleX = buttonScale; scaleY = buttonScale }
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color(state.vibrantColor))
+                        .background(accentColor)
                         .clickable(
                             interactionSource = buttonInteraction,
                             indication = null,
@@ -169,14 +186,13 @@ fun WelcomeOverlay(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // КНОПКА 2: Наш Телеграм канал
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .graphicsLayer { scaleX = tgScale; scaleY = tgScale }
                         .clip(RoundedCornerShape(16.dp))
-                        .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(16.dp)) // Тонкая серая рамка
-                        .background(Color(0x0AFFFFFF)) // Едва заметный внутренний тон
+                        .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(16.dp))
+                        .background(Color(0x0AFFFFFF))
                         .clickable(
                             interactionSource = tgInteraction,
                             indication = null,
@@ -187,8 +203,8 @@ fun WelcomeOverlay(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_telegram), // Сюда подставь точное имя файла твоего значка телеги
-                        contentDescription = "Telegram Link",
+                        painter = painterResource(id = R.drawable.ic_telegram),
+                        contentDescription = null,
                         modifier = Modifier.size(22.dp),
                         colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.9f))
                     )

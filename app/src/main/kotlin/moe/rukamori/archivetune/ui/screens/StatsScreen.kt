@@ -110,6 +110,8 @@ import moe.rukamori.archivetune.ui.component.NavigationTitle
 import moe.rukamori.archivetune.ui.menu.AlbumMenu
 import moe.rukamori.archivetune.ui.menu.ArtistMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
+import moe.rukamori.archivetune.ui.screens.settings.SettingsDimensions
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.joinByBullet
 import moe.rukamori.archivetune.utils.makeTimeString
@@ -359,7 +361,7 @@ fun StatsScreen(
 
             itemsIndexed(
                 items = mostPlayedSongsStats,
-                key = { _, song -> song.id },
+                key = { index, song -> "${song.id}_$index" },
                 contentType = { _, _ -> "ranked_song" },
             ) { index, song ->
                 val playFraction = song.songCountListened.toFloat() / maxPlayCount
@@ -674,13 +676,13 @@ private fun StatsSummarySection(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.elevatedCardColors(),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .yumaGlassCard(shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)),
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
@@ -726,10 +728,9 @@ private fun StatMetricCard(
     value: String,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.elevatedCardColors(),
+    Box(
+        modifier = modifier
+            .yumaGlassCard(shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)),
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -806,11 +807,11 @@ private fun StatsHighlightCard(
     useCircleShape: Boolean,
     onClick: () -> Unit,
 ) {
-    ElevatedCard(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.elevatedCardColors(),
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .yumaGlassCard(shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius))
+            .clickable(onClick = onClick),
     ) {
         Row(
             modifier =

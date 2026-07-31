@@ -56,8 +56,10 @@ fun LyricsColumn(
     // ====================================================================
     // СИСТЕМНЫЙ ЖЕСТ "НАЗАД" (Матрёшка жестов)
     // ====================================================================
-    BackHandler(enabled = state.isLyricsVisible) {
-        onCloseClick()
+    key(state.isLyricsVisible) {
+        BackHandler(enabled = state.isLyricsVisible) {
+            onCloseClick()
+        }
     }
 
     // Наш сдвиг свайпа

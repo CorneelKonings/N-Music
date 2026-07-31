@@ -48,6 +48,7 @@ import kotlin.math.min
 val DefaultThemeColor = Color(0xFFED5564)
 val LocalArchiveTuneFontPreference = staticCompositionLocalOf { AppFontPreference.DEFAULT }
 val LocalArchiveTuneFontFamily = staticCompositionLocalOf { AppFontFamily }
+val LocalDisableAnimations = staticCompositionLocalOf { false }
 
 @Composable
 fun rememberArchiveTuneLyricsFontFamily(): FontFamily {
@@ -95,6 +96,7 @@ fun ArchiveTuneTheme(
                     null
                 }
         }.value
+
     val resolvedFontFamily =
         remember(fontPreference, customFontFamily) {
             when (fontPreference) {
@@ -103,6 +105,7 @@ fun ArchiveTuneTheme(
                 AppFontPreference.CUSTOM -> customFontFamily ?: AppFontFamily
             }
         }
+
     val typography =
         remember(resolvedFontFamily) {
             when (resolvedFontFamily) {
@@ -111,16 +114,15 @@ fun ArchiveTuneTheme(
                 else -> typographyFor(resolvedFontFamily)
             }
         }
+
     val motionScheme =
         remember(disableAnimations) {
             if (disableAnimations) DisabledMotionScheme else MotionScheme.expressive()
         }
 
-    // ТВОЙ МОДЕРНИЗИРОВАННЫЙ ДВИЖОК ЦВЕТА БЕЗ MATERIALKOLOR
     val appColorScheme =
         remember(seedPalette, themeColor, darkTheme) {
             if (seedPalette != null) {
-                // Если юзер выбрал готовую палитру из настроек, собираем её стандартными средствами M3
                 if (darkTheme) {
                     darkColorScheme(
                         primary = seedPalette.primary,
@@ -139,10 +141,15 @@ fun ArchiveTuneTheme(
                     )
                 }
             } else {
-                // ВОТ ОНО: Во всех остальных случаях врубаем твой личный Monet-движок квантизации пикселей
-                generateDarkColorSchemeFromSeed(themeColor)
+                if (darkTheme) {
+                    generateDarkColorSchemeFromSeed(themeColor)
+                } else {
+                    generateLightColorSchemeFromSeed(themeColor)
+                }
             }
         }
+
+
 
     val baseColorScheme =
         if (useSystemDynamicColor) {
@@ -180,14 +187,19 @@ fun ArchiveTuneTheme(
     CompositionLocalProvider(
         LocalArchiveTuneFontPreference provides fontPreference,
         LocalArchiveTuneFontFamily provides resolvedFontFamily,
+        LocalDisableAnimations provides disableAnimations,
     ) {
         MaterialExpressiveTheme(
             colorScheme = animatedColorScheme,
             motionScheme = motionScheme,
             typography = typography,
             shapes = expressiveShapes,
-            content = content,
-        )
+        ) {
+            YumaTheme(
+                darkTheme = darkTheme,
+                content = content
+            )
+        }
     }
 }
 

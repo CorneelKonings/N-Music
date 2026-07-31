@@ -1,5 +1,7 @@
 package moe.rukamori.archivetune.di
 
+import moe.rukamori.archivetune.data.repository.AccountRepository
+import moe.rukamori.archivetune.data.repository.AccountRepositoryImpl
 import moe.rukamori.archivetune.data.repository.SettingsRepository
 import moe.rukamori.archivetune.data.repository.SettingsRepositoryImpl
 import dagger.Binds
@@ -16,4 +18,10 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         impl: SettingsRepositoryImpl
     ): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAccountRepository(
+        impl: AccountRepositoryImpl
+    ): AccountRepository
 }

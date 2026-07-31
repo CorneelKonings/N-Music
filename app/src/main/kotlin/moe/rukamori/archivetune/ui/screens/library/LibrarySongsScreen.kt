@@ -405,7 +405,7 @@ fun LibrarySongsScreen(
 
                 itemsIndexed(
                     items = filteredSongs,
-                    key = { _, item -> item.item.song.id },
+                    key = { index, item -> "${item.item.song.id}_$index" },
                 ) { index, songWrapper ->
                     val song = songWrapper.item
                     val isActive = song.id == mediaMetadata?.id

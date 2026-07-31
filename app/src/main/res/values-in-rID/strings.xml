@@ -59,7 +59,7 @@
     <string name="play">Putar</string>
     <string name="widget_pause">Jeda</string>
     <string name="widget_previous">Sebelumnya</string>
-    <string name="widget_tap_to_open">Ketuk untuk membuka ArchiveTune</string>
+    <string name="widget_tap_to_open">Ketuk untuk membuka YumaPlayer</string>
     <string name="play_next">Putar berikutnya</string>
     <string name="add_to_queue">Tambahkan ke antrean</string>
     <string name="add_to_library">Tambahkan ke pustaka</string>
@@ -547,7 +547,7 @@
     <string name="target_language">Bahasa Sasaran</string>
     <string name="close_dialog">Tutup</string>
     <string name="support_development_title">Dukung pengembangan</string>
-    <string name="support_development_message">Halo! Saya Koiverse, pengembang ArchiveTune. Jika ArchiveTune telah menemani aktivitas mendengarkan musikmu sehari-hari, kamu bisa membantu agar proyek ini terus berkembang dengan cara berdonasi atau memberikan bintang (star) pada proyek ini di GitHub. Terima kasih telah mendukung proses pengembangan di balik aplikasi ini.</string>
+    <string name="support_development_message">Jika %1$s adalah pemutar musik andalanmu, pertimbangkan untuk mendukung pengembangannya. Kamu bisa memberikan bintang di GitHub atau berdonasi untuk membantu menghadirkan fitur baru. Terima kasih atas dukunganmu!</string>
     <string name="support_development_donate">Donasi untuk mendukung pembangunan</string>
     <string name="support_development_star">Bintangi di GitHub</string>
     <string name="later">Nanti</string>
@@ -653,7 +653,7 @@
     <string name="update_notification_title">Pembaruan Tersedia</string>
     <string name="update_notification_text">ArchiveTune %s kini tersedia</string>
     <string name="download">Unduh</string>
-    <string name="permissions_title">Izinkan ArchiveTune bekerja dengan optimal</string>
+    <string name="permissions_title">Izinkan YumaPlayer bekerja dengan optimal</string>
     <string name="permissions_subtitle">Kami menggunakan beberapa izin untuk memutar dan mengelola musik Anda dengan andal. Anda dapat mengubahnya kapan saja di pengaturan sistem.</string>
     <string name="permission_storage_title">Akses penyimpanan</string>
     <string name="permission_storage_desc">Diperlukan untuk membaca file audio lokal dan unduhan Anda untuk diputar.</string>
@@ -801,7 +801,7 @@
     <string name="library_top_mixes_refresh">Segarkan mix</string>
     <string name="library_top_mixes_configure_ai">Konfigurasikan AI</string>
     <string name="library_top_mixes_ai_not_configured_title">Konfigurasikan AI untuk membuat mix</string>
-    <string name="library_top_mixes_ai_not_configured_desc">Integrasi AI diperlukan sebelum ArchiveTune dapat membuat mix teratas pribadi.</string>
+    <string name="library_top_mixes_ai_not_configured_desc">Integrasi AI diperlukan sebelum YumaPlayer dapat membuat mix teratas pribadi.</string>
     <string name="library_top_mixes_no_recent_history_title">Tidak ada riwayat mix mendengarkan saat ini</string>
     <string name="library_top_mixes_no_recent_history">Dengarkan lagu lainnya, kemudian segarkan untuk membuat mix AI dari riwayat mendengarkan anda.</string>
     <string name="library_top_mixes_failed">Gagal membuat mix teratas</string>

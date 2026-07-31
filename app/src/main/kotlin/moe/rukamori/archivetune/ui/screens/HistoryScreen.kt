@@ -707,7 +707,7 @@ private fun LocalHistoryFeed(
 
                 itemsIndexed(
                     items = songsForDate,
-                    key = { _, event -> event.event.id },
+                    key = { index, event -> "${event.event.id}_$index" },
                     contentType = { _, _ -> "local_history_song" },
                 ) { index, event ->
                     SongListItem(
@@ -842,11 +842,11 @@ private fun RemoteHistoryFeed(
                             )
                         }
 
-                        items(
+                        itemsIndexed(
                             items = section.songs,
-                            key = { song -> "${section.title}_${song.id}" },
-                            contentType = { "remote_history_song" },
-                        ) { song ->
+                            key = { index, song -> "${section.title}_${song.id}_$index" },
+                            contentType = { _, _ -> "remote_history_song" },
+                        ) { index, song ->
                             YouTubeListItem(
                                 item = song,
                                 isActive = song.id == activeMediaId,
