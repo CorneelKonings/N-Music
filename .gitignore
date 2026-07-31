@@ -119,3 +119,7 @@ core.*
 /.codexignore
 .agents
 deploy*.py
+/.opencode/
+/opencode.json
+opencode.json
+/.omo/

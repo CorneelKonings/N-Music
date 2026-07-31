@@ -247,6 +247,7 @@ import moe.rukamori.archivetune.ui.components.update.UpdateOverlay
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.player.player_0.UnifiedPlayerSheetV2
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
+import moe.rukamori.archivetune.ui.player.update_0.WelcomeOverlay
 import moe.rukamori.archivetune.ui.screens.Screens
 import moe.rukamori.archivetune.ui.screens.navigationBuilder
 import moe.rukamori.archivetune.ui.screens.onboarding.OnboardingRoute
@@ -727,13 +728,15 @@ class MainActivity : ComponentActivity() {
             ) {
                 val onboardingViewModel: OnboardingViewModel = hiltViewModel()
                 val onboardingState by onboardingViewModel.screenState.collectAsStateWithLifecycle()
+                val forceTestOnboarding = true
                 val shouldShowOnboarding =
-                    when (val state = onboardingState) {
-                        OnboardingScreenState.Loading -> true
-                        OnboardingScreenState.Empty -> true
-                        is OnboardingScreenState.Error -> false
-                        is OnboardingScreenState.Success -> state.uiState.shouldShowOnboarding
-                    }
+                    forceTestOnboarding ||
+                        when (val state = onboardingState) {
+                            OnboardingScreenState.Loading -> false
+                            OnboardingScreenState.Empty -> true
+                            is OnboardingScreenState.Error -> false
+                            is OnboardingScreenState.Success -> state.uiState.shouldShowOnboarding
+                        }
 
                 if (shouldShowOnboarding) {
                     OnboardingRoute(viewModel = onboardingViewModel)

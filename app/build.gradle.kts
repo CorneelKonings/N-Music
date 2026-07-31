@@ -237,7 +237,8 @@ ksp {
 }
 
 dependencies {
-implementation(libs.foundation.layout)
+implementation(libs.animation.core)
+    implementation(libs.foundation.layout)
     //    implementation(libs.app.update.ktx)
     implementation(libs.guava)
     implementation(libs.coroutines.guava)

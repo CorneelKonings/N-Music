@@ -65,8 +65,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
@@ -525,11 +527,11 @@ fun QuickPicksSection(
                             .fillMaxWidth()
                             .height(ListItemHeight * 4),
                 ) {
-                    items(
+                    itemsIndexed(
                         items = distinctQuickPicks,
-                        key = { it.id },
-                        contentType = { "quick_pick_song" },
-                    ) { song ->
+                        key = { index, song -> "${song.id}_$index" },
+                        contentType = { _, _ -> "quick_pick_song" },
+                    ) { index, song ->
                         SongListItem(
                             song = song,
                             showInLibraryIcon = true,
@@ -1066,11 +1068,11 @@ fun ForgottenFavoritesSection(
                 .fillMaxWidth()
                 .height(ListItemHeight * rows),
     ) {
-        items(
+        itemsIndexed(
             items = distinctForgottenFavorites,
-            key = { it.id },
-            contentType = { "forgotten_favorite_song" },
-        ) { song ->
+            key = { index, song -> "${song.id}_$index" },
+            contentType = { _, _ -> "forgotten_favorite_song" },
+        ) { index, song ->
             SongListItem(
                 song = song,
                 showInLibraryIcon = true,
@@ -1155,11 +1157,11 @@ fun AccountPlaylistsSection(
                 .asPaddingValues(),
         modifier = modifier,
     ) {
-        items(
+        itemsIndexed(
             items = distinctPlaylists,
-            key = { it.id },
-            contentType = { "account_playlist" },
-        ) { item ->
+            key = { index, item -> "${item.id}_$index" },
+            contentType = { _, _ -> "account_playlist" },
+        ) { index, item ->
             YouTubeGridItemWrapper(
                 item = item,
                 mediaMetadata = mediaMetadata,
@@ -1197,11 +1199,11 @@ fun SimilarRecommendationsSection(
                 .asPaddingValues(),
         modifier = modifier,
     ) {
-        items(
+        itemsIndexed(
             items = recommendation.items,
-            key = { it.id },
-            contentType = { item -> item::class },
-        ) { item ->
+            key = { index, item -> "${item.id}_$index" },
+            contentType = { _, item -> item::class },
+        ) { index, item ->
             YouTubeGridItemWrapper(
                 item = item,
                 mediaMetadata = mediaMetadata,
@@ -1239,11 +1241,11 @@ fun HomePageSectionContent(
                 .asPaddingValues(),
         modifier = modifier,
     ) {
-        items(
+        itemsIndexed(
             items = section.items,
-            key = { it.id },
-            contentType = { item -> item::class },
-        ) { item ->
+            key = { index, item -> "${item.id}_$index" },
+            contentType = { _, item -> item::class },
+        ) { index, item ->
             YouTubeGridItemWrapper(
                 item = item,
                 mediaMetadata = mediaMetadata,

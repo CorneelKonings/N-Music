@@ -361,7 +361,7 @@ fun StatsScreen(
 
             itemsIndexed(
                 items = mostPlayedSongsStats,
-                key = { _, song -> song.id },
+                key = { index, song -> "${song.id}_$index" },
                 contentType = { _, _ -> "ranked_song" },
             ) { index, song ->
                 val playFraction = song.songCountListened.toFloat() / maxPlayCount

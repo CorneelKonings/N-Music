@@ -644,7 +644,7 @@ fun CachePlaylistScreen(
                 }
 
                 // Song items
-                itemsIndexed(filteredSongs, key = { _, song -> song.item.id }) { index, songWrapper ->
+                itemsIndexed(filteredSongs, key = { index, song -> "${song.item.id}_$index" }) { index, songWrapper ->
                     SongListItem(
                         song = songWrapper.item,
                         isActive = songWrapper.item.id == mediaMetadata?.id,
