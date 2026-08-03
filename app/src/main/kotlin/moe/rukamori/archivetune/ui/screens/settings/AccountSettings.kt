@@ -48,6 +48,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -885,52 +886,59 @@ private fun ProfileIdentityCard(
                     )
                 }
 
-                Box(modifier = Modifier.padding(top = 4.dp)) {
-                    SplitButtonLayout(
-                        leadingButton = {
-                            SplitButtonDefaults.ElevatedLeadingButton(
-                                onClick = onPrimaryAction,
-                                colors = ButtonDefaults.elevatedButtonColors(
-                                    containerColor = colors.glassBackground,
-                                    contentColor = MaterialTheme.colorScheme.primary,
-                                ),
-                                elevation = ButtonDefaults.elevatedButtonElevation(
-                                    defaultElevation = 0.dp,
-                                    pressedElevation = 0.dp,
-                                ),
-                                modifier = Modifier.yumaClickable(pressedScale = 0.94f, onClick = onPrimaryAction),
+                Box(modifier = Modifier.padding(top = 6.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier
+                                .height(38.dp)
+                                .yumaClickable(pressedScale = 0.95f, onClick = onPrimaryAction),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
+                                Icon(
+                                    painter = painterResource(if (isLoggedIn) R.drawable.account else R.drawable.login),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                )
                                 Text(
                                     text = if (isLoggedIn) stringResource(R.string.account) else stringResource(R.string.login),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
-                        },
-                        trailingButton = {
-                            SplitButtonDefaults.ElevatedTrailingButton(
-                                checked = accountMenuExpanded,
-                                onCheckedChange = { accountMenuExpanded = it },
-                                colors = ButtonDefaults.elevatedButtonColors(
-                                    containerColor = colors.glassBackground,
-                                    contentColor = MaterialTheme.colorScheme.primary,
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .yumaClickable(
+                                    pressedScale = 0.95f,
+                                    onClick = { accountMenuExpanded = !accountMenuExpanded },
                                 ),
-                                elevation = ButtonDefaults.elevatedButtonElevation(
-                                    defaultElevation = 0.dp,
-                                    pressedElevation = 0.dp,
-                                ),
-                                modifier = Modifier.yumaClickable(pressedScale = 0.94f, onClick = { accountMenuExpanded = !accountMenuExpanded }),
-                            ) {
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.expand_more),
                                     contentDescription = null,
                                     modifier = Modifier
-                                        .size(16.dp)
+                                        .size(18.dp)
                                         .rotate(menuChevronRotation),
                                 )
                             }
-                        },
-                    )
+                        }
+                    }
 
                     DropdownMenu(
                         expanded = accountMenuExpanded,
