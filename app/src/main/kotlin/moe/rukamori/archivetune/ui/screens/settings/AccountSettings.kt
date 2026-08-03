@@ -66,7 +66,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -392,7 +391,7 @@ fun AccountSettings(
                     },
                     windowInsets = TopAppBarDefaults.windowInsets,
                     colors =
-                        TopAppBarDefaults.largeTopAppBarColors(
+                        TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                             scrolledContainerColor = Color.Transparent,
                         ),
@@ -984,7 +983,7 @@ private fun ProfileIdentityCard(
                                     },
                                 )
                             }
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
                         if (savedAccounts.accounts.isNotEmpty()) {
@@ -1046,7 +1045,7 @@ private fun ProfileIdentityCard(
                                     },
                                 )
                             }
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
                         if (isLoggedIn) {
@@ -1417,11 +1416,7 @@ private fun ExpressiveRowIcon(
 
 @Composable
 private fun ExpressiveDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(start = 78.dp, end = 20.dp),
-        thickness = 0.5.dp,
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-    )
+    Spacer(modifier = Modifier.padding(vertical = 2.dp))
 }
 
 @Composable
