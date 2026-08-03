@@ -48,6 +48,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -66,7 +67,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -135,6 +135,9 @@ import moe.rukamori.archivetune.constants.ForceSyncOnAccountSwitchKey
 import moe.rukamori.archivetune.constants.InnerTubeCookieKey
 import moe.rukamori.archivetune.constants.SavedAccountsKey
 import moe.rukamori.archivetune.constants.SelectedYtmPlaylistsKey
+import moe.rukamori.archivetune.constants.ShowSpotifyPlaylistsKey
+import moe.rukamori.archivetune.spotify.SpotifyAccountUiState
+import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
 import moe.rukamori.archivetune.constants.UseLoginForBrowse
 import moe.rukamori.archivetune.constants.VisitorDataKey
 import moe.rukamori.archivetune.constants.YtmSyncKey
@@ -143,6 +146,7 @@ import moe.rukamori.archivetune.innertube.utils.hasYouTubeLoginCookie
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.InfoLabel
 import moe.rukamori.archivetune.ui.component.TextFieldDialog
+import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
 import moe.rukamori.archivetune.ui.screens.buildLoginRoute
 import moe.rukamori.archivetune.ui.screens.settings.account.AccountSettingsViewModel
 import moe.rukamori.archivetune.ui.state.UpdateState
@@ -150,6 +154,7 @@ import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
 import moe.rukamori.archivetune.ui.theme.ThemePreviews
 import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.PreferenceStore
@@ -235,9 +240,16 @@ fun AccountSettings(
             else -> loginLabel
         }
 
+    val spotifyAccountViewModel: SpotifyAccountViewModel = hiltViewModel()
+    val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
+    val (showSpotifyPlaylists, onShowSpotifyPlaylistsChange) = rememberPreference(ShowSpotifyPlaylistsKey, true)
+    var showSpotifyOptionsDialog by remember { mutableStateOf(false) }
+    var showSpotifyLogin by remember { mutableStateOf(false) }
+
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
     var showUnsavedAccountDialog by remember { mutableStateOf(false) }
+    var showLoginChoiceDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
@@ -392,7 +404,7 @@ fun AccountSettings(
                     },
                     windowInsets = TopAppBarDefaults.windowInsets,
                     colors =
-                        TopAppBarDefaults.largeTopAppBarColors(
+                        TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                             scrolledContainerColor = Color.Transparent,
                         ),
@@ -412,11 +424,11 @@ fun AccountSettings(
             contentPadding =
                 PaddingValues(
                     start = 16.dp,
-                    top = innerPadding.calculateTopPadding() + 8.dp,
+                    top = innerPadding.calculateTopPadding() + 4.dp,
                     end = 16.dp,
                     bottom = SettingsDimensions.ScreenBottomPadding,
                 ),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SectionSpacing),
         ) {
             item {
                 val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
@@ -438,7 +450,7 @@ fun AccountSettings(
                         if (isLoggedIn) {
                             navController.navigate("account")
                         } else {
-                            navController.navigate(buildLoginRoute())
+                            showLoginChoiceDialog = true
                         }
                     },
                     onSecondaryAction = {
@@ -518,13 +530,40 @@ fun AccountSettings(
             item {
                 ExpressiveSectionCard(title = integrationLabel) {
                     ExpressiveActionRow(
+                        icon = painterResource(R.drawable.spotify_icon),
+                        title = if (spotifyState.isAuthenticated) {
+                            if (spotifyState.accountName.isNotBlank()) {
+                                stringResource(R.string.spotify_connected_as, spotifyState.accountName)
+                            } else {
+                                stringResource(R.string.spotify_account)
+                            }
+                        } else {
+                            stringResource(R.string.spotify_connect)
+                        },
+                        subtitle = if (spotifyState.isAuthenticated) {
+                            if (spotifyState.playlistCount > 0) {
+                                stringResource(R.string.spotify_available_count, spotifyState.playlistCount)
+                            } else {
+                                stringResource(R.string.spotify_no_sources)
+                            }
+                        } else {
+                            stringResource(R.string.spotify_not_connected)
+                        },
+                        onClick = {
+                            if (spotifyState.isAuthenticated) {
+                                showSpotifyOptionsDialog = true
+                            } else {
+                                showSpotifyLogin = true
+                            }
+                        },
+                    )
+
+                    ExpressiveActionRow(
                         icon = painterResource(R.drawable.integration),
                         title = integrationLabel,
                         subtitle = stringResource(R.string.account_integrations_summary),
                         onClick = { navController.navigate("settings/integration") },
                     )
-
-                    ExpressiveDivider()
 
                     ExpressiveActionRow(
                         icon = painterResource(R.drawable.fire),
@@ -569,6 +608,260 @@ fun AccountSettings(
         }
     }
 }
+
+    if (showSpotifyLogin) {
+        SpotifyLoginSheet(
+            onDismiss = { showSpotifyLogin = false },
+            onCookiesCaptured = { spDc, spKey ->
+                spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
+                showSpotifyLogin = false
+            },
+        )
+    }
+
+    if (showSpotifyOptionsDialog) {
+        Dialog(onDismissRequest = { showSpotifyOptionsDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.spotify_account),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+
+                    if (!spotifyState.isAuthenticated) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .yumaClickable(onClick = {
+                                    showSpotifyOptionsDialog = false
+                                    showSpotifyLogin = true
+                                }),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.spotify_icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.spotify_connect),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.spotify_not_connected),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .yumaClickable(onClick = {
+                                    onShowSpotifyPlaylistsChange(!showSpotifyPlaylists)
+                                }),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.spotify_icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.spotify_show_playlist),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.spotify_show_playlist_desc),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                                    )
+                                }
+                                Switch(
+                                    checked = showSpotifyPlaylists,
+                                    onCheckedChange = onShowSpotifyPlaylistsChange,
+                                )
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.30f),
+                            contentColor = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .yumaClickable(onClick = {
+                                    spotifyAccountViewModel.logout()
+                                    showSpotifyOptionsDialog = false
+                                }),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.logout),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Text(
+                                    text = stringResource(R.string.action_logout),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(onClick = { showSpotifyOptionsDialog = false }) {
+                            Text(text = stringResource(R.string.cancel))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showLoginChoiceDialog) {
+        Dialog(onDismissRequest = { showLoginChoiceDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.login),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .yumaClickable(onClick = {
+                                showLoginChoiceDialog = false
+                                navController.navigate(buildLoginRoute())
+                            }),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.login),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.login),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    text = "YouTube Browser",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                                )
+                            }
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .yumaClickable(onClick = {
+                                showLoginChoiceDialog = false
+                                showTokenEditor = true
+                            }),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.token),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.advanced_login),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    text = stringResource(R.string.token_adv_login_description),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(onClick = { showLoginChoiceDialog = false }) {
+                            Text(text = stringResource(R.string.cancel))
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if (showTokenEditor) {
         TokenEditorDialog(
@@ -886,52 +1179,61 @@ private fun ProfileIdentityCard(
                     )
                 }
 
-                Box(modifier = Modifier.padding(top = 4.dp)) {
-                    SplitButtonLayout(
-                        leadingButton = {
-                            SplitButtonDefaults.ElevatedLeadingButton(
-                                onClick = onPrimaryAction,
-                                colors = ButtonDefaults.elevatedButtonColors(
-                                    containerColor = colors.glassBackground,
-                                    contentColor = MaterialTheme.colorScheme.primary,
-                                ),
-                                elevation = ButtonDefaults.elevatedButtonElevation(
-                                    defaultElevation = 0.dp,
-                                    pressedElevation = 0.dp,
-                                ),
-                                modifier = Modifier.yumaClickable(pressedScale = 0.94f, onClick = onPrimaryAction),
-                            ) {
-                                Text(
-                                    text = if (isLoggedIn) stringResource(R.string.account) else stringResource(R.string.login),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        },
-                        trailingButton = {
-                            SplitButtonDefaults.ElevatedTrailingButton(
-                                checked = accountMenuExpanded,
-                                onCheckedChange = { accountMenuExpanded = it },
-                                colors = ButtonDefaults.elevatedButtonColors(
-                                    containerColor = colors.glassBackground,
-                                    contentColor = MaterialTheme.colorScheme.primary,
-                                ),
-                                elevation = ButtonDefaults.elevatedButtonElevation(
-                                    defaultElevation = 0.dp,
-                                    pressedElevation = 0.dp,
-                                ),
-                                modifier = Modifier.yumaClickable(pressedScale = 0.94f, onClick = { accountMenuExpanded = !accountMenuExpanded }),
+                Box(modifier = Modifier.padding(top = 6.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier
+                                .height(38.dp)
+                                .yumaClickable(pressedScale = 0.95f, onClick = onPrimaryAction),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.expand_more),
+                                    painter = painterResource(if (isLoggedIn) R.drawable.account else R.drawable.login),
                                     contentDescription = null,
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .rotate(menuChevronRotation),
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                Text(
+                                    text = if (isLoggedIn) stringResource(R.string.account) else stringResource(R.string.login),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
-                        },
-                    )
+                        }
+
+                        if (isLoggedIn) {
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .yumaClickable(
+                                        pressedScale = 0.95f,
+                                        onClick = { accountMenuExpanded = !accountMenuExpanded },
+                                    ),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.expand_more),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .rotate(menuChevronRotation),
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     DropdownMenu(
                         expanded = accountMenuExpanded,
@@ -984,7 +1286,7 @@ private fun ProfileIdentityCard(
                                     },
                                 )
                             }
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
                         if (savedAccounts.accounts.isNotEmpty()) {
@@ -1046,7 +1348,7 @@ private fun ProfileIdentityCard(
                                     },
                                 )
                             }
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
                         }
 
                         if (isLoggedIn) {
@@ -1212,24 +1514,29 @@ private fun ExpressiveSectionCard(
     val colors = LocalYumaColors.current
     val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column {
         Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 6.dp),
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.textSecondary,
+            letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing * 1.2f,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         )
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(cardShape)
-                .background(colors.glassBackground)
-                .border(1.dp, colors.glassBorder, cardShape)
+                .yumaGlassCard(
+                    shape = cardShape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                )
+                .padding(8.dp),
         ) {
             Column(
-                modifier = Modifier.padding(vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
                 content = content,
             )
         }
@@ -1244,37 +1551,30 @@ private fun ExpressiveActionRow(
     accent: Color? = null,
     onClick: () -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-        label = "rowScale",
-    )
+    val colors = LocalYumaColors.current
     val tint = accent ?: MaterialTheme.colorScheme.primary
 
     Box(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .clip(InnerTileShape)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onClick,
+                .yumaClickable(onClick = onClick)
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(16.dp),
+                    backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
+                    borderColor = Color.Transparent,
+                )
+                .padding(
+                    horizontal = SettingsDimensions.RowHorizontalPadding,
+                    vertical = SettingsDimensions.RowVerticalPadding,
                 ),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            ExpressiveRowIcon(icon = icon, tint = tint)
+            ExpressiveRowIcon(icon = icon, title = title, tint = tint)
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -1298,7 +1598,7 @@ private fun ExpressiveActionRow(
             }
 
             Icon(
-                painter = painterResource(R.drawable.arrow_forward),
+                painter = painterResource(R.drawable.ic_arrow_right),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
@@ -1315,37 +1615,31 @@ private fun ExpressiveSwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-        label = "switchRowScale",
-    )
+    val colors = LocalYumaColors.current
 
     Box(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .clip(InnerTileShape)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = { onCheckedChange(!checked) }
+                .yumaClickable(onClick = { onCheckedChange(!checked) })
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(16.dp),
+                    backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
+                    borderColor = Color.Transparent,
+                )
+                .padding(
+                    horizontal = SettingsDimensions.RowHorizontalPadding,
+                    vertical = SettingsDimensions.RowVerticalPadding,
                 ),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             ExpressiveRowIcon(
                 icon = icon,
+                title = title,
                 tint = MaterialTheme.colorScheme.primary,
                 emphasized = checked,
             )
@@ -1390,26 +1684,33 @@ private fun ExpressiveSwitchRow(
 @Composable
 private fun ExpressiveRowIcon(
     icon: Painter,
+    title: String,
     tint: Color,
     emphasized: Boolean = false,
 ) {
-    val bgAlpha by animateFloatAsState(
-        targetValue = if (emphasized) 0.20f else 0.10f,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "iconBgAlpha",
-    )
+    val iconShape = rememberPreferenceIconShape(title)
+    val bgColor = if (emphasized) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        tint.copy(alpha = 0.18f).compositeOver(MaterialTheme.colorScheme.surfaceContainerHigh)
+    }
+    val iconTint = if (emphasized) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        tint
+    }
 
     Surface(
         modifier = Modifier.size(RowIconSize),
-        shape = RoundedCornerShape(14.dp),
-        color = tint.copy(alpha = bgAlpha),
+        shape = iconShape,
+        color = bgColor,
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Icon(
                 painter = icon,
                 contentDescription = null,
                 modifier = Modifier.size(22.dp),
-                tint = tint,
+                tint = iconTint,
             )
         }
     }
@@ -1417,11 +1718,7 @@ private fun ExpressiveRowIcon(
 
 @Composable
 private fun ExpressiveDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(start = 78.dp, end = 20.dp),
-        thickness = 0.5.dp,
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-    )
+    Spacer(modifier = Modifier.height(0.dp))
 }
 
 @Composable

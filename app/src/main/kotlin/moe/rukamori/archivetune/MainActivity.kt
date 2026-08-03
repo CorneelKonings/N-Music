@@ -728,15 +728,13 @@ class MainActivity : ComponentActivity() {
             ) {
                 val onboardingViewModel: OnboardingViewModel = hiltViewModel()
                 val onboardingState by onboardingViewModel.screenState.collectAsStateWithLifecycle()
-                val forceTestOnboarding = true
                 val shouldShowOnboarding =
-                    forceTestOnboarding ||
-                        when (val state = onboardingState) {
-                            OnboardingScreenState.Loading -> false
-                            OnboardingScreenState.Empty -> true
-                            is OnboardingScreenState.Error -> false
-                            is OnboardingScreenState.Success -> state.uiState.shouldShowOnboarding
-                        }
+                    when (val state = onboardingState) {
+                        OnboardingScreenState.Loading -> false
+                        OnboardingScreenState.Empty -> true
+                        is OnboardingScreenState.Error -> false
+                        is OnboardingScreenState.Success -> state.uiState.shouldShowOnboarding
+                    }
 
                 if (shouldShowOnboarding) {
                     OnboardingRoute(viewModel = onboardingViewModel)
