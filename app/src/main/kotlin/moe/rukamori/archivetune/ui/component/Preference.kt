@@ -101,6 +101,8 @@ import moe.rukamori.archivetune.constants.HISTORY_DURATION_RANGE
 import moe.rukamori.archivetune.ui.screens.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
+import androidx.compose.ui.graphics.compositeOver
 import kotlin.math.roundToInt
 
 val LocalPreferenceInGroup = compositionLocalOf { false }
@@ -230,9 +232,11 @@ fun PreferenceEntry(
                 scaleX = scale
                 scaleY = scale
             }
-            .clip(cardShape)
-            .background(colors.glassBackground)
-            .border(1.dp, colors.glassBorder, cardShape)
+            .yumaGlassCard(
+                shape = RoundedCornerShape(16.dp),
+                backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
+                borderColor = Color.Transparent,
+            )
             .then(
                 if (isEnabled && onClick != null) {
                     Modifier.clickable(
@@ -258,11 +262,13 @@ fun PreferenceEntry(
         ) {
             if (icon != null) {
                 val iconShape = rememberPreferenceIconShape()
+                val primaryColor = MaterialTheme.colorScheme.primary
+                val iconBgColor = primaryColor.copy(alpha = 0.18f).compositeOver(MaterialTheme.colorScheme.surfaceContainerHigh)
                 Box(
                     modifier = Modifier
                         .size(38.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            color = iconBgColor,
                             shape = iconShape,
                         )
                         .clip(iconShape)
@@ -1185,9 +1191,12 @@ fun PreferenceGroup(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = PreferenceGroupHorizontalPadding)
-                .clip(cardShape)
-                .background(colors.glassBackground)
-                .border(1.dp, colors.glassBorder, cardShape)
+                .yumaGlassCard(
+                    shape = cardShape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                )
+                .padding(vertical = 4.dp),
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 scope.items.forEachIndexed { index, itemContent ->

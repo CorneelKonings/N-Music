@@ -44,19 +44,16 @@ Yuma avoids the feeling of:
 ---
 
 ## 4. Component Philosophy
-
-* **Card:** Exists only to group logically related content or settings. It should never serve as a decorative background for isolated text.
-* **Button:** Always represents an explicit action. Buttons must not be used as generic content containers.
-* **Glass Surface:** Used only when an element is visually detached from the primary content layer and appears to float above it.
-* **Accent Color:** Reserved for drawing attention to primary actions. It should never be used to fill large background surfaces.
-* **Divider:** Not used. Layout spacing and container boundaries provide sufficient visual separation.
+* **Card:** Used to logically group settings, track details, or metadata. Keeps an opaque, tonal background for maximum contrast and readability.
+* **Button & Chip:** Represents explicit actions or tags (e.g., audio codec, bitrate). Uses subtle tonal fills (`surfaceContainerHigh`) with crisp typography.
+* **Overlay / Bottom Sheet:** Uses solid, high-contrast surface containers (`surfaceContainerLow` / `surfaceContainer`) with soft rounded corners. Placed over a dimmed backdrop blur (`BackdropBlur`) to create depth without sacrificing content legibility.
+* **Accent Color:** Reserved exclusively for active states, toggles, and primary actions. Avoids filling large background surfaces.
+* **Divider:** Not used. Layout spacing (16–24dp) and container boundaries provide natural separation.
 
 ---
 
 ## 5. Foundations (Design Tokens)
-
 ### Spacing
-
 * Micro — 4dp
 * Small — 8dp
 * Medium — 16dp
@@ -64,32 +61,15 @@ Yuma avoids the feeling of:
 * Extra Large — 32dp
 
 ### Radius
-
 * Small — 12dp
-* Medium — 16dp
-* Large — 24dp
-* Max — 32dp / Pill / Circle
+* Medium — 16dp (Buttons, Chips, List items)
+* Large — 24dp (Dialogs, Bottom Sheets, Media Cards)
+* Max — 32dp / Pill / Circle (FAB, Floating Player Bar, Switches, Icon Containers)
 
-### Colors
-
-* **Primary, Secondary, Tertiary** — generated dynamically from the current content palette.
-* **SurfaceContainer** — default solid surfaces.
-* **GlassBackground** (Alpha 0.65f) + **GlassBorder** (Alpha 0.25f) — overlay surfaces.
-
-### Typography
-
-* **Display / Headline** — large emphasis headings.
-* **Title / Body** — readable system typography.
-
-### Motion
-
-* Spring-based animations focused on natural physical feedback.
-
-### Opacity
-
-* Disabled — 0.38f
-* Secondary Text — 0.65f
-* Pressed Overlay — 0.12f
+### Colors & Surfaces
+* **Primary, Secondary, Tertiary** — Dynamic M3 Expressive colors generated from the current artwork.
+* **Base Surfaces** — `surface`, `surfaceContainer`, `surfaceContainerHigh` (opaque tonal layers for sheets, cards, and dialogs).
+* **Backdrop Blur** — Applied strictly to the background layer behind floating overlays/dialogs. No inner glass borders or transparent text cards.
 
 ---
 
@@ -155,20 +135,17 @@ Every new Yuma component should:
 ---
 
 ## 10. Do / Don't
-
 ### ✔ DO
-
-* Use spacing instead of dividers.
-* Group related settings and content into larger containers.
-* Use a single dynamic accent color for primary actions.
-* Reserve glass surfaces for floating UI (Mini Player, Dialogs, Bottom Sheets, Menus).
+* Use solid tonal containers (`surfaceContainer`) inside dialogs and bottom sheets for maximum readability.
+* Apply backdrop blur to the background behind floating overlays to establish visual hierarchy.
+* Use uniform circular containers (`CircleShape`) for icon badges in settings.
+* Maintain clear layout spacing (16–24dp) instead of divider lines.
 
 ### ✘ DON'T
-
-* Nest cards without a clear structural reason.
-* Mix glass and solid surfaces within the same content group.
-* Use more than two corner radius values on a single screen.
-* Create interactive controls smaller than **48×48dp**.
+* Use semi-transparent glass cards with inner borders for dense text or technical details.
+* Mix more than two corner radius sizes within a single component group.
+* Create interactive controls smaller than 48×48dp.
+* Overuse dynamic accent colors on large surface containers.
 
 ---
 
