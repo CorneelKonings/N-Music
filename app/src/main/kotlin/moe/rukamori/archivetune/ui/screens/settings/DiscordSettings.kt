@@ -431,7 +431,7 @@ fun DiscordSettings(navController: NavController) {
                     }
                 },
                 colors =
-                    TopAppBarDefaults.largeTopAppBarColors(
+                    TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                     ),
@@ -1059,12 +1059,6 @@ private fun DiscordReauthorizeWarningRow(
         color = MaterialTheme.colorScheme.errorContainer,
     ) {
         ListItem(
-            headlineContent = {
-                Text(
-                    text = stringResource(R.string.discord_reauthorize_required_title),
-                    fontWeight = FontWeight.SemiBold,
-                )
-            },
             supportingContent = {
                 Text(stringResource(R.string.discord_reauthorize_required_description))
             },
@@ -1095,7 +1089,12 @@ private fun DiscordReauthorizeWarningRow(
                     leadingIconColor = MaterialTheme.colorScheme.onErrorContainer,
                     trailingIconColor = MaterialTheme.colorScheme.onErrorContainer,
                 ),
-        )
+        ) {
+            Text(
+                text = stringResource(R.string.discord_reauthorize_required_title),
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 

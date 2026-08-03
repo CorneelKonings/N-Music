@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -75,6 +76,7 @@ fun <E> ChipsRow(
             val iconRes = icons[value]
 
             FilterChip(
+                modifier = Modifier.height(38.dp),
                 selected = isSelected,
                 onClick = { onValueUpdate(value) },
                 label = { Text(label) },
@@ -93,7 +95,7 @@ fun <E> ChipsRow(
                         )
                     }
                 },
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(20.dp),
                 border = null,
                 colors =
                     FilterChipDefaults.filterChipColors(
@@ -135,6 +137,7 @@ fun <Int> ChoiceChipsRow(
 
         Column {
             AssistChip(
+                modifier = Modifier.height(38.dp),
                 onClick = {
                     expanded = !expanded
                     expandIconDegree -= 180
@@ -157,7 +160,7 @@ fun <Int> ChoiceChipsRow(
                         modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
                     )
                 },
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(20.dp),
                 border = null,
                 colors =
                     AssistChipDefaults.assistChipColors(
@@ -208,6 +211,7 @@ fun <Int> ChoiceChipsRow(
                     Spacer(Modifier.width(8.dp))
 
                     FilterChip(
+                        modifier = Modifier.height(38.dp),
                         label = { Text(label) },
                         selected = currentValue == value,
                         colors =
@@ -215,7 +219,7 @@ fun <Int> ChoiceChipsRow(
                                 containerColor = containerColor,
                             ),
                         onClick = { onValueUpdate(value) },
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(20.dp),
                         border = null,
                     )
                 }
