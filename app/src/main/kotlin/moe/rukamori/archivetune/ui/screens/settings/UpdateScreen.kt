@@ -963,11 +963,6 @@ private fun UpdateControlsPanel(
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             )
 
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-
             ListItem(
                 headlineContent = {
                     Text(text = stringResource(R.string.update_channel))
@@ -1257,7 +1252,7 @@ private fun FeatureIcon(
     contentColor: Color,
 ) {
     Surface(
-        shape = MaterialTheme.shapes.large,
+        shape = CircleShape,
         color = containerColor,
     ) {
         Icon(
