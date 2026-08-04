@@ -42,6 +42,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,6 +53,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -90,6 +92,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -141,7 +144,6 @@ import kotlin.math.roundToInt
 fun UpdateScreen(
     navController: NavController,
     onUpToDate: () -> Unit = {},
-    onCheckForUpdate: () -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -164,6 +166,7 @@ fun UpdateScreen(
     var isLoadingCommits by remember { mutableStateOf(true) }
     var latestVersion by remember { mutableStateOf<String?>(null) }
     var isExpanded by rememberSaveable { mutableStateOf(true) }
+    var isCheckingForUpdate by remember { mutableStateOf(false) }
     var showNightlyChannelConfirmDialog by rememberSaveable { mutableStateOf(false) }
     var showDailyNightlyChannelConfirmDialog by rememberSaveable { mutableStateOf(false) }
     var showEnableUpdateNotificationConfirmDialog by rememberSaveable { mutableStateOf(false) }
@@ -235,6 +238,45 @@ fun UpdateScreen(
                             showUpdateErrorDialog = true
                         }
                 }
+        }
+    }
+
+    val handleCheckForUpdate: () -> Unit = {
+        run {
+            if (isCheckingForUpdate || !BuildConfig.UPDATER_AVAILABLE) return@run
+            coroutineScope.launch {
+                isCheckingForUpdate = true
+                updateSheetLoading = true
+                updateSheetVersion = null
+                updateSheetError = null
+                try {
+                    val versionResult =
+                        when (updateChannel) {
+                            UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestDailyNightlyVersionName()
+                            else -> Updater.getLatestVersionName()
+                        }
+                    versionResult.onSuccess { version ->
+                        updateSheetVersion = version
+                        val available = Updater.isUpdateAvailable(version, BuildConfig.VERSION_NAME)
+                        if (available) {
+                            updateSheetLoading = false
+                            updateSheetIsSameVersion = false
+                        } else {
+                            updateSheetLoading = false
+                            showUpdateUpToDateDialog = true
+                        }
+                    }.onFailure { error ->
+                        updateSheetLoading = false
+                        updateSheetError = error.message ?: context.getString(R.string.error_unknown)
+                        showUpdateErrorDialog = true
+                    }
+                } catch (_: Exception) {
+                    updateSheetLoading = false
+                    updateSheetError = context.getString(R.string.error_unknown)
+                    showUpdateErrorDialog = true
+                }
+                isCheckingForUpdate = false
+            }
         }
     }
 
@@ -501,7 +543,8 @@ fun UpdateScreen(
                     latestVersion = latestVersion,
                     updateChannel = updateChannel,
                     isUpdateAvailable = isUpdateAvailable,
-                    onCheckForUpdate = onCheckForUpdate,
+                    isCheckingForUpdate = isCheckingForUpdate,
+                    onCheckForUpdate = handleCheckForUpdate,
                     onOpenChangelog = {
                         navController.navigate("settings/changelog?channel=$updateChannel")
                     },
@@ -556,91 +599,17 @@ fun UpdateScreen(
             }
 
             item {
-                PreferenceGroup {
-                    item {
-                        PreferenceEntry(
-                            title = { Text(text = stringResource(R.string.recent_commits)) },
-                            description =
-                                when {
-                                    isLoadingCommits -> stringResource(R.string.updates_loading_commits)
-                                    commits.isEmpty() -> stringResource(R.string.updates_no_commits)
-                                    else -> stringResource(R.string.updates_recent_commits_count, commits.size)
-                                },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.history),
-                                    contentDescription = null,
-                                )
-                            },
-                            trailingContent = {
-                                Icon(
-                                    painter = painterResource(R.drawable.expand_more),
-                                    contentDescription = null,
-                                    modifier = Modifier.rotate(rotationAngle),
-                                )
-                            },
-                            onClick = { isExpanded = !isExpanded },
-                        )
-                    }
-                }
-            }
-
-            if (isExpanded) {
-                if (isLoadingCommits) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                LoadingIndicator(modifier = Modifier.size(28.dp))
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Text(
-                                    text = stringResource(R.string.updates_loading_commits),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
-                } else if (commits.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.updates_no_commits),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                } else {
-                    item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            commits.forEachIndexed { index, commit ->
-                                key(commit.sha) {
-                                    CommitItem(
-                                        commit = commit,
-                                        index = index,
-                                        count = commits.size,
-                                        onClick = { uriHandler.openUri(commit.url) },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                CommitHistorySection(
+                    commits = commits,
+                    isLoading = isLoadingCommits,
+                    isExpanded = isExpanded,
+                    rotationAngle = rotationAngle,
+                    onToggleExpanded = { isExpanded = !isExpanded },
+                    onCommitClick = { commit -> uriHandler.openUri(commit.url) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
+                )
             }
 
             item {
@@ -848,13 +817,14 @@ private fun UpdateSummaryCard(
     latestVersion: String?,
     updateChannel: UpdateChannel,
     isUpdateAvailable: Boolean,
+    isCheckingForUpdate: Boolean,
     onCheckForUpdate: () -> Unit,
     onOpenChangelog: () -> Unit,
 ) {
     val channelLabel =
         when (updateChannel) {
             UpdateChannel.STABLE -> stringResource(R.string.channel_stable)
-            else -> "Canary"
+            else -> stringResource(R.string.channel_canary)
         }
     val supportingText =
         when {
@@ -937,21 +907,48 @@ private fun UpdateSummaryCard(
                 )
             }
 
-            FlowRow(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                InteractiveChip(
-                    label = stringResource(R.string.check_for_update),
-                    iconResId = R.drawable.sync,
-                    onClick = onCheckForUpdate,
-                )
-                InteractiveChip(
-                    label = stringResource(R.string.view_changelog),
-                    iconResId = R.drawable.update,
-                    onClick = onOpenChangelog,
-                )
+                if (isCheckingForUpdate) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            Text(
+                                text = stringResource(R.string.check_for_update),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                } else {
+                    InteractiveChip(
+                        label = stringResource(R.string.check_for_update),
+                        iconResId = R.drawable.sync,
+                        onClick = onCheckForUpdate,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    InteractiveChip(
+                        label = stringResource(R.string.view_changelog),
+                        iconResId = R.drawable.update,
+                        onClick = onOpenChangelog,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         }
     }
@@ -1009,9 +1006,11 @@ private fun InteractiveChip(
             ),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.Center,
         ) {
             Icon(
                 painter = painterResource(iconResId),
@@ -1019,6 +1018,7 @@ private fun InteractiveChip(
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp),
             )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
@@ -1072,9 +1072,9 @@ private fun UpdateChannelPanel(
                                 onClick = onStableSelected,
                                 modifier = Modifier.weight(1f),
                             )
-                            ChannelSelectChip(
-                                label = "Canary",
-                                isSelected = isCanary,
+ChannelSelectChip(
+                                 label = stringResource(R.string.channel_canary),
+                                 isSelected = isCanary,
                                 onClick = onCanarySelected,
                                 modifier = Modifier.weight(1f),
                             )
@@ -1156,6 +1156,146 @@ private fun NightlyInstallPanel(
                 },
                 onClick = onInstallNightly,
             )
+        }
+    }
+}
+
+@Composable
+private fun CommitHistorySection(
+    commits: List<GitCommit>,
+    isLoading: Boolean,
+    isExpanded: Boolean,
+    rotationAngle: Float,
+    modifier: Modifier = Modifier,
+    onToggleExpanded: () -> Unit,
+    onCommitClick: (GitCommit) -> Unit,
+) {
+    Column(
+        modifier = modifier.animateContentSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        SegmentedListItem(
+            onClick = onToggleExpanded,
+            shapes =
+                ListItemDefaults.shapes(
+                    shape = MaterialTheme.shapes.extraLarge,
+                ),
+            modifier = Modifier.fillMaxWidth(),
+            colors =
+                ListItemDefaults.segmentedColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                ),
+            leadingContent = {
+                FeatureIcon(
+                    iconRes = R.drawable.history,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            },
+            trailingContent = {
+                Icon(
+                    painter = painterResource(R.drawable.expand_more),
+                    contentDescription = null,
+                    modifier = Modifier.rotate(rotationAngle),
+                )
+            },
+            supportingContent = {
+                Text(
+                    text =
+                        when {
+                            isLoading -> {
+                                stringResource(R.string.updates_loading_commits)
+                            }
+
+                            commits.isEmpty() -> {
+                                stringResource(R.string.updates_no_commits)
+                            }
+
+                            else -> {
+                                stringResource(
+                                    R.string.updates_recent_commits_count,
+                                    commits.size,
+                                )
+                            }
+                        },
+                )
+            },
+            content = {
+                Text(
+                    text = stringResource(R.string.recent_commits),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            },
+        )
+
+        AnimatedVisibility(visible = isExpanded) {
+            when {
+                isLoading -> {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ) {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                LoadingIndicator(modifier = Modifier.size(32.dp))
+                                Text(
+                                    text = stringResource(R.string.updates_loading_commits),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                commits.isEmpty() -> {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.updates_no_commits),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                        )
+                    }
+                }
+
+                else -> {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                    ) {
+                        commits.forEachIndexed { index, commit ->
+                            key(commit.sha) {
+                                CommitItem(
+                                    commit = commit,
+                                    index = index,
+                                    count = commits.size,
+                                    onClick = { onCommitClick(commit) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

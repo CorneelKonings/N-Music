@@ -2246,11 +2246,10 @@ class MainActivity : ComponentActivity() {
                                             val updateViewModel: UpdateViewModel = hiltViewModel()
                                             val updateChannel by rememberEnumPreference(UpdateChannelKey, defaultValue = defaultUpdateChannel)
 
-                                            UpdateScreen(
-                                                navController = navController,
-                                                onUpToDate = { updateViewModel.dismissUpdate() },
-                                                onCheckForUpdate = { updateViewModel.forceCheck(updateChannel) }
-                                            )
+UpdateScreen(
+                                                 navController = navController,
+                                                 onUpToDate = { updateViewModel.dismissUpdate() },
+                                             )
                                         }
                                     }
 

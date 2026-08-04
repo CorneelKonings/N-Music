@@ -823,7 +823,7 @@ class SyncUtils
                     var completedSongs = 0
                     songs.forEachIndexed { idx, song ->
                         if (!isSyncStillEnabled(gen)) return@withTransaction
-                        val songId = song.id ?: return@forEachIndexed
+                        val songId = song.id
                         if (database.song(songId).firstOrNull() == null) {
                             database.insert(song)
                         }

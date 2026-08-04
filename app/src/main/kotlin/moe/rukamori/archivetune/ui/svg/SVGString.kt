@@ -32,7 +32,7 @@ fun String.parseDynamicColor(
                     "nv" -> tonalPalettes.neutralVariant[tone.toInt().autoToDarkTone(isDarkTheme)]
                     "e" -> tonalPalettes.error[tone.toInt().autoToDarkTone(isDarkTheme)]
                     else -> Color.Transparent
-                }?.toArgb() ?: 0xFFFFFF
+                }.toArgb()
             "fill=\"${String.format("#%06X", 0xFFFFFF and argb)}\""
         } catch (e: Exception) {
             e.printStackTrace()
