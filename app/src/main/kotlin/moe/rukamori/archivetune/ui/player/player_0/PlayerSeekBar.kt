@@ -13,7 +13,9 @@ import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -43,7 +45,8 @@ fun PlayerSeekBar(
     sleepTimerRemainingSeconds: Int? = null,
     onOpenSleepTimer: () -> Unit = {},
     onSeek: (Float) -> Unit,
-    onSeekStarted: () -> Unit
+    onSeekStarted: () -> Unit,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
     var sliderPosition by remember { mutableStateOf(0f) }
     val isDragging = remember { mutableStateOf(false) }
@@ -109,7 +112,7 @@ fun PlayerSeekBar(
                         .fillMaxWidth()
                         .height(trackHeight)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f)),
+                        .background(colorScheme.onSurfaceVariant.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Box(
@@ -117,7 +120,7 @@ fun PlayerSeekBar(
                             .fillMaxWidth(fraction)
                             .fillMaxHeight()
                             .clip(CircleShape)
-                            .background(if (isInteracting) animatedAccentColor else Color.White)
+                            .background(if (isInteracting) animatedAccentColor else colorScheme.onSurface)
                     )
                 }
             },
@@ -157,7 +160,7 @@ fun PlayerSeekBar(
         ) {
             Text(
                 text = currentSecText,
-                color = Color(0x80FFFFFF),
+                color = colorScheme.onSurface.copy(alpha = 0.5f),
                 fontFamily = GoogleSans,
                 fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.CenterStart)
@@ -175,11 +178,11 @@ fun PlayerSeekBar(
                 ) {
                     Text(
                         text = codecInfo,
-                        color = Color(0x80FFFFFF),
+                        color = colorScheme.onSurface.copy(alpha = 0.5f),
                         fontFamily = GoogleSans,
                         fontSize = 10.sp,
                         modifier = Modifier
-                            .background(Color(0x1AFFFFFF), CircleShape)
+                            .background(colorScheme.surface.copy(alpha = 0.1f), CircleShape)
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
@@ -198,7 +201,7 @@ fun PlayerSeekBar(
 
             Text(
                 text = durationSecText,
-                color = Color(0x80FFFFFF),
+                color = colorScheme.onSurface.copy(alpha = 0.5f),
                 fontFamily = GoogleSans,
                 fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.CenterEnd)
