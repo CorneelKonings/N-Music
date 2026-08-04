@@ -3,12 +3,14 @@ package moe.rukamori.archivetune.ui.player.player_0
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +41,6 @@ private val CenterButtonSize      = 74.dp
 private val CenterIconSize        = 54.dp
 private val CenterShadowAlpha     = 0.3f
 private val CenterShadowRadius    = 45.dp
-private val CenterIconDark        = Color(0xFF121212)
 
 @Composable
 fun PlayerTransportControls(
@@ -50,6 +51,7 @@ fun PlayerTransportControls(
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
     isLarge: Boolean = true,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme,
 ) {
     Box(
         modifier = modifier
@@ -67,8 +69,8 @@ fun PlayerTransportControls(
                 .fillMaxWidth()
                 .height(CapsuleHeight)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = CapsuleBgAlpha))
-                .border(BorderStroke(CapsuleBorderWidth, Color.White.copy(alpha = CapsuleBorderAlpha)), CircleShape)
+                .background(colorScheme.surface.copy(alpha = CapsuleBgAlpha))
+                .border(BorderStroke(CapsuleBorderWidth, colorScheme.outlineVariant.copy(alpha = CapsuleBorderAlpha)), CircleShape)
                 .padding(horizontal = CapsulePadHorizontal),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -90,7 +92,7 @@ fun PlayerTransportControls(
                     painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
                     contentDescription = "Previous Track",
                     modifier = Modifier.size(SideIconSize),
-                    colorFilter = ColorFilter.tint(Color.White),
+                    colorFilter = ColorFilter.tint(colorScheme.onSurface),
                 )
             }
 
@@ -105,14 +107,14 @@ fun PlayerTransportControls(
                 if (state.isLoading) {
                     CircularWavyProgressIndicator(
                         modifier = Modifier.size(CenterIconSize - 12.dp),
-                        color = CenterIconDark,
+                        color = colorScheme.onSurface,
                     )
                 } else {
                     Image(
                         painter = rememberVectorPainter(playPauseIcon),
                         contentDescription = "Play/Pause",
                         modifier = Modifier.size(CenterIconSize),
-                        colorFilter = ColorFilter.tint(CenterIconDark),
+                        colorFilter = ColorFilter.tint(colorScheme.onSurface),
                     )
                 }
             }
@@ -132,7 +134,7 @@ fun PlayerTransportControls(
                     painter = rememberVectorPainter(Icons.Rounded.SkipNext),
                     contentDescription = "Next Track",
                     modifier = Modifier.size(SideIconSize),
-                    colorFilter = ColorFilter.tint(Color.White),
+                    colorFilter = ColorFilter.tint(colorScheme.onSurface),
                 )
             }
         }
