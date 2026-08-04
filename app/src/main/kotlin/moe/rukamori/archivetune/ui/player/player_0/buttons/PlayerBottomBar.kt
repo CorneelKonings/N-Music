@@ -8,7 +8,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -31,22 +33,21 @@ import moe.rukamori.archivetune.ui.state.PlayerUiState
 private val ButtonClickAreaSize = 48.dp
 private val StandardIconSize = 26.dp
 private val LyricsIconSize = 32.dp
-private val InactiveButtonColor = Color.White.copy(alpha = 0.7f)
 
 @Composable
 fun PlayerBottomBar(
     state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
-    // Неактивные кнопки делаем тусклее, чтобы активные на их фоне «горели»
-    val inactiveColor = Color.White.copy(alpha = 0.35f)
+    val inactiveColor = colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+    val inactiveButtonColor = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
     val rawActiveColor = Color(state.vibrantColor)
 
-    // ФИКС БОЛОТНОГО ЦВЕТА: Если цвет из Palette слишком темный, осветляем его на 45% белизной
     val activeColor = remember(rawActiveColor) {
         if (rawActiveColor.luminance() < 0.3f) {
-            lerp(rawActiveColor, Color.White, 0.45f)
+            lerp(rawActiveColor, colorScheme.onSurface, 0.45f)
         } else {
             rawActiveColor
         }
@@ -59,7 +60,7 @@ fun PlayerBottomBar(
 
     val shuffleColor = if (isShuffleActive) activeColor else inactiveColor
     val repeatColor = if (isRepeatActive) activeColor else inactiveColor
-    val lyricsColor = if (isLyricsActive) activeColor else inactiveColor
+    val lyricsColor = if (isLyricsActive) activeColor else inactiveButtonColor
 
     // ДИНАМИЧЕСКИЙ ВЫБОР ИКОНОК:
     // Если пришел стейт "smart" — подставляем твой новый XML со звездой, иначе обычный шаффл
@@ -78,7 +79,7 @@ fun PlayerBottomBar(
         }
 
         // 2. ЛИРИКА (Центральная, берет увеличенный размер)
-        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = InactiveButtonColor, size = LyricsIconSize) {
+        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = inactiveColor, size = LyricsIconSize) {
             onAction(PlayerAction.Lyrics)
         }
 
