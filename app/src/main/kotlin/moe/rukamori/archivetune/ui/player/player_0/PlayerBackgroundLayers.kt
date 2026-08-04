@@ -70,7 +70,7 @@ fun PlayerBackgroundLayers(
         ) { url ->
             if (url.isNotEmpty()) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    if (themeTransitionAlpha > 0.001f) {
+                    if (state.isBlurBackgroundEnabled) {
                         AsyncImage(
                             model = blurImageRequest,
                             contentDescription = null,
