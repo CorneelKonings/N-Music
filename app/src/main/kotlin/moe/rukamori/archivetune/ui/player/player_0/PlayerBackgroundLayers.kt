@@ -38,7 +38,6 @@ fun PlayerBackgroundLayers(
     val context = LocalContext.current
     val colorScheme = MaterialTheme.colorScheme
 
-    // Оптимизированный запрос для блюра (низкое разрешение 128x128)
     val blurImageRequest = remember(state.coverUrl) {
         ImageRequest.Builder(context)
             .data(state.coverUrl)
@@ -46,14 +45,12 @@ fun PlayerBackgroundLayers(
             .build()
     }
 
-    // Переключатель альфы: 0f = градиент, 1f = блюр
     val themeTransitionAlpha by animateFloatAsState(
         targetValue = if (state.isBlurBackgroundEnabled) 1f else 0f,
         animationSpec = tween(500),
         label = "PlayerThemeTransition"
     )
 
-    // Переключатель иммерсивного режима (выключается при тексте песен)
     val immersiveTransitionAlpha by animateFloatAsState(
         targetValue = if (state.isImmersiveEnabled && !state.isLyricsVisible) 1f else 0f,
         animationSpec = tween(durationMillis = 450, easing = FastOutSlowInEasing),
@@ -61,7 +58,6 @@ fun PlayerBackgroundLayers(
     )
 
     Box(modifier = modifier.fillMaxSize()) {
-        // 1. СЛОЙ ГРАДИЕНТА
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -69,7 +65,6 @@ fun PlayerBackgroundLayers(
                 .background(gradientBrush)
         )
 
-        // 2. СЛОЙ БЛЮРА И ИММЕРСИВНОГО ФОНА С КРОССФЕЙДОМ
         Crossfade(
             targetState = state.coverUrl,
             animationSpec = tween(durationMillis = 800),
@@ -77,7 +72,6 @@ fun PlayerBackgroundLayers(
         ) { url ->
             if (url.isNotEmpty()) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    // А. Оптимизированный блюр
                     if (themeTransitionAlpha > 0.001f) {
                         AsyncImage(
                             model = blurImageRequest,
@@ -93,7 +87,6 @@ fun PlayerBackgroundLayers(
                         )
                     }
 
-                    // Б. Иммерсивная четкая обложка с мягким затуханием книзу
                     AsyncImage(
                         model = url,
                         contentDescription = null,
@@ -123,11 +116,11 @@ fun PlayerBackgroundLayers(
             }
         }
 
-        // ТЁМНЫЙ ОВЕРЛЕЙ ДЛЯ БЛЮРА (гарантирует глубокий контраст и четкость белого контента)
+        // Dark overlay for contrast
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = themeTransitionAlpha * (1f - immersiveTransitionAlpha) }
+                .graphicsLayer { alpha = maxOf(themeTransitionAlpha, immersiveTransitionAlpha) }
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
@@ -139,7 +132,6 @@ fun PlayerBackgroundLayers(
                 )
         )
 
-        // 3. СТАНДАРТНОЕ ЗАТЕМНЕНИЕ
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -155,7 +147,6 @@ fun PlayerBackgroundLayers(
                 )
         )
 
-        // 4. ДВОЙНОЕ ЗАТЕМНЕНИЕ ДЛЯ ИММЕРСИВНОГО РЕЖИМА
         Box(
             modifier = Modifier
                 .fillMaxSize()
