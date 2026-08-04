@@ -1,9 +1,12 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -43,10 +46,10 @@ fun PlayerBackgroundLayers(
             .build()
     }
 
-    val themeTransitionAlpha by animateFloatAsState(
+    val blurOverlayAlpha by animateFloatAsState(
         targetValue = if (state.isBlurBackgroundEnabled) 1f else 0f,
         animationSpec = tween(500),
-        label = "PlayerThemeTransition"
+        label = "BlurOverlayTransition"
     )
 
     val immersiveTransitionAlpha by animateFloatAsState(
@@ -59,7 +62,7 @@ fun PlayerBackgroundLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = 1f - themeTransitionAlpha }
+                .graphicsLayer { alpha = 1f - blurOverlayAlpha }
                 .background(gradientBrush)
         )
 
@@ -70,16 +73,16 @@ fun PlayerBackgroundLayers(
         ) { url ->
             if (url.isNotEmpty()) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    if (state.isBlurBackgroundEnabled) {
+                    AnimatedVisibility(
+                        visible = state.isBlurBackgroundEnabled,
+                        enter = fadeIn(animationSpec = tween(500)),
+                        exit = fadeOut(animationSpec = tween(500))
+                    ) {
                         AsyncImage(
                             model = blurImageRequest,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .graphicsLayer {
-                                    alpha = themeTransitionAlpha
-                                    clip = true
-                                }
                                 .blur(32.dp),
                             contentScale = ContentScale.Crop
                         )
@@ -117,7 +120,7 @@ fun PlayerBackgroundLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = 1f - immersiveTransitionAlpha }
+                .graphicsLayer { alpha = blurOverlayAlpha * (1f - immersiveTransitionAlpha) }
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
