@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
@@ -36,7 +35,6 @@ fun PlayerBackgroundLayers(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val colorScheme = MaterialTheme.colorScheme
 
     val blurImageRequest = remember(state.coverUrl) {
         ImageRequest.Builder(context)
@@ -116,17 +114,16 @@ fun PlayerBackgroundLayers(
             }
         }
 
-        // Dark overlay for contrast
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = maxOf(themeTransitionAlpha, immersiveTransitionAlpha) }
+                .graphicsLayer { alpha = 1f - immersiveTransitionAlpha }
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.45f),
+                            Color.Black.copy(alpha = 0.50f),
                             Color.Black.copy(alpha = 0.25f),
-                            Color.Black.copy(alpha = 0.65f)
+                            Color.Black.copy(alpha = 0.70f)
                         )
                     )
                 )
@@ -135,28 +132,13 @@ fun PlayerBackgroundLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = (1f - immersiveTransitionAlpha) * (1f - themeTransitionAlpha) }
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            colorScheme.surface.copy(alpha = 0.50f),
-                            colorScheme.surface.copy(alpha = 0.25f),
-                            colorScheme.surface.copy(alpha = 0.70f)
-                        )
-                    )
-                )
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = immersiveTransitionAlpha * (1f - themeTransitionAlpha) }
+                .graphicsLayer { alpha = immersiveTransitionAlpha }
                 .background(
                     Brush.verticalGradient(
                         0.0f to Color.Transparent,
                         0.18f to Color.Transparent,
                         0.5f to Color.Transparent,
-                        1.0f to Color.Black.copy(alpha = 0.92f)
+                        1.0f to Color.Black.copy(alpha = 0.90f)
                     )
                 )
         )
