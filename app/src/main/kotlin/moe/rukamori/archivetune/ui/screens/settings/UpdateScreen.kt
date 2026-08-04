@@ -50,7 +50,6 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItem
@@ -941,9 +940,6 @@ private fun UpdateControlsPanel(
     ) {
         Column {
             ListItem(
-                headlineContent = {
-                    Text(text = stringResource(R.string.enable_update_notification))
-                },
                 supportingContent = {
                     Text(text = stringResource(R.string.enable_update_notification_desc))
                 },
@@ -961,12 +957,11 @@ private fun UpdateControlsPanel(
                     )
                 },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            )
+            ) {
+                Text(text = stringResource(R.string.enable_update_notification))
+            }
 
             ListItem(
-                headlineContent = {
-                    Text(text = stringResource(R.string.update_channel))
-                },
                 supportingContent = {
                     Text(text = stringResource(R.string.update_channel_desc))
                 },
@@ -990,7 +985,9 @@ private fun UpdateControlsPanel(
                     )
                 },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            )
+            ) {
+                Text(text = stringResource(R.string.update_channel))
+            }
 
             SingleChoiceSegmentedButtonRow(
                 modifier =
@@ -1051,12 +1048,6 @@ private fun NightlyInstallPanel(
                 overlineContent = {
                     Text(text = stringResource(R.string.channel_nightly))
                 },
-                headlineContent = {
-                    Text(
-                        text = stringResource(R.string.updates_nightly_title),
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                },
                 supportingContent = {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(text = stringResource(R.string.updates_nightly_description))
@@ -1080,7 +1071,12 @@ private fun NightlyInstallPanel(
                     )
                 },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            )
+            ) {
+                Text(
+                    text = stringResource(R.string.updates_nightly_title),
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
 
             OutlinedButton(
                 onClick = onInstallNightly,
@@ -1128,13 +1124,6 @@ private fun CommitHistorySection(
             onClick = onToggleExpanded,
         ) {
             ListItem(
-                headlineContent = {
-                    Text(
-                        text = stringResource(R.string.recent_commits),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                },
                 supportingContent = {
                     Text(
                         text =
@@ -1171,7 +1160,13 @@ private fun CommitHistorySection(
                     )
                 },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            )
+            ) {
+                Text(
+                    text = stringResource(R.string.recent_commits),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
         }
 
         AnimatedVisibility(visible = isExpanded) {
