@@ -125,13 +125,13 @@ fun PlayerBackgroundLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = 1f - immersiveTransitionAlpha }
+                .graphicsLayer { alpha = (1f - immersiveTransitionAlpha) * (1f - themeTransitionAlpha) }
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.50f),
-                            Color.Black.copy(alpha = 0.25f),
-                            Color.Black.copy(alpha = 0.70f)
+                            colorScheme.surface.copy(alpha = 0.50f),
+                            colorScheme.surface.copy(alpha = 0.25f),
+                            colorScheme.surface.copy(alpha = 0.70f)
                         )
                     )
                 )
@@ -141,13 +141,13 @@ fun PlayerBackgroundLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = immersiveTransitionAlpha }
+                .graphicsLayer { alpha = immersiveTransitionAlpha * (1f - themeTransitionAlpha) }
                 .background(
                     Brush.verticalGradient(
                         0.0f to Color.Transparent,
                         0.18f to Color.Transparent,
                         0.5f to Color.Transparent,
-                        1.0f to Color.Black.copy(alpha = 0.90f)
+                        1.0f to colorScheme.surface.copy(alpha = 0.90f)
                     )
                 )
         )
