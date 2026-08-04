@@ -4,8 +4,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -51,7 +49,6 @@ fun PlayerTransportControls(
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
     isLarge: Boolean = true,
-    colorScheme: ColorScheme = MaterialTheme.colorScheme,
 ) {
     Box(
         modifier = modifier
@@ -69,8 +66,8 @@ fun PlayerTransportControls(
                 .fillMaxWidth()
                 .height(CapsuleHeight)
                 .clip(CircleShape)
-                .background(colorScheme.surface.copy(alpha = CapsuleBgAlpha))
-                .border(BorderStroke(CapsuleBorderWidth, colorScheme.outlineVariant.copy(alpha = CapsuleBorderAlpha)), CircleShape)
+                .background(Color.White.copy(alpha = CapsuleBgAlpha))
+                .border(BorderStroke(CapsuleBorderWidth, Color.White.copy(alpha = CapsuleBorderAlpha)), CircleShape)
                 .padding(horizontal = CapsulePadHorizontal),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -92,7 +89,7 @@ fun PlayerTransportControls(
                     painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
                     contentDescription = "Previous Track",
                     modifier = Modifier.size(SideIconSize),
-                    colorFilter = ColorFilter.tint(colorScheme.onSurface),
+                    colorFilter = ColorFilter.tint(Color.White),
                 )
             }
 
@@ -107,14 +104,14 @@ fun PlayerTransportControls(
                 if (state.isLoading) {
                     CircularWavyProgressIndicator(
                         modifier = Modifier.size(CenterIconSize - 12.dp),
-                        color = colorScheme.onSurface,
+                        color = Color(0xFF121212),
                     )
                 } else {
                     Image(
                         painter = rememberVectorPainter(playPauseIcon),
                         contentDescription = "Play/Pause",
                         modifier = Modifier.size(CenterIconSize),
-                        colorFilter = ColorFilter.tint(colorScheme.onSurface),
+                        colorFilter = ColorFilter.tint(Color(0xFF121212)),
                     )
                 }
             }
@@ -134,7 +131,7 @@ fun PlayerTransportControls(
                     painter = rememberVectorPainter(Icons.Rounded.SkipNext),
                     contentDescription = "Next Track",
                     modifier = Modifier.size(SideIconSize),
-                    colorFilter = ColorFilter.tint(colorScheme.onSurface),
+                    colorFilter = ColorFilter.tint(Color.White),
                 )
             }
         }
