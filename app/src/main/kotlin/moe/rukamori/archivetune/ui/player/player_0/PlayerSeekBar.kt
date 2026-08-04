@@ -194,7 +194,8 @@ fun PlayerSeekBar(
                 ) {
                     SleepTimerTopBadge(
                         state = state,
-                        onClick = onOpenSleepTimer
+                        onClick = onOpenSleepTimer,
+                        colorScheme = colorScheme
                     )
                 }
             }

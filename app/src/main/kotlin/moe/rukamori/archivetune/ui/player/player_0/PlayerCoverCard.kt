@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlayerCoverCard(
     coverDrawable: Drawable? = null,
@@ -33,6 +36,10 @@ fun PlayerCoverCard(
     isAlbumCoverGlowEnabled: Boolean = false,
     vibrantColor: Color = Color.Transparent
 ) {
+    val shadowColor = MaterialTheme.colorScheme.scrim
+    val surfaceColor: Color = MaterialTheme.colorScheme.surface
+    val outlineColor: Color = MaterialTheme.colorScheme.outlineVariant
+    
     Box(
         modifier = modifier
             .aspectRatio(1f, matchHeightConstraintsFirst = true)
@@ -42,22 +49,22 @@ fun PlayerCoverCard(
                         elevation = 48.dp,
                         shape = RoundedCornerShape(24.dp),
                         clip = false,
-                        spotColor = vibrantColor,
-                        ambientColor = vibrantColor.copy(alpha = 0.8f)
+                        ambientColor = vibrantColor.copy(alpha = 0.8f),
+                        spotColor = vibrantColor
                     )
                 } else {
                     Modifier.shadow(
                         elevation = 24.dp,
                         shape = RoundedCornerShape(24.dp),
                         clip = false,
-                        spotColor = Color.Black,
-                        ambientColor = Color.Black.copy(alpha = 0.6f)
+                        ambientColor = shadowColor,
+                        spotColor = shadowColor.copy(alpha = 0.6f)
                     )
                 }
             )
             .clip(RoundedCornerShape(24.dp))
-            .background(Color(0x0FFFFFFF))
-            .border(BorderStroke(1.dp, Color(0x1AFFFFFF)), RoundedCornerShape(24.dp)),
+            .background(surfaceColor)
+            .border(BorderStroke(1.dp, outlineColor), RoundedCornerShape(24.dp)),
         contentAlignment = Alignment.Center
     ) {
         Crossfade(

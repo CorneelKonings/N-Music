@@ -12,7 +12,9 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.*
@@ -38,12 +40,13 @@ fun PlayerToolbar(
     modifier: Modifier = Modifier,
     state: PlayerUiState,
     onBackgroundStyleChanged: (Boolean) -> Unit,
-    hasUpdate: Boolean = false
+    hasUpdate: Boolean = false,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
 
     val isImmersive = state.isImmersiveEnabled && !state.isLyricsVisible
-    val buttonBackground = if (isImmersive) Color.Black.copy(alpha = 0.2f) else Color.Transparent
-    val buttonBorderColor = if (isImmersive) Color.White.copy(alpha = 0.08f) else Color.Transparent
+    val buttonBackground = if (isImmersive) colorScheme.surface.copy(alpha = 0.2f) else Color.Transparent
+    val buttonBorderColor = if (isImmersive) colorScheme.outlineVariant.copy(alpha = 0.15f) else Color.Transparent
 
     val collapseInteractionSource = remember { MutableInteractionSource() }
     val collapsePressed by collapseInteractionSource.collectIsPressedAsState()
@@ -68,7 +71,7 @@ fun PlayerToolbar(
     ) {
         Text(
             text = "Now Playing",
-            color = Color.White,
+            color = colorScheme.onSurface,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = GoogleSans,
@@ -89,7 +92,8 @@ fun PlayerToolbar(
             if (!state.isImmersiveEnabled) {
                 SleepTimerTopBadge(
                     state = state,
-                    onClick = onTimerBadgeClick
+                    onClick = onTimerBadgeClick,
+                    colorScheme = colorScheme
                 )
                 Spacer(modifier = Modifier.width(8.dp))
             }
@@ -123,7 +127,7 @@ fun PlayerToolbar(
                             modifier = Modifier
                                 .size(7.dp)
                                 .align(Alignment.TopEnd)
-                                .background(Color.Red, RoundedCornerShape(50))
+                                .background(colorScheme.error, RoundedCornerShape(50))
                         )
                     }
                 }
@@ -161,7 +165,8 @@ fun PlayerToolbar(
 fun SleepTimerTopBadge(
     state: PlayerUiState,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
     val totalSecs = state.sleepTimerRemainingSeconds
     if (totalSecs == null || totalSecs <= 0) return
@@ -213,7 +218,7 @@ fun SleepTimerTopBadge(
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = text,
-                color = Color.White.copy(alpha = 0.9f),
+                color = colorScheme.onSurface.copy(alpha = 0.9f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = GoogleSans
