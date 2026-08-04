@@ -79,7 +79,7 @@ fun PlayerBottomBar(
         }
 
         // 2. ЛИРИКА (Центральная, берет увеличенный размер)
-        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = inactiveColor, size = LyricsIconSize) {
+        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = lyricsColor, size = LyricsIconSize) {
             onAction(PlayerAction.Lyrics)
         }
 
