@@ -8,7 +8,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,44 +27,70 @@ import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 
-// =================================================================
-// БЛОК НАСТРОЕК НИЖНЕЙ ПАНЕЛИ
-// =================================================================
 private val ButtonClickAreaSize = 48.dp
 private val StandardIconSize = 26.dp
 private val LyricsIconSize = 32.dp
-private val InactiveButtonColor = Color.White.copy(alpha = 0.7f)
 
 @Composable
 fun PlayerBottomBar(
     state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
-    // Неактивные кнопки делаем тусклее, чтобы активные на их фоне «горели»
-    val inactiveColor = Color.White.copy(alpha = 0.35f)
-    val rawActiveColor = Color(state.vibrantColor)
+    val isLightTheme = colorScheme.surface.luminance() > 0.5f
+    val isImmersive = state.isImmersiveEnabled && !state.isLyricsVisible
+    val isBlur = state.isBlurBackgroundEnabled
+    val isDarkOrIsolated = !isLightTheme || isImmersive || isBlur
 
-    // ФИКС БОЛОТНОГО ЦВЕТА: Если цвет из Palette слишком темный, осветляем его на 45% белизной
-    val activeColor = remember(rawActiveColor) {
-        if (rawActiveColor.luminance() < 0.3f) {
-            lerp(rawActiveColor, Color.White, 0.45f)
+    val inactiveColor = if (isDarkOrIsolated) {
+        Color.White.copy(alpha = 0.45f)
+    } else {
+        colorScheme.onSurface.copy(alpha = 0.45f)
+    }
+
+    val inactiveButtonColor = if (isDarkOrIsolated) {
+        Color.White.copy(alpha = 0.75f)
+    } else {
+        colorScheme.onSurface.copy(alpha = 0.75f)
+    }
+
+    val rawActiveColor = remember(state.vibrantColor, colorScheme) {
+        if (state.vibrantColor == 0) {
+            colorScheme.primary
         } else {
-            rawActiveColor
+            Color(state.vibrantColor).copy(alpha = 1f)
         }
     }
 
-    // Определяем статусы активности кнопок
+    val activeColor = remember(rawActiveColor, isLightTheme, isImmersive, isBlur, colorScheme) {
+        if (isImmersive || isBlur) {
+            Color.White
+        } else if (isLightTheme) {
+            val lum = rawActiveColor.luminance()
+            if (lum > 0.65f) {
+                colorScheme.primary
+            } else {
+                rawActiveColor
+            }
+        } else {
+            val lum = rawActiveColor.luminance()
+            if (lum < 0.35f) {
+                lerp(rawActiveColor, Color.White, 0.5f)
+            } else {
+                rawActiveColor
+            }
+        }
+    }
+
     val isShuffleActive = state.shuffleState != "off"
     val isRepeatActive = state.repeatState != "off"
-    val isLyricsActive = state.isLyricsVisible // Берем из твоего стейта видимость лирики
+    val isLyricsActive = state.isLyricsVisible
 
     val shuffleColor = if (isShuffleActive) activeColor else inactiveColor
     val repeatColor = if (isRepeatActive) activeColor else inactiveColor
-    val lyricsColor = if (isLyricsActive) activeColor else inactiveColor
+    val lyricsColor = if (isLyricsActive) activeColor else inactiveButtonColor
 
-    // ДИНАМИЧЕСКИЙ ВЫБОР ИКОНОК:
-    // Если пришел стейт "smart" — подставляем твой новый XML со звездой, иначе обычный шаффл
     val shuffleIcon = if (state.shuffleState == "smart") R.drawable.ic_shuffle_mix else R.drawable.ic_shuffle
     val repeatIcon = if (state.repeatState == "one") R.drawable.ic_repeat_one else R.drawable.ic_repeat
 
@@ -72,17 +100,14 @@ fun PlayerBottomBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. ШАФЛ (Тепер подставляет динамический shuffleIcon вместо хардкода)
         AiryIconButton(iconRes = shuffleIcon, tint = shuffleColor, size = StandardIconSize) {
             onAction(PlayerAction.Shuffle)
         }
 
-        // 2. ЛИРИКА (Центральная, берет увеличенный размер)
-        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = InactiveButtonColor, size = LyricsIconSize) {
+        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = lyricsColor, size = LyricsIconSize) {
             onAction(PlayerAction.Lyrics)
         }
 
-        // 3. ПОВТОР
         AiryIconButton(iconRes = repeatIcon, tint = repeatColor, size = StandardIconSize) {
             onAction(PlayerAction.Repeat)
         }
@@ -105,7 +130,6 @@ private fun AiryIconButton(
         label = "AiryButtonBounce"
     )
 
-    // Box заменен на Column, чтобы отцентровать иконку и точку
     Column(
         modifier = Modifier
             .size(ButtonClickAreaSize)

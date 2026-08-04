@@ -10,9 +10,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,12 +40,13 @@ fun PlayerToolbar(
     modifier: Modifier = Modifier,
     state: PlayerUiState,
     onBackgroundStyleChanged: (Boolean) -> Unit,
-    hasUpdate: Boolean = false
+    hasUpdate: Boolean = false,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
 
-    val isImmersive = state.isImmersiveEnabled && !state.isLyricsVisible
-    val buttonBackground = if (isImmersive) Color.Black.copy(alpha = 0.2f) else Color.Transparent
-    val buttonBorderColor = if (isImmersive) Color.White.copy(alpha = 0.08f) else Color.Transparent
+    val isImmersiveOrBlur = (state.isImmersiveEnabled || state.isBlurBackgroundEnabled) && !state.isLyricsVisible
+    val buttonBackground = if (isImmersiveOrBlur) Color.Black.copy(alpha = 0.2f) else Color.Transparent
+    val buttonBorderColor = if (isImmersiveOrBlur) Color.White.copy(alpha = 0.08f) else Color.Transparent
 
     val collapseInteractionSource = remember { MutableInteractionSource() }
     val collapsePressed by collapseInteractionSource.collectIsPressedAsState()
@@ -66,7 +71,7 @@ fun PlayerToolbar(
     ) {
         Text(
             text = "Now Playing",
-            color = Color.White,
+            color = if (isImmersiveOrBlur) Color.White else colorScheme.onSurface,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = GoogleSans,
@@ -84,12 +89,14 @@ fun PlayerToolbar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            SleepTimerTopBadge(
-                state = state,
-                onClick = onTimerBadgeClick
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
+            if (!state.isImmersiveEnabled) {
+                SleepTimerTopBadge(
+                    state = state,
+                    onClick = onTimerBadgeClick,
+                    colorScheme = colorScheme
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
 
             Box(
                 modifier = Modifier
@@ -120,7 +127,7 @@ fun PlayerToolbar(
                             modifier = Modifier
                                 .size(7.dp)
                                 .align(Alignment.TopEnd)
-                                .background(Color.Red, RoundedCornerShape(50))
+                                .background(colorScheme.error, RoundedCornerShape(50))
                         )
                     }
                 }
@@ -158,56 +165,60 @@ fun PlayerToolbar(
 fun SleepTimerTopBadge(
     state: PlayerUiState,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
-    val sleepTimerText by remember(state.sleepTimerRemainingSeconds) {
-        derivedStateOf {
-            val totalSecs = state.sleepTimerRemainingSeconds
-            if (totalSecs != null && totalSecs > 0) {
-                val m = totalSecs / 60
-                val s = totalSecs % 60
-                "%02d:%02d".format(m, s)
-            } else null
-        }
+    val totalSecs = state.sleepTimerRemainingSeconds
+    if (totalSecs == null || totalSecs <= 0) return
+
+    val text = remember(totalSecs) {
+        val m = totalSecs / 60
+        val s = totalSecs % 60
+        "%02d:%02d".format(m, s)
     }
 
-    val text = sleepTimerText
-    if (text != null) {
-        val interactionSource = remember { MutableInteractionSource() }
-        val isPressed by interactionSource.collectIsPressedAsState()
-        val scale by animateFloatAsState(
-            targetValue = if (isPressed) 0.90f else 1f,
-            animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-            label = "BadgeBounce"
-        )
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.90f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        label = "BadgeBounce"
+    )
 
+    val badgeColor = Color(state.vibrantColor)
+
+    Box(
+        modifier = modifier
+            .minimumInteractiveComponentSize()
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
         Row(
-            modifier = modifier
+            modifier = Modifier
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
                 }
-                .clip(RoundedCornerShape(50))
-                .background(Color(state.vibrantColor).copy(alpha = 0.15f))
-                .border(1.dp, Color(state.vibrantColor).copy(alpha = 0.3f), RoundedCornerShape(50))
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onClick
-                )
-                .padding(horizontal = 10.dp, vertical = 4.dp),
+                .clip(CircleShape)
+                .background(badgeColor.copy(alpha = 0.15f))
+                .border(1.dp, badgeColor.copy(alpha = 0.3f), CircleShape)
+                .padding(horizontal = 8.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_sleep_timer),
                 contentDescription = null,
-                tint = Color(state.vibrantColor),
+                tint = badgeColor,
                 modifier = Modifier.size(14.dp)
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = text,
-                color = Color.White.copy(alpha = 0.9f),
+                color = colorScheme.onSurface.copy(alpha = 0.9f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = GoogleSans

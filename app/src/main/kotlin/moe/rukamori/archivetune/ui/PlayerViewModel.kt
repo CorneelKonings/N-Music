@@ -84,6 +84,8 @@ class PlayerViewModel @Inject constructor(
             isBlurBackgroundEnabled = settingsRepository.isBlurBackgroundEnabled(),
             isAutoDownloadEnabled = settingsRepository.isAutoDownloadLyricsEnabled(),
             isImmersiveEnabled = settingsRepository.isImmersiveEnabled(),
+            showCodecInfo = settingsRepository.isShowCodecInfoEnabled(),
+            isAlbumCoverGlowEnabled = settingsRepository.isAlbumCoverGlowEnabled(),
         )
     )
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
@@ -187,6 +189,14 @@ class PlayerViewModel @Inject constructor(
                 }
         }
 
+        viewModelScope.launch {
+            connectionHolder.connection
+                .filterNotNull()
+                .flatMapLatest { it.audioFormat }
+                .collect { format ->
+                    _uiState.update { it.copy(codecInfo = format ?: "") }
+                }
+        }
 
         // 1. Подписка на шаффл
         viewModelScope.launch {
@@ -254,6 +264,16 @@ class PlayerViewModel @Inject constructor(
                 saveLyrics(action.text)
             }
             is PlayerAction.StartRadio -> playerConnection?.startRadioSeamlessly()
+            is PlayerAction.ToggleCodecInfo -> {
+                val newValue = !_uiState.value.showCodecInfo
+                settingsRepository.setShowCodecInfoEnabled(newValue)
+                _uiState.update { it.copy(showCodecInfo = newValue) }
+            }
+            is PlayerAction.ToggleAlbumCoverGlow -> {
+                val newValue = !_uiState.value.isAlbumCoverGlowEnabled
+                settingsRepository.setAlbumCoverGlowEnabled(newValue)
+                _uiState.update { it.copy(isAlbumCoverGlowEnabled = newValue) }
+            }
             else -> { /* Обработка в UI или узкоспециализированных холдерах */ }
         }
     }

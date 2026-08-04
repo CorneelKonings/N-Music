@@ -288,7 +288,7 @@ fun ShowMediaInfo(videoId: String) {
                             label = {
                                 Text(
                                     text = fact.text,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontSize = 12.sp,
                                     fontFamily = localFont,
                                     maxLines = 1,
@@ -299,17 +299,17 @@ fun ShowMediaInfo(videoId: String) {
                                 Icon(
                                     painter = painterResource(fact.iconRes),
                                     contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.8f),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(16.dp)
                                 )
                             },
                             colors = AssistChipDefaults.assistChipColors(
-                                containerColor = Color(0x14FFFFFF),
-                                labelColor = Color.White,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+                                labelColor = MaterialTheme.colorScheme.onSurface,
                             ),
                             border = AssistChipDefaults.assistChipBorder(
                                 enabled = true,
-                                borderColor = Color(0x1FFFFFFF)
+                                borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                             ),
                             shape = RoundedCornerShape(12.dp)
                         )
@@ -420,8 +420,8 @@ private fun MediaInfoActionButton(
             .height(42.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0x1AFFFFFF))
-            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -437,13 +437,13 @@ private fun MediaInfoActionButton(
             Icon(
                 painter = painterResource(iconRes),
                 contentDescription = text,
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp) // 👈 Фиксированный аккуратный размер иконки
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = text,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 fontFamily = localFont
@@ -465,7 +465,8 @@ private fun MediaInfoTabSelector(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x0DFFFFFF))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -478,7 +479,9 @@ private fun MediaInfoTabSelector(
                     .weight(1f)
                     .height(38.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (isSelected) Color(0x28FFFFFF) else Color.Transparent)
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                    )
                     .clickable(
                         interactionSource = tabInteraction,
                         indication = null
@@ -487,7 +490,7 @@ private fun MediaInfoTabSelector(
             ) {
                 Text(
                     text = stringResource(tab.labelRes),
-                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.5f),
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     fontFamily = localFont,
@@ -512,8 +515,8 @@ private fun MediaInfoHeroCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(20.dp))
-            .background(Color(0x12FFFFFF))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f))
             .padding(16.dp)
     ) {
         Row(
@@ -523,7 +526,7 @@ private fun MediaInfoHeroCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0x1AFFFFFF),
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
                 modifier = Modifier.size(80.dp),
             ) {
                 if (artworkModel != null) {
@@ -542,14 +545,14 @@ private fun MediaInfoHeroCard(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = Color(0x22FFFFFF),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                             modifier = Modifier.size(40.dp),
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.music_note),
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -566,12 +569,12 @@ private fun MediaInfoHeroCard(
                     text = sectionLabel,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     fontFamily = localFont
                 )
                 Text(
                     text = title,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = localFont,
@@ -580,7 +583,7 @@ private fun MediaInfoHeroCard(
                 )
                 Text(
                     text = subtitle,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp,
                     fontFamily = localFont,
                     maxLines = 2,
@@ -595,11 +598,11 @@ private fun MediaInfoHeroCard(
                     ) {
                         CircularWavyProgressIndicator(
                             modifier = Modifier.size(18.dp),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = loadingText,
-                            color = Color.White.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp,
                             fontFamily = localFont
                         )
@@ -620,8 +623,8 @@ private fun MediaInfoDetailCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(20.dp))
-            .background(Color(0x12FFFFFF))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             items.forEachIndexed { index, item ->
@@ -629,38 +632,37 @@ private fun MediaInfoDetailCard(
                     overlineContent = {
                         Text(
                             text = item.label,
-                            color = Color.White.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             fontSize = 11.sp,
                             fontFamily = localFont
-                        )
-                    },
-                    headlineContent = {
-                        Text(
-                            text = item.value,
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            fontFamily = localFont,
-                            maxLines = if (item.multiline) Int.MAX_VALUE else 2,
-                            overflow = TextOverflow.Ellipsis,
                         )
                     },
                     trailingContent = {
                         Icon(
                             painter = painterResource(R.drawable.copy),
                             contentDescription = copyContentDescription,
-                            tint = Color.White.copy(alpha = 0.4f),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp) // 👈 Фиксированный аккуратный размер иконки
                         )
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.clickable { onCopy(item.value) },
-                )
+                ) {
+                    Text(
+                        text = item.value,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = localFont,
+                        maxLines = if (item.multiline) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
 
                 if (index != items.lastIndex) {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        color = Color(0x1AFFFFFF)
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
                 }
             }
@@ -679,8 +681,8 @@ private fun MediaInfoNarrativeCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(20.dp))
-            .background(Color(0x12FFFFFF))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f))
             .padding(16.dp)
     ) {
         Column(
@@ -694,7 +696,7 @@ private fun MediaInfoNarrativeCard(
             ) {
                 Text(
                     text = title,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = localFont
@@ -708,7 +710,7 @@ private fun MediaInfoNarrativeCard(
 
             Text(
                 text = body,
-                color = Color.White.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp,
                 fontFamily = localFont,
                 lineHeight = 18.sp
@@ -733,8 +735,8 @@ private fun MediaInfoMetricsGrid(metrics: List<MediaInfoMetric>) {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(16.dp))
-                            .background(Color(0x12FFFFFF))
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f))
                             .padding(14.dp)
                     ) {
                         Column(
@@ -743,13 +745,13 @@ private fun MediaInfoMetricsGrid(metrics: List<MediaInfoMetric>) {
                         ) {
                             Text(
                                 text = stringResource(metric.labelRes),
-                                color = Color.White.copy(alpha = 0.5f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                 fontSize = 11.sp,
                                 fontFamily = localFont
                             )
                             Text(
                                 text = metric.value,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = localFont
@@ -775,8 +777,8 @@ private fun MediaInfoPendingCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(20.dp))
-            .background(Color(0x12FFFFFF))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f))
             .padding(20.dp)
     ) {
         Column(
@@ -784,17 +786,17 @@ private fun MediaInfoPendingCard(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            LoadingIndicator(modifier = Modifier.size(36.dp), color = Color.White)
+            LoadingIndicator(modifier = Modifier.size(36.dp), color = MaterialTheme.colorScheme.primary)
             Text(
                 text = title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = localFont
             )
             Text(
                 text = message,
-                color = Color.White.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontFamily = localFont
             )

@@ -1,7 +1,13 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -20,17 +26,24 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
+import moe.rukamori.archivetune.ui.player.player_0.buttons.SleepTimerTopBadge
+import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.utils.TimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerSeekBar(
+    state: PlayerUiState,
     progressMs: Long,
     durationMs: Long,
     animatedAccentColor: Color,
     slideOffset: () -> Float,
+    showCodecInfo: Boolean = false,
+    codecInfo: String = "",
+    sleepTimerRemainingSeconds: Int? = null,
+    onOpenSleepTimer: () -> Unit = {},
     onSeek: (Float) -> Unit,
-    onSeekStarted: () -> Unit
+    onSeekStarted: () -> Unit,
 ) {
     var sliderPosition by remember { mutableStateOf(0f) }
     val isDragging = remember { mutableStateOf(false) }
@@ -123,41 +136,72 @@ fun PlayerSeekBar(
                 }
         )
 
-        // ТЕКУЩЕЕ ВРЕМЯ: Меняется постоянно, оставляем derivedStateOf для фильтрации частоты кадров
         val currentSecText by remember {
             derivedStateOf {
                 TimeUtils.formatMs(animatedProgress.coerceAtLeast(0f).toLong())
             }
         }
 
-        // КОНЕЧНОЕ ВРЕМЯ: Меняется раз в песню. derivedStateOf НЕ НУЖЕН.
-        // Просто вешаем обычный remember на ключ durationMs
         val durationSecText = remember(durationMs) {
             TimeUtils.formatMs(durationMs)
         }
 
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp) // Оставили только небольшой зазор сверху, чтобы текст не прилипал к линии
                 .graphicsLayer {
                     val offset = slideOffset()
                     alpha = if (offset > 0.5f) ((offset - 0.5f) / 0.5f) else 0f
-                },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                }
         ) {
             Text(
                 text = currentSecText,
                 color = Color(0x80FFFFFF),
                 fontFamily = GoogleSans,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.CenterStart)
             )
+            
+            Row(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showCodecInfo && codecInfo.isNotEmpty(),
+                    enter = fadeIn(tween(300)),
+                    exit = fadeOut(tween(300))
+                ) {
+                    Text(
+                        text = codecInfo,
+                        color = Color(0x80FFFFFF),
+                        fontFamily = GoogleSans,
+                        fontSize = 10.sp,
+                        modifier = Modifier
+                            .background(Color(0x1AFFFFFF), CircleShape)
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = state.isImmersiveEnabled && sleepTimerRemainingSeconds != null,
+                    enter = fadeIn(tween(300)),
+                    exit = fadeOut(tween(300))
+                ) {
+                    SleepTimerTopBadge(
+                        state = state,
+                        onClick = onOpenSleepTimer
+                    )
+                }
+            }
+
             Text(
                 text = durationSecText,
                 color = Color(0x80FFFFFF),
                 fontFamily = GoogleSans,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.CenterEnd)
             )
         }
     }

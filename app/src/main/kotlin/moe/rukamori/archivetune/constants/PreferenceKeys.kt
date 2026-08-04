@@ -15,6 +15,9 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
+val ShowCodecInfoKey = booleanPreferencesKey("showCodecInfo")
+val AlbumCoverGlowKey = booleanPreferencesKey("albumCoverGlow")
+
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val CustomThemeColorKey = stringPreferencesKey("customThemeColor")
 val RandomThemeOnStartupKey = booleanPreferencesKey("randomThemeOnStartup")

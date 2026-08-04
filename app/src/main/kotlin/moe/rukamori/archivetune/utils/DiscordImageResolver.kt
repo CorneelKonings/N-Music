@@ -75,7 +75,7 @@ object DiscordImageResolver {
             savedArtwork
                 ?.artist
                 ?.asHttpUrl()
-                ?.takeUnless { it == savedArtwork?.thumbnail?.asHttpUrl() }
+                ?.takeUnless { it == savedArtwork.thumbnail?.asHttpUrl() }
         val persistedArtist = artistUrl ?: savedArtistUrl
         val artist = persistedArtist ?: thumbnail
 

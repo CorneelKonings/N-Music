@@ -3,12 +3,12 @@ package moe.rukamori.archivetune.ui.player.player_0
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +39,6 @@ private val CenterButtonSize      = 74.dp
 private val CenterIconSize        = 54.dp
 private val CenterShadowAlpha     = 0.3f
 private val CenterShadowRadius    = 45.dp
-private val CenterIconDark        = Color(0xFF121212)
 
 @Composable
 fun PlayerTransportControls(
@@ -105,14 +104,14 @@ fun PlayerTransportControls(
                 if (state.isLoading) {
                     CircularWavyProgressIndicator(
                         modifier = Modifier.size(CenterIconSize - 12.dp),
-                        color = CenterIconDark,
+                        color = Color(0xFF121212),
                     )
                 } else {
                     Image(
                         painter = rememberVectorPainter(playPauseIcon),
                         contentDescription = "Play/Pause",
                         modifier = Modifier.size(CenterIconSize),
-                        colorFilter = ColorFilter.tint(CenterIconDark),
+                        colorFilter = ColorFilter.tint(Color(0xFF121212)),
                     )
                 }
             }

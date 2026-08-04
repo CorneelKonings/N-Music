@@ -22,4 +22,8 @@ interface SettingsRepository {
     fun isSearchHistoryPaused(): Boolean
     fun isImmersiveEnabled(): Boolean
     fun setImmersiveEnabled(enabled: Boolean)
+    fun isShowCodecInfoEnabled(): Boolean
+    fun setShowCodecInfoEnabled(enabled: Boolean)
+    fun isAlbumCoverGlowEnabled(): Boolean
+    fun setAlbumCoverGlowEnabled(enabled: Boolean)
 }

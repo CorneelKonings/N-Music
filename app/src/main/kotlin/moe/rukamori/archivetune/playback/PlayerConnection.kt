@@ -17,12 +17,16 @@ import androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
+import androidx.media3.common.Tracks
+import androidx.media3.common.C
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.stateIn
 import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.extensions.currentMetadata
@@ -39,7 +43,7 @@ class PlayerConnection(
     context: Context,
     binder: MusicBinder,
     val database: MusicDatabase,
-    scope: CoroutineScope,
+    val scope: CoroutineScope,
 ) : Player.Listener {
     val service = binder.service
     val player = service.player
@@ -82,6 +86,7 @@ class PlayerConnection(
     val canSkipNext = MutableStateFlow(true)
 
     val aodModeEnabled = MutableStateFlow(false)
+    val audioFormat = MutableStateFlow<String?>(null)
 
     val error = MutableStateFlow<PlaybackException?>(null)
     val waitingForNetworkConnection = service.waitingForNetworkConnection
@@ -207,6 +212,49 @@ class PlayerConnection(
             reportException(playbackError)
         }
         error.value = playbackError
+    }
+
+    override fun onTracksChanged(tracks: Tracks) {
+        var codecInfo: String? = null
+        var foundBitrate = -1
+        var foundMimeType = "UNKNOWN"
+        
+        for (group in tracks.groups) {
+            if (group.type == C.TRACK_TYPE_AUDIO && group.isSelected) {
+                val format = group.getTrackFormat(0)
+                foundMimeType = format.sampleMimeType?.substringAfter("audio/")?.uppercase() ?: "UNKNOWN"
+                
+                var bitrate = format.bitrate
+                if (bitrate <= 0) bitrate = format.peakBitrate
+                if (bitrate <= 0) bitrate = format.averageBitrate
+                
+                foundBitrate = bitrate
+                break
+            }
+        }
+        
+        if (foundMimeType != "UNKNOWN") {
+            if (foundBitrate > 0) {
+                val bitrateKbps = if (foundBitrate > 2000) foundBitrate / 1000 else foundBitrate
+                audioFormat.value = "$foundMimeType | $bitrateKbps kbps"
+            } else {
+                scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    val mediaId = mediaMetadata.value?.id
+                    if (mediaId != null) {
+                        val formatEntity = database.format(mediaId).firstOrNull()
+                        val dbBitrate = formatEntity?.bitrate ?: -1
+                        if (dbBitrate > 0) {
+                            val bitrateKbps = if (dbBitrate > 2000) dbBitrate / 1000 else dbBitrate
+                            audioFormat.value = "$foundMimeType | $bitrateKbps kbps"
+                        } else {
+                            audioFormat.value = foundMimeType
+                        }
+                    } else {
+                        audioFormat.value = foundMimeType
+                    }
+                }
+            }
+        }
     }
 
     private fun updateCanSkipPreviousAndNext() {

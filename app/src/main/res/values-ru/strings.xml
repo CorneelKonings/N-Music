@@ -524,6 +524,7 @@
     <string name="enable_update_notification_desc">Будьте в курсе, когда выйдет новая версия</string>
     <string name="update_channel">Канал обновлений</string>
     <string name="channel_stable">Стабильный</string>
+    <string name="channel_canary">Canary</string>
     <string name="channel_nightly">Ночные сборки</string>
     <string name="recent_commits">Последние коммиты</string>
     <string name="changelog">Список изменений</string>
