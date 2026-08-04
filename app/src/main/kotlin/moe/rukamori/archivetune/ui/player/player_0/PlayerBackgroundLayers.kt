@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
@@ -35,6 +36,7 @@ fun PlayerBackgroundLayers(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val colorScheme = MaterialTheme.colorScheme
 
     // Оптимизированный запрос для блюра (низкое разрешение 128x128)
     val blurImageRequest = remember(state.coverUrl) {
@@ -127,9 +129,9 @@ fun PlayerBackgroundLayers(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.50f),
-                            Color.Black.copy(alpha = 0.25f),
-                            Color.Black.copy(alpha = 0.70f)
+                            colorScheme.surface.copy(alpha = 0.50f),
+                            colorScheme.surface.copy(alpha = 0.25f),
+                            colorScheme.surface.copy(alpha = 0.70f)
                         )
                     )
                 )
@@ -145,7 +147,7 @@ fun PlayerBackgroundLayers(
                         0.0f to Color.Transparent,
                         0.18f to Color.Transparent,
                         0.5f to Color.Transparent,
-                        1.0f to Color.Black.copy(alpha = 0.90f)
+                        1.0f to colorScheme.surface.copy(alpha = 0.90f)
                     )
                 )
         )
