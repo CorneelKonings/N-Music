@@ -27,9 +27,6 @@ import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 
-// =================================================================
-// БЛОК НАСТРОЕК НИЖНЕЙ ПАНЕЛИ
-// =================================================================
 private val ButtonClickAreaSize = 48.dp
 private val StandardIconSize = 26.dp
 private val LyricsIconSize = 32.dp
@@ -71,14 +68,14 @@ fun PlayerBottomBar(
             Color.White
         } else if (isLightTheme) {
             val lum = rawActiveColor.luminance()
-            if (lum > 0.85f) {
+            if (lum > 0.65f) {
                 colorScheme.primary
             } else {
                 rawActiveColor
             }
         } else {
             val lum = rawActiveColor.luminance()
-            if (lum < 0.25f) {
+            if (lum < 0.35f) {
                 lerp(rawActiveColor, Color.White, 0.5f)
             } else {
                 rawActiveColor

@@ -109,7 +109,7 @@ fun PlayerBackgroundLayers(
                                 drawRect(
                                     brush = Brush.verticalGradient(
                                         0.0f to Color.Black,
-                                        0.75f to Color.Black,
+                                        0.65f to Color.Black,
                                         1.0f to Color.Transparent
                                     ),
                                     blendMode = BlendMode.DstIn
@@ -159,9 +159,9 @@ fun PlayerBackgroundLayers(
                 .background(
                     Brush.verticalGradient(
                         0.0f to Color.Transparent,
-                        0.18f to Color.Transparent,
-                        0.5f to Color.Transparent,
-                        1.0f to Color.Black.copy(alpha = 0.90f)
+                        0.35f to Color.Transparent,
+                        0.65f to Color.Black.copy(alpha = 0.35f),
+                        1.0f to Color.Black.copy(alpha = 0.30f)
                     )
                 )
         )
