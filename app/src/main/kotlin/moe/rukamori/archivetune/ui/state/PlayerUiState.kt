@@ -58,6 +58,9 @@ data class PlayerUiState(
     val aiTranslationError: String? = null,
 
     val isImmersiveEnabled: Boolean = false,
+    val showCodecInfo: Boolean = false,
+    val isAlbumCoverGlowEnabled: Boolean = false,
+    val codecInfo: String = "",
     val coverDrawable: android.graphics.drawable.Drawable? = null,
     val isSheetCollapseRequested: Boolean = false,
 )

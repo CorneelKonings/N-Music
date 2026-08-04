@@ -84,12 +84,13 @@ fun PlayerToolbar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            SleepTimerTopBadge(
-                state = state,
-                onClick = onTimerBadgeClick
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
+            if (!state.isImmersiveEnabled) {
+                SleepTimerTopBadge(
+                    state = state,
+                    onClick = onTimerBadgeClick
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
 
             Box(
                 modifier = Modifier
@@ -195,20 +196,20 @@ fun SleepTimerTopBadge(
                     indication = null,
                     onClick = onClick
                 )
-                .padding(horizontal = 10.dp, vertical = 4.dp),
+                .padding(horizontal = 8.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_sleep_timer),
                 contentDescription = null,
                 tint = Color(state.vibrantColor),
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(10.dp)
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = text,
                 color = Color.White.copy(alpha = 0.9f),
-                fontSize = 12.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = GoogleSans
             )

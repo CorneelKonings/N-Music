@@ -30,16 +30,30 @@ fun PlayerCoverCard(
     coverUrl: String? = null,
     modifier: Modifier = Modifier,
     placeholderResId: Int,
+    isAlbumCoverGlowEnabled: Boolean = false,
+    vibrantColor: Color = Color.Transparent
 ) {
     Box(
         modifier = modifier
             .aspectRatio(1f, matchHeightConstraintsFirst = true)
-            .shadow(
-                elevation = 24.dp,
-                shape = RoundedCornerShape(24.dp),
-                clip = false,
-                spotColor = Color.Black,
-                ambientColor = Color.Black.copy(alpha = 0.6f)
+            .then(
+                if (isAlbumCoverGlowEnabled) {
+                    Modifier.shadow(
+                        elevation = 48.dp,
+                        shape = RoundedCornerShape(24.dp),
+                        clip = false,
+                        spotColor = vibrantColor,
+                        ambientColor = vibrantColor.copy(alpha = 0.8f)
+                    )
+                } else {
+                    Modifier.shadow(
+                        elevation = 24.dp,
+                        shape = RoundedCornerShape(24.dp),
+                        clip = false,
+                        spotColor = Color.Black,
+                        ambientColor = Color.Black.copy(alpha = 0.6f)
+                    )
+                }
             )
             .clip(RoundedCornerShape(24.dp))
             .background(Color(0x0FFFFFFF))

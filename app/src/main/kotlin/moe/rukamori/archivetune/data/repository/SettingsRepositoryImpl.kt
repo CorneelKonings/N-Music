@@ -81,4 +81,18 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun setImmersiveEnabled(enabled: Boolean) {
         prefs.edit().putBoolean("immersive_enabled", enabled).apply()
     }
+
+    override fun isShowCodecInfoEnabled(): Boolean =
+        prefs.getBoolean("show_codec_info", false)
+
+    override fun setShowCodecInfoEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("show_codec_info", enabled).apply()
+    }
+
+    override fun isAlbumCoverGlowEnabled(): Boolean =
+        prefs.getBoolean("album_cover_glow", false)
+
+    override fun setAlbumCoverGlowEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("album_cover_glow", enabled).apply()
+    }
 }

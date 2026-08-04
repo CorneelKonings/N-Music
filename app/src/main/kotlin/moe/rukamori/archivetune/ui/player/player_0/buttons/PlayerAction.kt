@@ -55,6 +55,8 @@ sealed interface PlayerAction {
     object ShowDetails : PlayerAction
     object OpenEqualizer : PlayerAction
     object OpenPlaybackSpeed : PlayerAction
+    object ToggleCodecInfo : PlayerAction
+    object ToggleAlbumCoverGlow : PlayerAction
 }
 
 enum class LyricsMenuScreen { MAIN, EDIT, TRANSLATE, SYNC_OFFSET }

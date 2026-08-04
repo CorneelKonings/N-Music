@@ -40,6 +40,11 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerBottomBar
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerToolbar
+import moe.rukamori.archivetune.ui.player.player_0.buttons.SleepTimerTopBadge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.ui.Alignment
 import moe.rukamori.archivetune.ui.player.player_0.sett.PlayerMenuScreen
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
@@ -172,7 +177,9 @@ fun FullPlayer(
                     PlayerCoverCard(
                         coverUrl = state.coverUrl,
                         coverDrawable = state.coverDrawable,
-                        placeholderResId = state.placeholderResId
+                        placeholderResId = state.placeholderResId,
+                        isAlbumCoverGlowEnabled = state.isAlbumCoverGlowEnabled,
+                        vibrantColor = animatedAccentColor
                     )
                 }
             },
@@ -195,10 +202,15 @@ fun FullPlayer(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     PlayerSeekBar(
+                        state = state,
                         progressMs = state.progressMs,
                         durationMs = state.durationMs,
                         animatedAccentColor = animatedAccentColor,
                         slideOffset = slideOffset,
+                        showCodecInfo = state.showCodecInfo,
+                        codecInfo = state.codecInfo,
+                        sleepTimerRemainingSeconds = state.sleepTimerRemainingSeconds,
+                        onOpenSleepTimer = { onOpenSettingsMenu(PlayerMenuScreen.SLEEP_TIMER) },
                         onSeek = onSeek,
                         onSeekStarted = onSeekStarted
                     )

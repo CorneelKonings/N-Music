@@ -66,10 +66,20 @@ fun CustomizationMenuContent(
         Spacer(modifier = Modifier.height(10.dp))
 
         SettingsSwitchRow(
+            title = "Codec Info",
+            subtitle = "Show audio format and sample rate above seekbar",
+            checked = state.showCodecInfo,
+            onCheckedChange = { onAction(PlayerAction.ToggleCodecInfo) },
+            vibrantColor = Color(state.vibrantColor)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        SettingsSwitchRow(
             title = "Ambient Glow",
-            subtitle = "Soft neon light around the player card (Coming Soon)",
-            checked = false,
-            onCheckedChange = {},
+            subtitle = "Soft neon light around the player card",
+            checked = state.isAlbumCoverGlowEnabled,
+            onCheckedChange = { onAction(PlayerAction.ToggleAlbumCoverGlow) },
             vibrantColor = Color(state.vibrantColor)
         )
 
