@@ -23,8 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -46,10 +44,9 @@ fun PlayerMetadata(
     state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
-    colorScheme: ColorScheme = MaterialTheme.colorScheme,
     expansionFractionProvider: () -> Float = { 1f }
 ) {
-    val gradientEdgeColor = colorScheme.onSurface
+    val gradientEdgeColor = Color.Black
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -94,7 +91,7 @@ fun PlayerMetadata(
                 AutoScrollingTextOnDemand(
                     text = title,
                     style = TextStyle(
-                        color = colorScheme.onSurface,
+                        color = Color.White,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = GoogleSans,
@@ -138,7 +135,7 @@ fun PlayerMetadata(
                 AutoScrollingTextOnDemand(
                     text = artist,
                     style = TextStyle(
-                        color = colorScheme.onSurface.copy(alpha = 0.95f),
+                        color = Color(0xF2FFFFFF),
                         fontSize = 16.sp,
                         fontFamily = GoogleSans,
                         shadow = SoftTextShadow
@@ -153,7 +150,7 @@ fun PlayerMetadata(
         var lastLikeClickTime by remember { mutableLongStateOf(0L) }
 
         val heartColor by animateColorAsState(
-            targetValue = if (state.isLiked) Color(state.vibrantColor) else colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            targetValue = if (state.isLiked) Color(state.vibrantColor) else Color.White.copy(alpha = 0.6f),
             animationSpec = tween(300),
             label = "MetadataHeartColor"
         )
