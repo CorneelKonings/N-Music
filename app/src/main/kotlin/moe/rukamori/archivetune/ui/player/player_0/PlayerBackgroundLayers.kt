@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,9 @@ fun PlayerBackgroundLayers(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val colorScheme = MaterialTheme.colorScheme
+    val isLightTheme = colorScheme.surface.luminance() > 0.5f
+    val standardVeilColor = if (isLightTheme) colorScheme.surface else Color.Black
 
     val blurImageRequest = remember(state.coverUrl) {
         ImageRequest.Builder(context)
@@ -116,6 +121,21 @@ fun PlayerBackgroundLayers(
                 }
             }
         }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = (1f - blurOverlayAlpha) * (1f - immersiveTransitionAlpha) }
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            standardVeilColor.copy(alpha = 0.50f),
+                            standardVeilColor.copy(alpha = 0.25f),
+                            standardVeilColor.copy(alpha = 0.70f)
+                        )
+                    )
+                )
+        )
 
         Box(
             modifier = Modifier
