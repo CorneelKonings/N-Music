@@ -78,18 +78,20 @@ fun PlayerBackgroundLayers(
             if (url.isNotEmpty()) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     // А. Оптимизированный блюр
-                    AsyncImage(
-                        model = blurImageRequest,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                alpha = themeTransitionAlpha
-                                clip = true
-                            }
-                            .blur(32.dp),
-                        contentScale = ContentScale.Crop
-                    )
+                    if (themeTransitionAlpha > 0.001f) {
+                        AsyncImage(
+                            model = blurImageRequest,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    alpha = themeTransitionAlpha
+                                    clip = true
+                                }
+                                .blur(32.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
                     // Б. Иммерсивная четкая обложка с мягким затуханием книзу
                     AsyncImage(
@@ -147,7 +149,7 @@ fun PlayerBackgroundLayers(
                         0.0f to Color.Transparent,
                         0.18f to Color.Transparent,
                         0.5f to Color.Transparent,
-                        1.0f to colorScheme.surface.copy(alpha = 0.90f)
+                        1.0f to Color.Black.copy(alpha = 0.92f)
                     )
                 )
         )

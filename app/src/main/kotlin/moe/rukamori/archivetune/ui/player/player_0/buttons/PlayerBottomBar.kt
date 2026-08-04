@@ -42,29 +42,34 @@ fun PlayerBottomBar(
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
     val isLightTheme = colorScheme.surface.luminance() > 0.5f
+    val isImmersive = state.isImmersiveEnabled && !state.isLyricsVisible
 
-    val inactiveColor = if (isLightTheme) {
-        colorScheme.onSurface.copy(alpha = 0.45f)
-    } else {
+    val inactiveColor = if (isImmersive || !isLightTheme) {
         Color.White.copy(alpha = 0.45f)
+    } else {
+        colorScheme.onSurface.copy(alpha = 0.45f)
     }
 
-    val inactiveButtonColor = if (isLightTheme) {
-        colorScheme.onSurface.copy(alpha = 0.75f)
-    } else {
+    val inactiveButtonColor = if (isImmersive || !isLightTheme) {
         Color.White.copy(alpha = 0.75f)
+    } else {
+        colorScheme.onSurface.copy(alpha = 0.75f)
     }
 
     val rawActiveColor = Color(state.vibrantColor)
 
-    val activeColor = remember(rawActiveColor, isLightTheme, colorScheme) {
-        val lum = rawActiveColor.luminance()
-        if (!isLightTheme && lum < 0.35f) {
-            lerp(rawActiveColor, Color.White, 0.5f)
-        } else if (isLightTheme && lum > 0.65f) {
-            lerp(rawActiveColor, colorScheme.onSurface, 0.6f)
+    val activeColor = remember(rawActiveColor, isLightTheme, isImmersive, colorScheme) {
+        if (isImmersive) {
+            Color.White
         } else {
-            rawActiveColor
+            val lum = rawActiveColor.luminance()
+            if (!isLightTheme && lum < 0.35f) {
+                lerp(rawActiveColor, Color.White, 0.5f)
+            } else if (isLightTheme && lum > 0.65f) {
+                lerp(rawActiveColor, colorScheme.onSurface, 0.6f)
+            } else {
+                rawActiveColor
+            }
         }
     }
 
