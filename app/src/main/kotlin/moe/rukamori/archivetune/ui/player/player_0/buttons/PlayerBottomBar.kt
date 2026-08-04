@@ -58,34 +58,42 @@ fun PlayerBottomBar(
         colorScheme.onSurface.copy(alpha = 0.75f)
     }
 
-    val rawActiveColor = Color(state.vibrantColor)
+    val rawActiveColor = remember(state.vibrantColor, colorScheme) {
+        if (state.vibrantColor == 0) {
+            colorScheme.primary
+        } else {
+            Color(state.vibrantColor).copy(alpha = 1f)
+        }
+    }
 
     val activeColor = remember(rawActiveColor, isLightTheme, isImmersive, isBlur, colorScheme) {
         if (isImmersive || isBlur) {
             Color.White
+        } else if (isLightTheme) {
+            val lum = rawActiveColor.luminance()
+            if (lum > 0.85f) {
+                colorScheme.primary
+            } else {
+                rawActiveColor
+            }
         } else {
             val lum = rawActiveColor.luminance()
-            if (!isLightTheme && lum < 0.35f) {
+            if (lum < 0.25f) {
                 lerp(rawActiveColor, Color.White, 0.5f)
-            } else if (isLightTheme && lum > 0.65f) {
-                lerp(rawActiveColor, colorScheme.onSurface, 0.6f)
             } else {
                 rawActiveColor
             }
         }
     }
 
-    // Определяем статусы активности кнопок
     val isShuffleActive = state.shuffleState != "off"
     val isRepeatActive = state.repeatState != "off"
-    val isLyricsActive = state.isLyricsVisible // Берем из твоего стейта видимость лирики
+    val isLyricsActive = state.isLyricsVisible
 
     val shuffleColor = if (isShuffleActive) activeColor else inactiveColor
     val repeatColor = if (isRepeatActive) activeColor else inactiveColor
     val lyricsColor = if (isLyricsActive) activeColor else inactiveButtonColor
 
-    // ДИНАМИЧЕСКИЙ ВЫБОР ИКОНОК:
-    // Если пришел стейт "smart" — подставляем твой новый XML со звездой, иначе обычный шаффл
     val shuffleIcon = if (state.shuffleState == "smart") R.drawable.ic_shuffle_mix else R.drawable.ic_shuffle
     val repeatIcon = if (state.repeatState == "one") R.drawable.ic_repeat_one else R.drawable.ic_repeat
 
@@ -95,17 +103,14 @@ fun PlayerBottomBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. ШАФЛ (Тепер подставляет динамический shuffleIcon вместо хардкода)
         AiryIconButton(iconRes = shuffleIcon, tint = shuffleColor, size = StandardIconSize) {
             onAction(PlayerAction.Shuffle)
         }
 
-        // 2. ЛИРИКА (Центральная, берет увеличенный размер)
         AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = lyricsColor, size = LyricsIconSize) {
             onAction(PlayerAction.Lyrics)
         }
 
-        // 3. ПОВТОР
         AiryIconButton(iconRes = repeatIcon, tint = repeatColor, size = StandardIconSize) {
             onAction(PlayerAction.Repeat)
         }
@@ -128,7 +133,6 @@ private fun AiryIconButton(
         label = "AiryButtonBounce"
     )
 
-    // Box заменен на Column, чтобы отцентровать иконку и точку
     Column(
         modifier = Modifier
             .size(ButtonClickAreaSize)
