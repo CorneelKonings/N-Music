@@ -43,14 +43,16 @@ fun PlayerBottomBar(
 ) {
     val isLightTheme = colorScheme.surface.luminance() > 0.5f
     val isImmersive = state.isImmersiveEnabled && !state.isLyricsVisible
+    val isBlur = state.isBlurBackgroundEnabled
+    val isDarkOrIsolated = !isLightTheme || isImmersive || isBlur
 
-    val inactiveColor = if (isImmersive || !isLightTheme) {
+    val inactiveColor = if (isDarkOrIsolated) {
         Color.White.copy(alpha = 0.45f)
     } else {
         colorScheme.onSurface.copy(alpha = 0.45f)
     }
 
-    val inactiveButtonColor = if (isImmersive || !isLightTheme) {
+    val inactiveButtonColor = if (isDarkOrIsolated) {
         Color.White.copy(alpha = 0.75f)
     } else {
         colorScheme.onSurface.copy(alpha = 0.75f)
@@ -58,8 +60,8 @@ fun PlayerBottomBar(
 
     val rawActiveColor = Color(state.vibrantColor)
 
-    val activeColor = remember(rawActiveColor, isLightTheme, isImmersive, colorScheme) {
-        if (isImmersive) {
+    val activeColor = remember(rawActiveColor, isLightTheme, isImmersive, isBlur, colorScheme) {
+        if (isImmersive || isBlur) {
             Color.White
         } else {
             val lum = rawActiveColor.luminance()

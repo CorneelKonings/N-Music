@@ -44,9 +44,9 @@ fun PlayerToolbar(
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
 
-    val isImmersive = state.isImmersiveEnabled && !state.isLyricsVisible
-    val buttonBackground = if (isImmersive) colorScheme.surface.copy(alpha = 0.2f) else Color.Transparent
-    val buttonBorderColor = if (isImmersive) colorScheme.outlineVariant.copy(alpha = 0.15f) else Color.Transparent
+    val isImmersiveOrBlur = (state.isImmersiveEnabled || state.isBlurBackgroundEnabled) && !state.isLyricsVisible
+    val buttonBackground = if (isImmersiveOrBlur) Color.Black.copy(alpha = 0.2f) else Color.Transparent
+    val buttonBorderColor = if (isImmersiveOrBlur) Color.White.copy(alpha = 0.08f) else Color.Transparent
 
     val collapseInteractionSource = remember { MutableInteractionSource() }
     val collapsePressed by collapseInteractionSource.collectIsPressedAsState()
@@ -71,7 +71,7 @@ fun PlayerToolbar(
     ) {
         Text(
             text = "Now Playing",
-            color = colorScheme.onSurface,
+            color = if (isImmersiveOrBlur) Color.White else colorScheme.onSurface,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = GoogleSans,
