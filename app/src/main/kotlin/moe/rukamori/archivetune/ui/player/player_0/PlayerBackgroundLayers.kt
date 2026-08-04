@@ -123,6 +123,22 @@ fun PlayerBackgroundLayers(
             }
         }
 
+        // ТЁМНЫЙ ОВЕРЛЕЙ ДЛЯ БЛЮРА (гарантирует глубокий контраст и четкость белого контента)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = themeTransitionAlpha * (1f - immersiveTransitionAlpha) }
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.45f),
+                            Color.Black.copy(alpha = 0.25f),
+                            Color.Black.copy(alpha = 0.65f)
+                        )
+                    )
+                )
+        )
+
         // 3. СТАНДАРТНОЕ ЗАТЕМНЕНИЕ
         Box(
             modifier = Modifier
