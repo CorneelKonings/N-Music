@@ -41,13 +41,28 @@ fun PlayerBottomBar(
     modifier: Modifier = Modifier,
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
-    val inactiveColor = colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-    val inactiveButtonColor = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+    val isLightTheme = colorScheme.surface.luminance() > 0.5f
+
+    val inactiveColor = if (isLightTheme) {
+        colorScheme.onSurface.copy(alpha = 0.45f)
+    } else {
+        Color.White.copy(alpha = 0.45f)
+    }
+
+    val inactiveButtonColor = if (isLightTheme) {
+        colorScheme.onSurface.copy(alpha = 0.75f)
+    } else {
+        Color.White.copy(alpha = 0.75f)
+    }
+
     val rawActiveColor = Color(state.vibrantColor)
 
-    val activeColor = remember(rawActiveColor) {
-        if (rawActiveColor.luminance() < 0.3f) {
-            lerp(rawActiveColor, colorScheme.onSurface, 0.45f)
+    val activeColor = remember(rawActiveColor, isLightTheme, colorScheme) {
+        val lum = rawActiveColor.luminance()
+        if (!isLightTheme && lum < 0.35f) {
+            lerp(rawActiveColor, Color.White, 0.5f)
+        } else if (isLightTheme && lum > 0.65f) {
+            lerp(rawActiveColor, colorScheme.onSurface, 0.6f)
         } else {
             rawActiveColor
         }
