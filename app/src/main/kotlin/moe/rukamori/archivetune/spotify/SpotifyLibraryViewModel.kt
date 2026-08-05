@@ -34,6 +34,9 @@ class SpotifyLibraryViewModel
         val errorMessage: StateFlow<String?> =
             repository.errorMessage.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+        val likedSongsTotal: StateFlow<Int> =
+            repository.likedSongsTotal.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
         init {
             viewModelScope.launch(Dispatchers.IO) {
                 syncUtils.trySpotifyAutoSync()
