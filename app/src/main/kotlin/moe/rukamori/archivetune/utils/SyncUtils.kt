@@ -43,6 +43,10 @@ import moe.rukamori.archivetune.innertube.models.SongItem
 import moe.rukamori.archivetune.innertube.utils.completed
 import moe.rukamori.archivetune.innertube.utils.hasYouTubeLoginCookie
 import moe.rukamori.archivetune.models.toMediaMetadata
+import moe.rukamori.archivetune.spotify.SpotifyLibraryRepository
+import moe.rukamori.archivetune.spotify.SpotifyMapper
+import moe.rukamori.archivetune.spotify.SpotifyPlaybackResolver
+import moe.rukamori.archivetune.db.entities.SpotifyMatchEntity
 import timber.log.Timber
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicLong
@@ -54,6 +58,7 @@ class SyncUtils
     @Inject
     constructor(
         private val database: MusicDatabase,
+        private val spotifyRepository: SpotifyLibraryRepository,
         @ApplicationContext private val context: Context,
     ) {
         private val syncScope = CoroutineScope(Dispatchers.IO)
@@ -847,6 +852,115 @@ class SyncUtils
                 }
             }
         }
+        suspend fun syncSpotifyPlaylists(authoritative: Boolean = false) =
+            playlistSyncMutex.withLock {
+                try {
+                    val session = spotifyRepository.restoreSession()
+                    if (!session.isAuthenticated) {
+                        Timber.w("Skipping syncSpotifyPlaylists - user not logged in to Spotify")
+                        return@withLock
+                    }
+
+                    val remotePlaylists = spotifyRepository.refreshPlaylists()
+                    val remotePlaylistIds = remotePlaylists.map { it.id }.toSet()
+                    val now = LocalDateTime.now()
+
+                    if (authoritative) {
+                        val localPlaylists = database.playlistsByNameAsc().first()
+                        val stalePlaylists = localPlaylists
+                            .map { it.playlist }
+                            .filter { it.spotifyId != null && it.spotifyId !in remotePlaylistIds }
+                        
+                        if (stalePlaylists.isNotEmpty()) {
+                            database.withTransaction {
+                                stalePlaylists.forEach { playlist ->
+                                    database.clearPlaylist(playlist.id)
+                                    database.delete(playlist)
+                                }
+                            }
+                        }
+                    }
+
+                    val resolveSemaphore = Semaphore(4)
+
+                    for (playlist in remotePlaylists) {
+                        try {
+                            val existingPlaylist = database.playlistBySpotifyId(playlist.id).firstOrNull()
+                            val playlistEntity = if (existingPlaylist == null) {
+                                val newEntity = PlaylistEntity(
+                                    name = playlist.name,
+                                    spotifyId = playlist.id,
+                                    thumbnailUrl = SpotifyMapper.getPlaylistThumbnail(playlist),
+                                    remoteSongCount = playlist.tracks?.total,
+                                    isEditable = false,
+                                    bookmarkedAt = now
+                                )
+                                database.insert(newEntity)
+                                database.playlistBySpotifyId(playlist.id).firstOrNull()?.playlist ?: newEntity
+                            } else {
+                                val updatedEntity = existingPlaylist.playlist.copy(
+                                    name = playlist.name,
+                                    thumbnailUrl = SpotifyMapper.getPlaylistThumbnail(playlist),
+                                    remoteSongCount = playlist.tracks?.total,
+                                    lastUpdateTime = now
+                                )
+                                database.update(updatedEntity)
+                                updatedEntity
+                            }
+
+                            val tracks = spotifyRepository.playlistTracks(playlist.id)
+                            val resolvedTracks = coroutineScope {
+                                tracks.map { track ->
+                                    async {
+                                        resolveSemaphore.withPermit {
+                                            val metadata = SpotifyPlaybackResolver.resolveToMetadata(track)
+                                            if (metadata != null) {
+                                                track to metadata
+                                            } else {
+                                                null
+                                            }
+                                        }
+                                    }
+                                }.awaitAll().filterNotNull()
+                            }
+
+                            database.withTransaction {
+                                database.clearPlaylist(playlistEntity.id)
+                                resolvedTracks.forEachIndexed { idx, (track, metadata) ->
+                                    val dbSong = database.getSongByIdBlocking(metadata.id)
+                                    if (dbSong == null) {
+                                        database.insert(metadata)
+                                    } else {
+                                        database.update(dbSong, metadata)
+                                    }
+
+                                    database.insert(
+                                        PlaylistSongMap(
+                                            playlistId = playlistEntity.id,
+                                            songId = metadata.id,
+                                            position = idx
+                                        )
+                                    )
+
+                                    database.insert(
+                                        SpotifyMatchEntity(
+                                            spotifyId = track.id,
+                                            youtubeId = metadata.id,
+                                            title = track.name,
+                                            artist = track.artists.joinToString(" ") { it.name },
+                                            matchScore = 1.0
+                                        )
+                                    )
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to sync Spotify playlist ${playlist.name}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Error during syncSpotifyPlaylists")
+                }
+            }
     }
 
 internal fun likedSongTimestamp(
