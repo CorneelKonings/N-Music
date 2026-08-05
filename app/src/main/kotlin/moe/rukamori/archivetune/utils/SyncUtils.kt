@@ -46,6 +46,9 @@ import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.spotify.SpotifyLibraryRepository
 import moe.rukamori.archivetune.spotify.SpotifyMapper
 import moe.rukamori.archivetune.spotify.SpotifyPlaybackResolver
+import moe.rukamori.archivetune.spotify.Spotify
+import moe.rukamori.archivetune.spotify.models.SpotifyTrack
+import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.db.entities.SpotifyMatchEntity
 import timber.log.Timber
 import java.time.LocalDateTime
@@ -959,6 +962,93 @@ class SyncUtils
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "Error during syncSpotifyPlaylists")
+                }
+            }
+
+        suspend fun syncSpotifyLikedSongs(authoritative: Boolean = false) =
+            playlistSyncMutex.withLock {
+                try {
+                    val session = spotifyRepository.restoreSession()
+                    if (!session.isAuthenticated) {
+                        Timber.w("Skipping syncSpotifyLikedSongs - user not logged in to Spotify")
+                        return@withLock
+                    }
+
+                    val tracks = mutableListOf<SpotifyTrack>()
+                    var offset = 0
+                    val limit = 50
+                    val maxPages = 60
+
+                    for (page in 0 until maxPages) {
+                        val result = Spotify.likedSongs(limit = limit, offset = offset).getOrNull()
+                        if (result == null || result.items.isEmpty()) break
+                        tracks.addAll(result.items.mapNotNull { it.track })
+                        offset += result.items.size
+                        if (offset >= result.total || result.items.size < limit) break
+                    }
+
+                    val resolveSemaphore = Semaphore(4)
+                    data class Resolved(val track: SpotifyTrack, val metadata: MediaMetadata)
+
+                    val resolvedTracks = coroutineScope {
+                        tracks.map { track ->
+                            async {
+                                resolveSemaphore.withPermit {
+                                    val metadata = SpotifyPlaybackResolver.resolveToMetadata(track)
+                                    if (metadata != null) {
+                                        Resolved(track, metadata)
+                                    } else {
+                                        null
+                                    }
+                                }
+                            }
+                        }.awaitAll().filterNotNull()
+                    }
+
+                    val localLikedSongs = database.likedSongsByNameAsc().first()
+                    val resolvedYoutubeIds = resolvedTracks.map { it.metadata.id }.toSet()
+                    val resolvedSpotifyIds = resolvedTracks.map { it.track.id }.toSet()
+
+                    val unlikeCandidateIds = localLikedSongs.map { it.id }.filter { it !in resolvedYoutubeIds }
+                    val matchEntities = database.getSpotifyMatchesByYouTubeIds(unlikeCandidateIds)
+                    val matchByYtId = matchEntities.associateBy { it.youtubeId }
+
+                    val now = LocalDateTime.now()
+
+                    database.withTransaction {
+                        resolvedTracks.forEachIndexed { index, resolved ->
+                            val timestamp = likedSongTimestamp(now, index)
+                            val dbSong = database.getSongByIdBlocking(resolved.metadata.id)
+                            
+                            if (dbSong == null) {
+                                database.insert(resolved.metadata) { it.copy(liked = true, likedDate = timestamp) }
+                            } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp) {
+                                database.update(dbSong.song.copy(liked = true, likedDate = timestamp))
+                            }
+
+                            database.insert(
+                                SpotifyMatchEntity(
+                                    spotifyId = resolved.track.id,
+                                    youtubeId = resolved.metadata.id,
+                                    title = resolved.track.name,
+                                    artist = resolved.track.artists.joinToString(" ") { it.name },
+                                    matchScore = 1.0
+                                )
+                            )
+                        }
+
+                        if (authoritative) {
+                            for (song in localLikedSongs) {
+                                if (song.id in resolvedYoutubeIds) continue
+                                val match = matchByYtId[song.id] ?: continue
+                                if (match.spotifyId !in resolvedSpotifyIds) {
+                                    database.update(song.song.copy(liked = false, likedDate = null))
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Error during syncSpotifyLikedSongs")
                 }
             }
     }
