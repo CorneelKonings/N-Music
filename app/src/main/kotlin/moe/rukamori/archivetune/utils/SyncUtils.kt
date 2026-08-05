@@ -7,6 +7,7 @@
 package moe.rukamori.archivetune.utils
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +28,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.constants.InnerTubeCookieKey
+import moe.rukamori.archivetune.constants.LastSpotifySyncKey
 import moe.rukamori.archivetune.constants.SelectedYtmPlaylistsKey
 import moe.rukamori.archivetune.constants.YtmSyncKey
 import moe.rukamori.archivetune.db.MusicDatabase
@@ -1051,6 +1053,35 @@ class SyncUtils
                     Timber.e(e, "Error during syncSpotifyLikedSongs")
                 }
             }
+
+        fun trySpotifyAutoSync(authoritative: Boolean = false) {
+            syncScope.launch {
+                try {
+                    val session = spotifyRepository.restoreSession()
+                    if (!session.isAuthenticated) return@launch
+
+                    val lastSync = context.dataStore.data.map { it[LastSpotifySyncKey] ?: 0L }.first()
+                    val currentTime = System.currentTimeMillis()
+                    if (!authoritative && lastSync > 0 && (currentTime - lastSync) < SPOTIFY_SYNC_COOLDOWN_MS) {
+                        Timber.d("Skipping Spotify auto-sync - cooldown active")
+                        return@launch
+                    }
+
+                    syncSpotifyPlaylists(authoritative = authoritative)
+                    syncSpotifyLikedSongs(authoritative = authoritative)
+
+                    context.dataStore.edit { prefs ->
+                        prefs[LastSpotifySyncKey] = System.currentTimeMillis()
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed trySpotifyAutoSync")
+                }
+            }
+        }
+
+        companion object {
+            private const val SPOTIFY_SYNC_COOLDOWN_MS = 30 * 60 * 1000L
+        }
     }
 
 internal fun likedSongTimestamp(
