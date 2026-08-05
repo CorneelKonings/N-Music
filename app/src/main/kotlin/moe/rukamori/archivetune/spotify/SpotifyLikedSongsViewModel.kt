@@ -45,6 +45,10 @@ class SpotifyLikedSongsViewModel
         private val _error = MutableStateFlow<String?>(null)
         val error = _error.asStateFlow()
 
+        private var currentOffset = 0
+        private var hasMore = true
+        private var isFetchingMore = false
+
         init {
             loadLikedSongs()
         }
@@ -52,7 +56,7 @@ class SpotifyLikedSongsViewModel
         fun refresh() {
             viewModelScope.launch(Dispatchers.IO) {
                 _isRefreshing.value = true
-                loadLikedSongsInternal()
+                resetAndLoadFirstChunk()
                 _isRefreshing.value = false
             }
         }
@@ -63,32 +67,56 @@ class SpotifyLikedSongsViewModel
             _error.value = null
         }
 
+        fun loadMoreSongs() {
+            if (isFetchingMore || !hasMore) return
+            viewModelScope.launch(Dispatchers.IO) {
+                isFetchingMore = true
+                loadNextChunk()
+                isFetchingMore = false
+            }
+        }
+
         private fun loadLikedSongs() {
             viewModelScope.launch(Dispatchers.IO) {
                 _isLoading.value = true
-                loadLikedSongsInternal()
+                resetAndLoadFirstChunk()
                 _isLoading.value = false
             }
         }
 
-        private suspend fun loadLikedSongsInternal() {
+        private suspend fun resetAndLoadFirstChunk() {
+            currentOffset = 0
+            hasMore = true
+            _tracks.value = emptyList()
+            loadNextChunk()
+        }
+
+        private suspend fun loadNextChunk() {
             _error.value = null
 
             val pageSize = 50
-            val maxPages = 60
-            val remoteTracks = mutableListOf<SpotifyTrack>()
-            var offset = 0
+            val pagesPerChunk = 2
+            val newTracks = mutableListOf<SpotifyTrack>()
 
-            for (page in 0 until maxPages) {
-                val result = Spotify.likedSongs(limit = pageSize, offset = offset).getOrNull()
-                if (result == null || result.items.isEmpty()) break
-                remoteTracks.addAll(result.items.mapNotNull { it.track?.takeUnless(SpotifyTrack::isLocal) })
-                offset += result.items.size
+            for (page in 0 until pagesPerChunk) {
+                if (!hasMore) break
+                val result = Spotify.likedSongs(limit = pageSize, offset = currentOffset).getOrNull()
+                if (result == null || result.items.isEmpty()) {
+                    hasMore = false
+                    break
+                }
+                newTracks.addAll(result.items.mapNotNull { it.track?.takeUnless(SpotifyTrack::isLocal) })
+                currentOffset += result.items.size
                 _total.value = result.total
-                if (offset >= result.total || result.items.size < pageSize) break
+                if (currentOffset >= result.total || result.items.size < pageSize) {
+                    hasMore = false
+                    break
+                }
             }
 
-            _tracks.value = remoteTracks.toList()
+            if (newTracks.isNotEmpty()) {
+                _tracks.value = _tracks.value + newTracks
+            }
         }
 
         companion object {

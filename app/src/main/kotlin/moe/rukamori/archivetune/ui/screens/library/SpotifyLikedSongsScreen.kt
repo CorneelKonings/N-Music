@@ -57,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -195,6 +196,22 @@ fun SpotifyLikedSongsScreen(
 
     LaunchedEffect(isSearching) {
         if (isSearching) focusRequester.requestFocus()
+    }
+
+    LaunchedEffect(lazyListState) {
+        snapshotFlow {
+            lazyListState.layoutInfo.visibleItemsInfo
+                .lastOrNull()
+                ?.index
+        }.collect { lastVisibleIndex ->
+            if (
+                tracks.size >= 5 &&
+                lastVisibleIndex != null &&
+                lastVisibleIndex >= tracks.size - 5
+            ) {
+                viewModel.loadMoreSongs()
+            }
+        }
     }
 
     if (isSearching) {

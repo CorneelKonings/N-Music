@@ -55,7 +55,10 @@ class SpotifyLibraryRepository
 
         suspend fun refreshLikedSongsTotal() {
             runCatching {
-                Spotify.likedSongs(limit = 1, offset = 0).getOrThrow().total
+                ensureAuthenticated()
+                spotifyCallWithTokenRetry {
+                    Spotify.likedSongs(limit = 1, offset = 0).getOrThrow().total
+                }
             }.onSuccess { total ->
                 _likedSongsTotal.value = total
             }.onFailure { error ->
