@@ -33,7 +33,4 @@ fun ScreenBackground(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-fun CirclesBackground() {
-    // Stub for CirclesBackground
-}
+
