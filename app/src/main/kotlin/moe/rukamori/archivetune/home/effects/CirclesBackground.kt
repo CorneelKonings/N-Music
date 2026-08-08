@@ -4,7 +4,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -20,13 +19,11 @@ fun CirclesBackground(
     val secondaryColor = MaterialTheme.colorScheme.secondary
     val tertiaryColor  = MaterialTheme.colorScheme.tertiary
     val context        = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
     val parallaxState = rememberParallaxState(
         enableParallax = true,
         sensitivity = 0.3f,
-        context = context,
-        coroutineScope = coroutineScope
+        context = context
     )
 
     val time = rememberAnimatedTime(speedMultiplier = 1f)
@@ -37,45 +34,76 @@ fun CirclesBackground(
         val tiltY = parallaxState.tiltY.value
         val twoPi = 2f * PI.toFloat()
 
-        // Circle configs with depth for parallax
-        // X/Y oscillate with sin() at their original tween periods - identical motion at speed 1x
         // Circle 1 - large top left
-        // Circle 2 - medium top right
-        // Circle 3 - small center right
-        // Circle 4 - medium bottom right
-        // Circle 5 - small bottom left
-        // Circle 6 - bottom center
-        val circles = listOf(
-            CircleData(0.20f  + 0.05f  * sin(t * twoPi / 8000f), 0.225f + 0.025f * sin(t * twoPi / 7000f), 400f, primaryColor,   0.05f,  0.8f),
-            CircleData(0.85f  + 0.03f  * sin(t * twoPi / 9000f), 0.185f + 0.035f * sin(t * twoPi / 6500f), 280f, tertiaryColor,  0.035f, 0.6f),
-            CircleData(0.715f + 0.035f * sin(t * twoPi / 7500f), 0.44f  + 0.04f  * sin(t * twoPi / 8500f), 200f, tertiaryColor,  0.04f,  0.4f),
-            CircleData(0.815f + 0.035f * sin(t * twoPi / 9500f), 0.785f + 0.035f * sin(t * twoPi / 7200f), 320f, secondaryColor, 0.035f, 0.7f),
-            CircleData(0.24f  + 0.04f  * sin(t * twoPi / 8200f), 0.765f + 0.035f * sin(t * twoPi / 6800f), 180f, primaryColor,   0.04f,  0.5f),
-            CircleData(0.525f + 0.025f * sin(t * twoPi / 8800f), 0.895f + 0.025f * sin(t * twoPi / 7800f), 220f, secondaryColor, 0.04f,  0.6f),
+        var parallaxStrength = 0.8f * 50f
+        var center = Offset(
+            size.width  * (0.20f  + 0.05f  * sin(t * twoPi / 8000f)) + tiltX * parallaxStrength,
+            size.height * (0.225f + 0.025f * sin(t * twoPi / 7000f)) + tiltY * parallaxStrength
+        )
+        drawCircle(
+            color  = primaryColor.copy(alpha = 0.05f),
+            radius = 400f,
+            center = center
         )
 
-        circles.forEach { circle ->
-            val parallaxStrength = circle.depth * 50f
-            val center = Offset(
-                size.width  * circle.x + tiltX * parallaxStrength,
-                size.height * circle.y + tiltY * parallaxStrength
-            )
+        // Circle 2 - medium top right
+        parallaxStrength = 0.6f * 50f
+        center = Offset(
+            size.width  * (0.85f  + 0.03f  * sin(t * twoPi / 9000f)) + tiltX * parallaxStrength,
+            size.height * (0.185f + 0.035f * sin(t * twoPi / 6500f)) + tiltY * parallaxStrength
+        )
+        drawCircle(
+            color  = tertiaryColor.copy(alpha = 0.035f),
+            radius = 280f,
+            center = center
+        )
 
-            // Filled circle
-            drawCircle(
-                color  = circle.color.copy(alpha = circle.alpha),
-                radius = circle.radius,
-                center = center
-            )
-        }
+        // Circle 3 - small center right
+        parallaxStrength = 0.4f * 50f
+        center = Offset(
+            size.width  * (0.715f + 0.035f * sin(t * twoPi / 7500f)) + tiltX * parallaxStrength,
+            size.height * (0.44f  + 0.04f  * sin(t * twoPi / 8500f)) + tiltY * parallaxStrength
+        )
+        drawCircle(
+            color  = tertiaryColor.copy(alpha = 0.04f),
+            radius = 200f,
+            center = center
+        )
+
+        // Circle 4 - medium bottom right
+        parallaxStrength = 0.7f * 50f
+        center = Offset(
+            size.width  * (0.815f + 0.035f * sin(t * twoPi / 9500f)) + tiltX * parallaxStrength,
+            size.height * (0.785f + 0.035f * sin(t * twoPi / 7200f)) + tiltY * parallaxStrength
+        )
+        drawCircle(
+            color  = secondaryColor.copy(alpha = 0.035f),
+            radius = 320f,
+            center = center
+        )
+
+        // Circle 5 - small bottom left
+        parallaxStrength = 0.5f * 50f
+        center = Offset(
+            size.width  * (0.24f  + 0.04f  * sin(t * twoPi / 8200f)) + tiltX * parallaxStrength,
+            size.height * (0.765f + 0.035f * sin(t * twoPi / 6800f)) + tiltY * parallaxStrength
+        )
+        drawCircle(
+            color  = primaryColor.copy(alpha = 0.04f),
+            radius = 180f,
+            center = center
+        )
+
+        // Circle 6 - bottom center
+        parallaxStrength = 0.6f * 50f
+        center = Offset(
+            size.width  * (0.525f + 0.025f * sin(t * twoPi / 8800f)) + tiltX * parallaxStrength,
+            size.height * (0.895f + 0.025f * sin(t * twoPi / 7800f)) + tiltY * parallaxStrength
+        )
+        drawCircle(
+            color  = secondaryColor.copy(alpha = 0.04f),
+            radius = 220f,
+            center = center
+        )
     }
 }
-
-private data class CircleData(
-    val x: Float,
-    val y: Float,
-    val radius: Float,
-    val color: Color,
-    val alpha: Float,
-    val depth: Float // Depth for parallax effect
-)

@@ -10,8 +10,6 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 /**
  * Frame-based time accumulator that respects a [speedMultiplier].
@@ -61,11 +59,10 @@ data class ParallaxState(
 fun rememberParallaxState(
     enableParallax: Boolean,
     sensitivity: Float = 0.3f,
-    context: Context,
-    coroutineScope: CoroutineScope
+    context: Context
 ): ParallaxState {
-    val smoothTiltX = remember { Animatable(0f) }
-    val smoothTiltY = remember { Animatable(0f) }
+    val smoothTiltX = remember { mutableFloatStateOf(0f) }
+    val smoothTiltY = remember { mutableFloatStateOf(0f) }
 
     var baselineX by remember { mutableFloatStateOf(0f) }
     var baselineY by remember { mutableFloatStateOf(0f) }
@@ -76,8 +73,8 @@ fun rememberParallaxState(
     // Reset when parallax is toggled
     LaunchedEffect(enableParallax) {
         if (!enableParallax) {
-            smoothTiltX.snapTo(0f)
-            smoothTiltY.snapTo(0f)
+            smoothTiltX.floatValue = 0f
+            smoothTiltY.floatValue = 0f
             isCalibrated = false
             baselineX = 0f
             baselineY = 0f
@@ -108,27 +105,11 @@ fun rememberParallaxState(
                     isCalibrated = true
                 }
 
-                val rawTiltX = event.values[0] - baselineX
-                val rawTiltY = -(event.values[1] - baselineY)
+                val rawTiltX = (event.values[0] - baselineX) * sensitivity
+                val rawTiltY = -(event.values[1] - baselineY) * sensitivity
 
-                coroutineScope.launch {
-                    smoothTiltX.animateTo(
-                        targetValue = rawTiltX * sensitivity,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    )
-                }
-                coroutineScope.launch {
-                    smoothTiltY.animateTo(
-                        targetValue = rawTiltY * sensitivity,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    )
-                }
+                smoothTiltX.floatValue += (rawTiltX - smoothTiltX.floatValue) * 0.1f
+                smoothTiltY.floatValue += (rawTiltY - smoothTiltY.floatValue) * 0.1f
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -165,7 +146,7 @@ fun rememberParallaxState(
 
     // Return State objects directly
     return ParallaxState(
-        tiltX = smoothTiltX.asState(),
-        tiltY = smoothTiltY.asState()
+        tiltX = smoothTiltX,
+        tiltY = smoothTiltY
     )
 }
