@@ -64,6 +64,8 @@ import moe.rukamori.archivetune.constants.DisableAnimationsKey
 import moe.rukamori.archivetune.constants.DynamicThemeKey
 import moe.rukamori.archivetune.constants.FontPreferenceKey
 import moe.rukamori.archivetune.constants.ForceHighRefreshRateKey
+import moe.rukamori.archivetune.constants.HomeBackgroundStyle
+import moe.rukamori.archivetune.constants.HomeBackgroundStyleKey
 import moe.rukamori.archivetune.constants.LibraryFilter
 import moe.rukamori.archivetune.constants.PureBlackKey
 import moe.rukamori.archivetune.constants.QuickPicksDisplayMode
@@ -112,6 +114,11 @@ fun AppearanceSettings(navController: NavController) {
         rememberPreference(
             DisableAnimationsKey,
             defaultValue = defaultDisableAnimations,
+        )
+    val (homeBackgroundStyle, onHomeBackgroundStyleChange) =
+        rememberEnumPreference(
+            HomeBackgroundStyleKey,
+            defaultValue = HomeBackgroundStyle.TONAL,
         )
     val (forceHighRefreshRate, onForceHighRefreshRateChange) =
         rememberPreference(
@@ -326,6 +333,21 @@ fun AppearanceSettings(navController: NavController) {
                         icon = { Icon(painterResource(R.drawable.animation), null, modifier = Modifier.size(24.dp)) },
                         checked = disableAnimations,
                         onCheckedChange = onDisableAnimationsChange,
+                    )
+                }
+
+                item {
+                    EnumListPreference(
+                        title = { Text(stringResource(R.string.home_background)) },
+                        icon = { Icon(painterResource(R.drawable.image), null, modifier = Modifier.size(24.dp)) },
+                        selectedValue = homeBackgroundStyle,
+                        onValueSelected = onHomeBackgroundStyleChange,
+                        valueText = {
+                            when (it) {
+                                HomeBackgroundStyle.TONAL -> stringResource(R.string.home_background_tonal)
+                                HomeBackgroundStyle.CIRCLES -> stringResource(R.string.home_background_circles)
+                            }
+                        },
                     )
                 }
 
