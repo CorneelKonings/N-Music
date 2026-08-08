@@ -68,6 +68,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.constants.DisableBlurKey
 import moe.rukamori.archivetune.extensions.togglePlayPause
 import moe.rukamori.archivetune.home.effects.ScreenBackground
 import moe.rukamori.archivetune.innertube.models.AlbumItem
@@ -88,6 +89,7 @@ import moe.rukamori.archivetune.ui.menu.YouTubeArtistMenu
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.screens.MoodAndGenresButton
 import moe.rukamori.archivetune.ui.screens.MoodAndGenresButtonHeight
+import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.SearchDiscoveryScreenState
 import moe.rukamori.archivetune.viewmodels.SearchDiscoveryTab
 import moe.rukamori.archivetune.viewmodels.SearchDiscoveryViewModel
@@ -102,6 +104,7 @@ fun SearchScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
+    val (disableBlur) = rememberPreference(DisableBlurKey, false)
     val lazyListState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop =
@@ -131,7 +134,7 @@ fun SearchScreen(
                     },
                 ),
     ) {
-        ScreenBackground()
+        ScreenBackground(isVisible = !disableBlur)
 
         LazyColumn(
             state = lazyListState,

@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.flow.first
 
 /**
  * Frame-based time accumulator that respects a [speedMultiplier].
@@ -27,6 +28,10 @@ fun rememberAnimatedTime(speedMultiplier: Float): State<Float> {
         var lastFrameMs = withInfiniteAnimationFrameMillis { it }
         var currentSpeed = targetSpeed.floatValue
         while (true) {
+            if (currentSpeed == 0f && targetSpeed.floatValue == 0f) {
+                snapshotFlow { targetSpeed.floatValue }.first { it > 0f }
+                lastFrameMs = withInfiniteAnimationFrameMillis { it }
+            }
             withInfiniteAnimationFrameMillis { frameMs ->
                 val delta = (frameMs - lastFrameMs).coerceIn(0L, 64L).toFloat()
                 lastFrameMs = frameMs

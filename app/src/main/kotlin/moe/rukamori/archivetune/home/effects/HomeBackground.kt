@@ -14,7 +14,8 @@ import moe.rukamori.archivetune.constants.HomeBackgroundStyle
 val LocalHomeBackgroundStyle = staticCompositionLocalOf { HomeBackgroundStyle.TONAL }
 
 @Composable
-fun ScreenBackground(modifier: Modifier = Modifier) {
+fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
+    if (!isVisible) return
     Box(modifier = modifier) {
         when (LocalHomeBackgroundStyle.current) {
             HomeBackgroundStyle.TONAL -> {

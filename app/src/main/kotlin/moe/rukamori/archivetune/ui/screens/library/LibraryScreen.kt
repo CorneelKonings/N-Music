@@ -72,6 +72,7 @@ import moe.rukamori.archivetune.LocalDatabase
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.AppBarHeight
 import moe.rukamori.archivetune.constants.ChipSortTypeKey
+import moe.rukamori.archivetune.constants.DisableBlurKey
 import moe.rukamori.archivetune.constants.LibraryFilter
 import moe.rukamori.archivetune.constants.ShowSpotifyPlaylistsKey
 import moe.rukamori.archivetune.constants.ShowTagsInLibraryKey
@@ -89,6 +90,7 @@ fun LibraryScreen(navController: NavController) {
     val allTags by database.allTags().collectAsState(initial = emptyList())
     val (showTagsInLibrary) = rememberPreference(ShowTagsInLibraryKey, defaultValue = true)
     val (showSpotifyPlaylists) = rememberPreference(ShowSpotifyPlaylistsKey, defaultValue = true)
+    val (disableBlur) = rememberPreference(DisableBlurKey, false)
     var showTagsManagementDialog by rememberSaveable { mutableStateOf(false) }
     val activeSelectedTagIds = if (showTagsInLibrary) selectedTagIds else emptySet()
     val libraryFilters =
@@ -206,7 +208,7 @@ fun LibraryScreen(navController: NavController) {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
     ) {
-        ScreenBackground()
+        ScreenBackground(isVisible = !disableBlur)
 
         Column(
             modifier =

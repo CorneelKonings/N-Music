@@ -268,7 +268,7 @@ private fun HomeContent(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        ScreenBackground()
+        ScreenBackground(isVisible = uiState.showTonalBackdrop)
 
         ExpressivePullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
