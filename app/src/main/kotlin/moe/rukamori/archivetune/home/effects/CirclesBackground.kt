@@ -7,9 +7,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.LocalAnimationsDisabled
 import kotlin.math.PI
 import kotlin.math.sin
+
+private data class CircleSpec(
+    val xRatio: Float,
+    val yRatio: Float,
+    val radiusRatio: Float,
+    val maxRadiusDp: Float,
+    val colorIndex: Int,
+    val alpha: Float,
+    val xWave: Float,
+    val yWave: Float,
+    val period: Float,
+    val parallaxWeight: Float,
+)
+
+private val circleSpecs = listOf(
+    //              xRatio, yRatio, radiusRatio, maxRadiusDp, colorIndex, alpha, xWave,  yWave,  period, parallaxWeight
+    CircleSpec(0.18f, 0.22f, 0.45f, 240f, 0, 0.25f, 0.040f, 0.025f, 8000f, 0.8f),
+    CircleSpec(0.84f, 0.19f, 0.35f, 190f, 2, 0.18f, 0.030f, 0.035f, 9000f, 0.6f),
+    CircleSpec(0.70f, 0.46f, 0.25f, 130f, 2, 0.20f, 0.035f, 0.040f, 7500f, 0.5f),
+    CircleSpec(0.80f, 0.80f, 0.38f, 200f, 1, 0.18f, 0.025f, 0.035f, 9500f, 0.7f),
+    CircleSpec(0.25f, 0.79f, 0.26f, 140f, 0, 0.20f, 0.040f, 0.035f, 8200f, 0.6f),
+    CircleSpec(0.52f, 0.97f, 0.30f, 160f, 1, 0.20f, 0.035f, 0.030f, 8800f, 0.6f),
+)
+
+private const val MAX_RADII_SCALE = 1f
+private const val MIN_RADII_SCALE = 0.45f
+private const val RADII_SCALE_STEP = 0.05f
 
 @Composable
 fun CirclesBackground(
@@ -18,9 +46,9 @@ fun CirclesBackground(
     parallaxSensitivity: Float = 0.6f,
     brightness: Float = 1f,
 ) {
-    val primaryColor   = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val tertiaryColor  = MaterialTheme.colorScheme.tertiary
+    val primaryColor   = MaterialTheme.colorScheme.primaryContainer
+    val secondaryColor = MaterialTheme.colorScheme.secondaryContainer
+    val tertiaryColor  = MaterialTheme.colorScheme.tertiaryContainer
     val context        = LocalContext.current
 
     val disableAnimations = LocalAnimationsDisabled.current
@@ -36,80 +64,33 @@ fun CirclesBackground(
     val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations) 0f else 1f)
 
     Canvas(modifier = modifier.fillMaxSize()) {
-        val t     = time.value
-        val tiltX = parallaxState.tiltX.value
-        val tiltY = parallaxState.tiltY.value
-        val twoPi = 2f * PI.toFloat()
+        val t      = time.value
+        val tiltX  = parallaxState.tiltX.value
+        val tiltY  = parallaxState.tiltY.value
+        val twoPi  = 2f * PI.toFloat()
 
-        // Circle 1 - large top left
-        var parallaxStrength = 0.8f * 80f
-        var center = Offset(
-            size.width  * (0.20f  + 0.05f  * sin(t * twoPi / 8000f)) + tiltX * parallaxStrength,
-            size.height * (0.225f + 0.025f * sin(t * twoPi / 7000f)) + tiltY * parallaxStrength
-        )
-        drawCircle(
-            color  = primaryColor.copy(alpha = 0.28f * alphaScale), // было 0.12f
-            radius = 400f,
-            center = center
-        )
+        val colors = arrayOf(primaryColor, secondaryColor, tertiaryColor)
+        val unit   = minOf(size.width, size.height)
+        val parallaxBase = unit * 0.1f
 
-        // Circle 2 - medium top right
-        parallaxStrength = 0.6f * 80f
-        center = Offset(
-            size.width  * (0.85f  + 0.03f  * sin(t * twoPi / 9000f)) + tiltX * parallaxStrength,
-            size.height * (0.185f + 0.035f * sin(t * twoPi / 6500f)) + tiltY * parallaxStrength
-        )
-        drawCircle(
-            color  = tertiaryColor.copy(alpha = 0.20f * alphaScale), // было 0.09f
-            radius = 280f,
-            center = center
-        )
+        circleSpecs.forEach { spec ->
+            // Вычисляем честный радиус без искусственного сжатия
+            val radius = (spec.radiusRatio * unit).coerceAtMost(spec.maxRadiusDp.dp.toPx())
+            val parallaxStrength = spec.parallaxWeight * parallaxBase
 
-        // Circle 3 - small center right
-        parallaxStrength = 0.4f * 80f
-        center = Offset(
-            size.width  * (0.715f + 0.035f * sin(t * twoPi / 7500f)) + tiltX * parallaxStrength,
-            size.height * (0.44f  + 0.04f  * sin(t * twoPi / 8500f)) + tiltY * parallaxStrength
-        )
-        drawCircle(
-            color  = tertiaryColor.copy(alpha = 0.22f * alphaScale), // было 0.1f
-            radius = 200f,
-            center = center
-        )
+            val restX = spec.xRatio * size.width
+            val restY = spec.yRatio * size.height
 
-        // Circle 4 - medium bottom right
-        parallaxStrength = 0.7f * 80f
-        center = Offset(
-            size.width  * (0.815f + 0.035f * sin(t * twoPi / 9500f)) + tiltX * parallaxStrength,
-            size.height * (0.785f + 0.035f * sin(t * twoPi / 7200f)) + tiltY * parallaxStrength
-        )
-        drawCircle(
-            color  = secondaryColor.copy(alpha = 0.20f * alphaScale), // было 0.09f
-            radius = 320f,
-            center = center
-        )
+            val center = Offset(
+                restX + size.width * spec.xWave * sin(t * twoPi / spec.period) + tiltX * parallaxStrength,
+                restY + size.height * spec.yWave * sin(t * twoPi / (spec.period * 0.9f)) + tiltY * parallaxStrength,
+            )
 
-        // Circle 5 - small bottom left
-        parallaxStrength = 0.5f * 80f
-        center = Offset(
-            size.width  * (0.24f  + 0.04f  * sin(t * twoPi / 8200f)) + tiltX * parallaxStrength,
-            size.height * (0.765f + 0.035f * sin(t * twoPi / 6800f)) + tiltY * parallaxStrength
-        )
-        drawCircle(
-            color  = primaryColor.copy(alpha = 0.22f * alphaScale), // было 0.1f
-            radius = 180f,
-            center = center
-        )
-        // Circle 6 - bottom center
-        parallaxStrength = 0.6f * 80f
-        center = Offset(
-            size.width  * (0.525f + 0.025f * sin(t * twoPi / 8800f)) + tiltX * parallaxStrength,
-            size.height * (0.895f + 0.025f * sin(t * twoPi / 7800f)) + tiltY * parallaxStrength
-        )
-        drawCircle(
-            color  = secondaryColor.copy(alpha = 0.22f * alphaScale), // было 0.1f
-            radius = 220f,
-            center = center
-        )
+            drawCircle(
+                color = colors[spec.colorIndex].copy(alpha = spec.alpha * alphaScale),
+                radius = radius,
+                center = center,
+            )
+        }
     }
 }
