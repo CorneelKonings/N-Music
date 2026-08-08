@@ -48,6 +48,12 @@ data class ParallaxState(
     val tiltY: State<Float>
 )
 
+class CalibrationState {
+    var baselineX = 0f
+    var baselineY = 0f
+    var isCalibrated = false
+}
+
 /**
  * Reusable parallax effect using device accelerometer
  * Returns ParallaxState with current tilt values as State objects
@@ -64,9 +70,7 @@ fun rememberParallaxState(
     val smoothTiltX = remember { mutableFloatStateOf(0f) }
     val smoothTiltY = remember { mutableFloatStateOf(0f) }
 
-    var baselineX by remember { mutableFloatStateOf(0f) }
-    var baselineY by remember { mutableFloatStateOf(0f) }
-    var isCalibrated by remember { mutableStateOf(false) }
+    val calibration = remember { CalibrationState() }
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -75,14 +79,14 @@ fun rememberParallaxState(
         if (!enableParallax) {
             smoothTiltX.floatValue = 0f
             smoothTiltY.floatValue = 0f
-            isCalibrated = false
-            baselineX = 0f
-            baselineY = 0f
+            calibration.isCalibrated = false
+            calibration.baselineX = 0f
+            calibration.baselineY = 0f
         } else {
             // Reset calibration when enabling
-            isCalibrated = false
-            baselineX = 0f
-            baselineY = 0f
+            calibration.isCalibrated = false
+            calibration.baselineX = 0f
+            calibration.baselineY = 0f
         }
     }
 
@@ -99,14 +103,14 @@ fun rememberParallaxState(
 
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                if (!isCalibrated) {
-                    baselineX = event.values[0]
-                    baselineY = event.values[1]
-                    isCalibrated = true
+                if (!calibration.isCalibrated) {
+                    calibration.baselineX = event.values[0]
+                    calibration.baselineY = event.values[1]
+                    calibration.isCalibrated = true
                 }
 
-                val rawTiltX = (event.values[0] - baselineX) * sensitivity
-                val rawTiltY = -(event.values[1] - baselineY) * sensitivity
+                val rawTiltX = (event.values[0] - calibration.baselineX) * sensitivity
+                val rawTiltY = -(event.values[1] - calibration.baselineY) * sensitivity
 
                 smoothTiltX.floatValue += (rawTiltX - smoothTiltX.floatValue) * 0.1f
                 smoothTiltY.floatValue += (rawTiltY - smoothTiltY.floatValue) * 0.1f
