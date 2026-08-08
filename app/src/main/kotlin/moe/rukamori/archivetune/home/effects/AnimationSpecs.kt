@@ -38,6 +38,9 @@ fun rememberAnimatedTime(speedMultiplier: Float): State<Float> {
                 // Smooth lerp: 2.5/sec ramp — ~0.8s to reach target speed.
                 // High enough to feel reactive, low enough to avoid jarring jumps.
                 currentSpeed += (targetSpeed.floatValue - currentSpeed) * (delta / 1000f) * 2.5f
+                if (kotlin.math.abs(currentSpeed) < 0.001f && targetSpeed.floatValue == 0f) {
+                    currentSpeed = 0f
+                }
                 time.floatValue += delta * currentSpeed
             }
         }
@@ -137,15 +140,6 @@ fun rememberParallaxState(
         }
 
         lifecycleOwner.lifecycle.addObserver(observer)
-        
-        // Initial registration if we are already started
-        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            sensorManager.registerListener(
-                listener,
-                accelerometer,
-                SensorManager.SENSOR_DELAY_GAME
-            )
-        }
 
         onDispose {
             sensorManager.unregisterListener(listener)
