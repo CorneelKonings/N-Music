@@ -60,7 +60,7 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.home.HomeAction
 import moe.rukamori.archivetune.home.HomeScreenState
 import moe.rukamori.archivetune.home.HomeUiState
-import moe.rukamori.archivetune.home.effects.HomePremiumBackground
+import moe.rukamori.archivetune.home.effects.ScreenBackground
 import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.playback.PlayerConnection
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
@@ -292,15 +292,7 @@ private fun HomeContent(
 //            )
 //        }
 
-        if (uiState.showTonalBackdrop) {
-            HomePremiumBackground(
-                blobColor = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(430.dp)
-                    .align(Alignment.TopCenter)
-            )
-        }
+        ScreenBackground()
 
         ExpressivePullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
