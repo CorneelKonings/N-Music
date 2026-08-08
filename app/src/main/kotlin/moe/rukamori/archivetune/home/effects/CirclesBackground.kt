@@ -13,7 +13,10 @@ import kotlin.math.sin
 
 @Composable
 fun CirclesBackground(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    parallaxEnabled: Boolean = true,
+    parallaxSensitivity: Float = 0.6f,
+    brightness: Float = 1f,
 ) {
     val primaryColor   = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
@@ -22,9 +25,11 @@ fun CirclesBackground(
 
     val disableAnimations = LocalAnimationsDisabled.current
 
+    val alphaScale = brightness.coerceIn(0.1f, 2f)
+
     val parallaxState = rememberParallaxState(
-        enableParallax = !disableAnimations,
-        sensitivity = 0.6f,
+        enableParallax = parallaxEnabled && !disableAnimations,
+        sensitivity = parallaxSensitivity,
         context = context
     )
 
@@ -43,7 +48,7 @@ fun CirclesBackground(
             size.height * (0.225f + 0.025f * sin(t * twoPi / 7000f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = primaryColor.copy(alpha = 0.12f),
+            color  = primaryColor.copy(alpha = 0.28f * alphaScale), // было 0.12f
             radius = 400f,
             center = center
         )
@@ -55,7 +60,7 @@ fun CirclesBackground(
             size.height * (0.185f + 0.035f * sin(t * twoPi / 6500f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = tertiaryColor.copy(alpha = 0.09f),
+            color  = tertiaryColor.copy(alpha = 0.20f * alphaScale), // было 0.09f
             radius = 280f,
             center = center
         )
@@ -67,7 +72,7 @@ fun CirclesBackground(
             size.height * (0.44f  + 0.04f  * sin(t * twoPi / 8500f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = tertiaryColor.copy(alpha = 0.1f),
+            color  = tertiaryColor.copy(alpha = 0.22f * alphaScale), // было 0.1f
             radius = 200f,
             center = center
         )
@@ -79,7 +84,7 @@ fun CirclesBackground(
             size.height * (0.785f + 0.035f * sin(t * twoPi / 7200f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = secondaryColor.copy(alpha = 0.09f),
+            color  = secondaryColor.copy(alpha = 0.20f * alphaScale), // было 0.09f
             radius = 320f,
             center = center
         )
@@ -91,11 +96,10 @@ fun CirclesBackground(
             size.height * (0.765f + 0.035f * sin(t * twoPi / 6800f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = primaryColor.copy(alpha = 0.1f),
+            color  = primaryColor.copy(alpha = 0.22f * alphaScale), // было 0.1f
             radius = 180f,
             center = center
         )
-
         // Circle 6 - bottom center
         parallaxStrength = 0.6f * 80f
         center = Offset(
@@ -103,7 +107,7 @@ fun CirclesBackground(
             size.height * (0.895f + 0.025f * sin(t * twoPi / 7800f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = secondaryColor.copy(alpha = 0.1f),
+            color  = secondaryColor.copy(alpha = 0.22f * alphaScale), // было 0.1f
             radius = 220f,
             center = center
         )
