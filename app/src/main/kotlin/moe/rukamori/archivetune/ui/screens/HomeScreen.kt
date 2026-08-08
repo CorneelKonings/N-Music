@@ -267,28 +267,7 @@ private fun HomeContent(
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tonalStart = MaterialTheme.colorScheme.primaryContainer
-    val tonalMiddle = MaterialTheme.colorScheme.secondaryContainer
     Box(modifier = modifier.fillMaxSize()) {
-//        if (uiState.showTonalBackdrop) {
-//            Box(
-//                modifier =
-//                    Modifier
-//                        .fillMaxWidth()
-//                        .height(430.dp)
-//                        .align(Alignment.TopCenter)
-//                        .drawWithCache {
-//                            val brush =
-//                                Brush.verticalGradient(
-//                                    0f to tonalStart.copy(alpha = 0.30f),
-//                                    0.42f to tonalMiddle.copy(alpha = 0.14f),
-//                                    1f to Color.Transparent,
-//                                )
-//                            onDrawBehind { drawRect(brush) }
-//                        },
-//            )
-//        }
-
         ScreenBackground()
 
         ExpressivePullToRefreshBox(

@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import moe.rukamori.archivetune.LocalAnimationsDisabled
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -19,13 +20,15 @@ fun CirclesBackground(
     val tertiaryColor  = MaterialTheme.colorScheme.tertiary
     val context        = LocalContext.current
 
+    val disableAnimations = LocalAnimationsDisabled.current
+
     val parallaxState = rememberParallaxState(
-        enableParallax = true,
+        enableParallax = !disableAnimations,
         sensitivity = 0.3f,
         context = context
     )
 
-    val time = rememberAnimatedTime(speedMultiplier = 1f)
+    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations) 0f else 1f)
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val t     = time.value
