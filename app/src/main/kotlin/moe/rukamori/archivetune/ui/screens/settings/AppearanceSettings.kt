@@ -48,7 +48,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -386,7 +390,7 @@ fun AppearanceSettings(navController: NavController) {
                     HomeBackgroundSliderItem(
                         title = stringResource(R.string.home_background_parallax_strength),
                         value = homeBackgroundParallaxStrength,
-                        onValueChange = onHomeBackgroundParallaxStrengthChange,
+                        onValueChangeFinished = onHomeBackgroundParallaxStrengthChange,
                         valueRange = HOME_BACKGROUND_PARALLAX_RANGE,
                         valueText = { strength ->
                             String.format(java.util.Locale.US, "%.1f", strength)
@@ -398,7 +402,7 @@ fun AppearanceSettings(navController: NavController) {
                     HomeBackgroundSliderItem(
                         title = stringResource(R.string.home_background_brightness),
                         value = homeBackgroundBrightness,
-                        onValueChange = onHomeBackgroundBrightnessChange,
+                        onValueChangeFinished = onHomeBackgroundBrightnessChange,
                         valueRange = HOME_BACKGROUND_BRIGHTNESS_RANGE,
                         valueText = { brightness ->
                             "${(brightness * 100).roundToInt()}%"
@@ -627,18 +631,21 @@ private val HOME_BACKGROUND_BRIGHTNESS_RANGE = 0.1f..1.5f
 private fun HomeBackgroundSliderItem(
     title: String,
     value: Float,
-    onValueChange: (Float) -> Unit,
+    onValueChangeFinished: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
     valueText: (Float) -> String,
 ) {
+    var localValue by remember { mutableFloatStateOf(value) }
+    LaunchedEffect(value) { localValue = value }
+
     val sliderState =
         rememberSliderState(
-            value = value,
+            value = localValue,
             valueRange = valueRange,
-            onValueChangeFinished = {},
+            onValueChangeFinished = { onValueChangeFinished(localValue) },
         )
-    sliderState.onValueChange = { onValueChange(it) }
-    sliderState.value = value
+    sliderState.onValueChange = { localValue = it }
+    sliderState.value = localValue
 
     Column(
         modifier = Modifier
@@ -658,7 +665,7 @@ private fun HomeBackgroundSliderItem(
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                text = valueText(value),
+                text = valueText(localValue),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )
