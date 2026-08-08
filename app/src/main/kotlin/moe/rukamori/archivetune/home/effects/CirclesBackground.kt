@@ -24,7 +24,7 @@ fun CirclesBackground(
 
     val parallaxState = rememberParallaxState(
         enableParallax = !disableAnimations,
-        sensitivity = 0.3f,
+        sensitivity = 0.6f,
         context = context
     )
 
@@ -37,73 +37,73 @@ fun CirclesBackground(
         val twoPi = 2f * PI.toFloat()
 
         // Circle 1 - large top left
-        var parallaxStrength = 0.8f * 50f
+        var parallaxStrength = 0.8f * 80f
         var center = Offset(
             size.width  * (0.20f  + 0.05f  * sin(t * twoPi / 8000f)) + tiltX * parallaxStrength,
             size.height * (0.225f + 0.025f * sin(t * twoPi / 7000f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = primaryColor.copy(alpha = 0.05f),
+            color  = primaryColor.copy(alpha = 0.12f),
             radius = 400f,
             center = center
         )
 
         // Circle 2 - medium top right
-        parallaxStrength = 0.6f * 50f
+        parallaxStrength = 0.6f * 80f
         center = Offset(
             size.width  * (0.85f  + 0.03f  * sin(t * twoPi / 9000f)) + tiltX * parallaxStrength,
             size.height * (0.185f + 0.035f * sin(t * twoPi / 6500f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = tertiaryColor.copy(alpha = 0.035f),
+            color  = tertiaryColor.copy(alpha = 0.09f),
             radius = 280f,
             center = center
         )
 
         // Circle 3 - small center right
-        parallaxStrength = 0.4f * 50f
+        parallaxStrength = 0.4f * 80f
         center = Offset(
             size.width  * (0.715f + 0.035f * sin(t * twoPi / 7500f)) + tiltX * parallaxStrength,
             size.height * (0.44f  + 0.04f  * sin(t * twoPi / 8500f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = tertiaryColor.copy(alpha = 0.04f),
+            color  = tertiaryColor.copy(alpha = 0.1f),
             radius = 200f,
             center = center
         )
 
         // Circle 4 - medium bottom right
-        parallaxStrength = 0.7f * 50f
+        parallaxStrength = 0.7f * 80f
         center = Offset(
             size.width  * (0.815f + 0.035f * sin(t * twoPi / 9500f)) + tiltX * parallaxStrength,
             size.height * (0.785f + 0.035f * sin(t * twoPi / 7200f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = secondaryColor.copy(alpha = 0.035f),
+            color  = secondaryColor.copy(alpha = 0.09f),
             radius = 320f,
             center = center
         )
 
         // Circle 5 - small bottom left
-        parallaxStrength = 0.5f * 50f
+        parallaxStrength = 0.5f * 80f
         center = Offset(
             size.width  * (0.24f  + 0.04f  * sin(t * twoPi / 8200f)) + tiltX * parallaxStrength,
             size.height * (0.765f + 0.035f * sin(t * twoPi / 6800f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = primaryColor.copy(alpha = 0.04f),
+            color  = primaryColor.copy(alpha = 0.1f),
             radius = 180f,
             center = center
         )
 
         // Circle 6 - bottom center
-        parallaxStrength = 0.6f * 50f
+        parallaxStrength = 0.6f * 80f
         center = Offset(
             size.width  * (0.525f + 0.025f * sin(t * twoPi / 8800f)) + tiltX * parallaxStrength,
             size.height * (0.895f + 0.025f * sin(t * twoPi / 7800f)) + tiltY * parallaxStrength
         )
         drawCircle(
-            color  = secondaryColor.copy(alpha = 0.04f),
+            color  = secondaryColor.copy(alpha = 0.1f),
             radius = 220f,
             center = center
         )
