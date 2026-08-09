@@ -61,7 +61,7 @@ fun RingsBackground(
         sensitivity = parallaxSensitivity,
         context = context
     )
-    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations) 0f else 1f)
+    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f)
 
     // Ring configurations - defined once, positions oscillate via sin() each frame
     val ringConfigs = remember {

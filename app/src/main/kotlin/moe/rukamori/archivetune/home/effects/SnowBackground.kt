@@ -89,7 +89,7 @@ fun SnowBackground(
         }
     }
 
-    val animatedTime = rememberAnimatedTime(speedMultiplier = if (disableAnimations) 0f else 1f)
+    val animatedTime = rememberAnimatedTime(speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f)
     val alphaScale = brightness.coerceIn(0.1f, 2f)
 
     Canvas(modifier = modifier.fillMaxSize()) {

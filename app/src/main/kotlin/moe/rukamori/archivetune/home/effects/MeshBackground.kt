@@ -36,7 +36,7 @@ fun MeshBackground(
         sensitivity = parallaxSensitivity,
         context = context
     )
-    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations) 0f else 1f)
+    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f)
 
     val animatedPrimaryColor by animateColorAsState(
         targetValue = MaterialTheme.colorScheme.primary,

@@ -54,7 +54,7 @@ fun GridBackground(
         context = context
     )
 
-    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations) 0f else 1f)
+    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f)
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val t     = time.value

@@ -46,7 +46,7 @@ fun SpaceBackground(
 
     var baseProgress by remember { mutableFloatStateOf(0f) }
 
-    val speedMultiplier = if (disableAnimations) 0f else 1f
+    val speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f
     val targetSpeedState = remember { mutableFloatStateOf(speedMultiplier) }
     SideEffect { targetSpeedState.floatValue = speedMultiplier }
 

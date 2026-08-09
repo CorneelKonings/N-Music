@@ -85,7 +85,7 @@ fun ParticlesBackground(
         }
     }
 
-    val speedMultiplier = if (disableAnimations) 0f else 1f
+    val speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f
     // targetSpeedState updated via SideEffect so the physics loop stays reactive
     val targetSpeedState = remember { mutableFloatStateOf(speedMultiplier) }
     SideEffect { targetSpeedState.floatValue = speedMultiplier }
