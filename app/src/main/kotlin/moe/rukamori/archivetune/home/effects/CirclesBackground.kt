@@ -38,10 +38,6 @@ private val circleSpecs = listOf(
     CircleSpec(0.52f, 0.97f, 0.30f, 160f, 1, 0.20f, 0.035f, 0.030f, 8800f, 0.6f),
 )
 
-private const val MAX_RADII_SCALE = 1f
-private const val MIN_RADII_SCALE = 0.45f
-private const val RADII_SCALE_STEP = 0.05f
-
 @Composable
 fun CirclesBackground(
     modifier: Modifier = Modifier,
