@@ -42,20 +42,46 @@ fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
                     brightness = homeBackground.brightness,
                 )
             }
-            HomeBackgroundStyle.SPACE -> {
-                SpaceBackground(
+            HomeBackgroundStyle.RINGS -> {
+                RingsBackground(
                     parallaxEnabled = homeBackground.parallaxEnabled,
                     parallaxSensitivity = homeBackground.parallaxSensitivity,
                     brightness = homeBackground.brightness,
                 )
             }
-            else -> {
-                HomePremiumBackground(
-                    blobColor = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(430.dp)
-                        .align(Alignment.TopCenter)
+            HomeBackgroundStyle.MESH -> {
+                MeshBackground(
+                    parallaxEnabled = homeBackground.parallaxEnabled,
+                    parallaxSensitivity = homeBackground.parallaxSensitivity,
+                    brightness = homeBackground.brightness,
+                )
+            }
+            HomeBackgroundStyle.GRID -> {
+                GridBackground(
+                    parallaxEnabled = homeBackground.parallaxEnabled,
+                    parallaxSensitivity = homeBackground.parallaxSensitivity,
+                    brightness = homeBackground.brightness,
+                )
+            }
+            HomeBackgroundStyle.PARTICLES -> {
+                ParticlesBackground(
+                    parallaxEnabled = homeBackground.parallaxEnabled,
+                    parallaxSensitivity = homeBackground.parallaxSensitivity,
+                    brightness = homeBackground.brightness,
+                )
+            }
+            HomeBackgroundStyle.SNOW -> {
+                SnowBackground(
+                    parallaxEnabled = homeBackground.parallaxEnabled,
+                    parallaxSensitivity = homeBackground.parallaxSensitivity,
+                    brightness = homeBackground.brightness,
+                )
+            }
+            HomeBackgroundStyle.SPACE -> {
+                SpaceBackground(
+                    parallaxEnabled = homeBackground.parallaxEnabled,
+                    parallaxSensitivity = homeBackground.parallaxSensitivity,
+                    brightness = homeBackground.brightness,
                 )
             }
         }

@@ -368,12 +368,18 @@ fun AppearanceSettings(navController: NavController) {
                             when (it) {
                                 HomeBackgroundStyle.TONAL -> stringResource(R.string.home_background_tonal)
                                 HomeBackgroundStyle.CIRCLES -> stringResource(R.string.home_background_circles)
+                                HomeBackgroundStyle.RINGS -> stringResource(R.string.home_background_rings)
+                                HomeBackgroundStyle.MESH -> stringResource(R.string.home_background_mesh)
+                                HomeBackgroundStyle.GRID -> stringResource(R.string.home_background_grid)
+                                HomeBackgroundStyle.PARTICLES -> stringResource(R.string.home_background_particles)
+                                HomeBackgroundStyle.SNOW -> stringResource(R.string.home_background_snow)
+                                HomeBackgroundStyle.SPACE -> stringResource(R.string.home_background_space)
                             }
                         },
                     )
                 }
 
-                item(visible = homeBackgroundStyle == HomeBackgroundStyle.CIRCLES) {
+                item(visible = homeBackgroundStyle != HomeBackgroundStyle.TONAL) {
                     SwitchPreference(
                         title = { Text(stringResource(R.string.home_background_parallax)) },
                         icon = { Icon(painterResource(R.drawable.speed), null, modifier = Modifier.size(24.dp)) },
@@ -384,7 +390,7 @@ fun AppearanceSettings(navController: NavController) {
 
                 item(
                     visible =
-                        homeBackgroundStyle == HomeBackgroundStyle.CIRCLES &&
+                        homeBackgroundStyle != HomeBackgroundStyle.TONAL &&
                             homeBackgroundParallaxEnabled,
                 ) {
                     HomeBackgroundSliderItem(
@@ -398,7 +404,7 @@ fun AppearanceSettings(navController: NavController) {
                     )
                 }
 
-                item(visible = homeBackgroundStyle == HomeBackgroundStyle.CIRCLES) {
+                item(visible = homeBackgroundStyle != HomeBackgroundStyle.TONAL) {
                     HomeBackgroundSliderItem(
                         title = stringResource(R.string.home_background_brightness),
                         value = homeBackgroundBrightness,
