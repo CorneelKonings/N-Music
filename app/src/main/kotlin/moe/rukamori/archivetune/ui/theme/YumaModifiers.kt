@@ -5,28 +5,20 @@
 
 package moe.rukamori.archivetune.ui.theme
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.isSpecified
-import androidx.compose.ui.composed
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -44,39 +36,31 @@ fun Modifier.yumaGlassCard(
         mod
     }
 }
+@Composable
 fun Modifier.yumaClickable(
     enabled: Boolean = true,
     pressedScale: Float = 0.96f,
     onClick: () -> Unit
-): Modifier = composed {
-    if (!enabled) return@composed this
+): Modifier {
+    if (!enabled) return this
 
     val interactionSource = remember { MutableInteractionSource() }
     val disableAnimations = LocalDisableAnimations.current
 
     if (disableAnimations) {
-        return@composed this.clickable(
+        return this.clickable(
             interactionSource = interactionSource,
             indication = null,
             onClick = onClick
         )
     }
 
-    val isPressed by interactionSource.collectIsPressedAsState()
+    val isPressedState = interactionSource.collectIsPressedAsState()
 
-    val scaleState = animateFloatAsState(
-        targetValue = if (isPressed) pressedScale else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "yumaClickScale"
-    )
-
-    this
+    return this
         .graphicsLayer {
-            scaleX = scaleState.value
-            scaleY = scaleState.value
+            scaleX = if (isPressedState.value) pressedScale else 1f
+            scaleY = if (isPressedState.value) pressedScale else 1f
         }
         .clickable(
             interactionSource = interactionSource,
