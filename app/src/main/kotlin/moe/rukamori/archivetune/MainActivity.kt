@@ -187,6 +187,7 @@ import moe.rukamori.archivetune.constants.HomeBackgroundStyle
 import moe.rukamori.archivetune.constants.HomeBackgroundStyleKey
 import moe.rukamori.archivetune.home.effects.HomeBackgroundSettings
 import moe.rukamori.archivetune.home.effects.LocalHomeBackgroundStyle
+import moe.rukamori.archivetune.home.effects.ScreenBackground
 import moe.rukamori.archivetune.constants.LaunchCountKey
 import moe.rukamori.archivetune.constants.MiniPlayerBottomSpacing
 import moe.rukamori.archivetune.constants.MiniPlayerHeight
@@ -1430,6 +1431,7 @@ class MainActivity : ComponentActivity() {
                         moe.rukamori.archivetune.ui.component.LocalBottomSheetPageState provides bottomSheetPageState,
                         moe.rukamori.archivetune.ui.component.LocalMenuState provides menuState,
                     ) {
+                        ScreenBackground(modifier = Modifier.fillMaxSize())
                         Row {
                             AnimatedVisibility(
                                 visible = useRail && shouldShowNavigationBar,
@@ -2144,6 +2146,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 },
+                                containerColor = Color.Transparent,
                                 modifier = Modifier.fillMaxSize(),
                             ) {
                                 var transitionDirection =
