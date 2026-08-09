@@ -186,7 +186,6 @@ import moe.rukamori.archivetune.constants.HomeBackgroundParallaxStrengthKey
 import moe.rukamori.archivetune.constants.HomeBackgroundStyle
 import moe.rukamori.archivetune.constants.HomeBackgroundStyleKey
 import moe.rukamori.archivetune.home.effects.HomeBackgroundSettings
-import moe.rukamori.archivetune.home.effects.LocalBackgroundAnimationPaused
 import moe.rukamori.archivetune.home.effects.LocalHomeBackgroundStyle
 import moe.rukamori.archivetune.home.effects.ScreenBackground
 import moe.rukamori.archivetune.constants.LaunchCountKey
@@ -802,10 +801,6 @@ class MainActivity : ComponentActivity() {
                     val networkBannerState by networkBannerViewModel.bannerState.collectAsStateWithLifecycle()
                     val hasUnreadNews by newsViewModel.hasUnreadNews.collectAsStateWithLifecycle()
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val isNavTransitionActive =
-                        remember(navController) {
-                            derivedStateOf { navController.visibleEntries.value.size > 1 }
-                        }.value
                     val (previousTab) = rememberSaveable { mutableStateOf("home") }
                     val currentRoute = navBackStackEntry?.destination?.route
                     val onlineSearchViewModel: OnlineSearchViewModel? =
@@ -1424,9 +1419,8 @@ class MainActivity : ComponentActivity() {
                                 style = homeBackgroundStyle,
                                 parallaxEnabled = homeBackgroundParallaxEnabled,
                                 parallaxSensitivity = homeBackgroundParallaxStrength,
-brightness = homeBackgroundBrightness,
-                        ),
-                        LocalBackgroundAnimationPaused provides isNavTransitionActive,
+                                brightness = homeBackgroundBrightness,
+                            ),
                         LocalDatabase provides database,
                         LocalContentColor provides if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
                         LocalPlayerConnection provides playerConnection,
