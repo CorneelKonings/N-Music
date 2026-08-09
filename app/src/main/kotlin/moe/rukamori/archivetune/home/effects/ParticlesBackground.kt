@@ -85,7 +85,7 @@ fun ParticlesBackground(
         }
     }
 
-    val speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f
+    val speedMultiplier = if (disableAnimations) 0f else 1f
     // targetSpeedState updated via SideEffect so the physics loop stays reactive
     val targetSpeedState = remember { mutableFloatStateOf(speedMultiplier) }
     SideEffect { targetSpeedState.floatValue = speedMultiplier }
@@ -142,31 +142,30 @@ fun ParticlesBackground(
         val connectDistSq = connectDist * connectDist
 
         val colors = arrayOf(animatedPrimaryColor, animatedSecondaryColor, animatedTertiaryColor)
+        val parallaxStrength = unit * 0.035f
 
-        // Compute screen positions with parallax
-        val positions = particles.map { p ->
-            val parallaxStrength = unit * 0.035f
-            val baseX = p.x * size.width  + tiltX * parallaxStrength
-            val baseY = p.y * size.height + tiltY * parallaxStrength
-
-            Offset(baseX, baseY)
-        }
-
-        // Draw connection lines
         for (i in particles.indices) {
+            val p1 = particles[i]
+            val x1 = p1.x * size.width  + tiltX * parallaxStrength
+            val y1 = p1.y * size.height + tiltY * parallaxStrength
+
             for (j in i + 1 until particles.size) {
-                val dx     = positions[i].x - positions[j].x
-                val dy     = positions[i].y - positions[j].y
+                val p2 = particles[j]
+                val x2 = p2.x * size.width  + tiltX * parallaxStrength
+                val y2 = p2.y * size.height + tiltY * parallaxStrength
+
+                val dx     = x1 - x2
+                val dy     = y1 - y2
                 val distSq = dx * dx + dy * dy
                 if (distSq < connectDistSq) {
                     val proximity = 1f - sqrt(distSq) / connectDist
                     val alpha = proximity * proximity * 0.10f
-                    val color = colors[(particles[i].colorIndex + particles[j].colorIndex) % 3]
-                    
+                    val color = colors[(p1.colorIndex + p2.colorIndex) % 3]
+
                     drawLine(
                         color       = color.copy(alpha = alpha.coerceIn(0f, 0.18f) * alphaScale),
-                        start       = positions[i],
-                        end         = positions[j],
+                        start       = Offset(x1, y1),
+                        end         = Offset(x2, y2),
                         strokeWidth = 1.2f
                     )
                 }
@@ -174,8 +173,11 @@ fun ParticlesBackground(
         }
 
         // Draw particles
-        particles.forEachIndexed { index, p ->
-            val pos   = positions[index]
+        particles.forEach { p ->
+            val pos   = Offset(
+                p.x * size.width  + tiltX * parallaxStrength,
+                p.y * size.height + tiltY * parallaxStrength
+            )
             val color = colors[p.colorIndex]
             val alpha  = 0.55f
             val radius = p.baseRadius * unit / 720f

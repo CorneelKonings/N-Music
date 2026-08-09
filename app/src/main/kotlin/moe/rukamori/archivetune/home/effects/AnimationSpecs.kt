@@ -80,6 +80,8 @@ fun rememberParallaxState(
 
     val calibration = remember { CalibrationState() }
 
+    val currentSensitivity by rememberUpdatedState(sensitivity)
+
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // Reset when parallax is toggled
@@ -117,8 +119,8 @@ fun rememberParallaxState(
                     calibration.isCalibrated = true
                 }
 
-                val rawTiltX = (event.values[0] - calibration.baselineX) * sensitivity
-                val rawTiltY = -(event.values[1] - calibration.baselineY) * sensitivity
+                val rawTiltX = (event.values[0] - calibration.baselineX) * currentSensitivity
+                val rawTiltY = -(event.values[1] - calibration.baselineY) * currentSensitivity
 
                 smoothTiltX.floatValue += (rawTiltX - smoothTiltX.floatValue) * 0.1f
                 smoothTiltY.floatValue += (rawTiltY - smoothTiltY.floatValue) * 0.1f

@@ -86,11 +86,12 @@ fun SnowBackground(
                 depth = depth,
                 layer = layer
             )
-        }
+        }.sortedBy { it.depth }
     }
 
-    val animatedTime = rememberAnimatedTime(speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f)
+    val animatedTime = rememberAnimatedTime(speedMultiplier = if (disableAnimations) 0f else 1f)
     val alphaScale = brightness.coerceIn(0.1f, 2f)
+    val reusablePaint = remember { Paint() }
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val width = size.width
@@ -109,7 +110,7 @@ fun SnowBackground(
         }
 
         // Sort snowflakes by depth (far to close) for proper layering
-        snowflakes.sortedBy { it.depth }.forEach { flake ->
+        snowflakes.forEach { flake ->
             // Calculate continuous fall progress
             val timeProgress = globalTime / flake.fallSpeed
             val fallProgress = (flake.initialProgress + timeProgress) % 1f
@@ -159,15 +160,14 @@ fun SnowBackground(
                     canvas.translate(centerX, baseY)
                     canvas.rotate(rotation)
 
+                    reusablePaint.alpha = finalAlpha
                     canvas.drawImageRect(
                         image = bitmap,
                         srcOffset = IntOffset.Zero,
                         srcSize = IntSize(bitmap.width, bitmap.height),
                         dstOffset = IntOffset((-drawSize / 2).toInt(), (-drawSize / 2).toInt()),
                         dstSize = IntSize(drawSize.toInt(), drawSize.toInt()),
-                        paint = Paint().apply {
-                            alpha = finalAlpha
-                        }
+                        paint = reusablePaint
                     )
 
                     canvas.restore()

@@ -36,7 +36,7 @@ fun MeshBackground(
         sensitivity = parallaxSensitivity,
         context = context
     )
-    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations || LocalBackgroundAnimationPaused.current) 0f else 1f)
+    val time = rememberAnimatedTime(speedMultiplier = if (disableAnimations) 0f else 1f)
 
     val animatedPrimaryColor by animateColorAsState(
         targetValue = MaterialTheme.colorScheme.primary,
@@ -57,6 +57,8 @@ fun MeshBackground(
 
     // Generate mesh grid - random offsets and Z amplitudes per node
     val meshNodes = remember { generateMeshGrid() }
+
+    val reusablePath = remember { Path() }
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val width  = size.width
@@ -136,14 +138,23 @@ fun MeshBackground(
 
             val alpha = (0.14f + node.baseDepth * 0.05f) * alphaScale
 
-            // Draw first triangle
+            reusablePath.reset()
+            reusablePath.moveTo(p1.x, p1.y)
+            reusablePath.lineTo(p2.x, p2.y)
+            reusablePath.lineTo(p3.x, p3.y)
+            reusablePath.close()
             drawPath(
-                Path().apply { moveTo(p1.x, p1.y); lineTo(p2.x, p2.y); lineTo(p3.x, p3.y); close() },
+                reusablePath,
                 color.copy(alpha = alpha), style = Stroke(width = 2.dp.toPx())
             )
-            // Draw second triangle
+
+            reusablePath.reset()
+            reusablePath.moveTo(p2.x, p2.y)
+            reusablePath.lineTo(p4.x, p4.y)
+            reusablePath.lineTo(p3.x, p3.y)
+            reusablePath.close()
             drawPath(
-                Path().apply { moveTo(p2.x, p2.y); lineTo(p4.x, p4.y); lineTo(p3.x, p3.y); close() },
+                reusablePath,
                 color.copy(alpha = alpha), style = Stroke(width = 2.dp.toPx())
             )
         }
