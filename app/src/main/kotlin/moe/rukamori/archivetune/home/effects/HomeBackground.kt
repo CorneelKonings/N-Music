@@ -1,6 +1,7 @@
 package moe.rukamori.archivetune.home.effects
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -8,6 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.constants.HomeBackgroundStyle
 
@@ -24,7 +28,15 @@ val LocalHomeBackgroundStyle = staticCompositionLocalOf { HomeBackgroundSettings
 fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
     if (!isVisible) return
     val homeBackground = LocalHomeBackgroundStyle.current
-    Box(modifier = modifier) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .clipToBounds()
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                },
+    ) {
         when (homeBackground.style) {
             HomeBackgroundStyle.TONAL -> {
                 HomePremiumBackground(
