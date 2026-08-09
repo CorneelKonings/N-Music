@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.constants.HomeBackgroundStyle
 
@@ -18,17 +21,20 @@ data class HomeBackgroundSettings(
     val brightness: Float = 1f,
 )
 
-val LocalHomeBackgroundStyle = staticCompositionLocalOf { HomeBackgroundSettings() }
-
-// Гасит канвас-таймер эффектов, пока NavHost анимирует переход между экранами
-// (в эти 250 мс движение фона невидимо, но кадры оно съедает).
-val LocalBackgroundAnimationPaused = staticCompositionLocalOf { false }
+val LocalHomeBackgroundStyle = compositionLocalOf { HomeBackgroundSettings() }
 
 @Composable
 fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
     if (!isVisible) return
     val homeBackground = LocalHomeBackgroundStyle.current
-    Box(modifier = modifier) {
+    Box(
+        modifier =
+            modifier
+                .clipToBounds()
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                },
+    ) {
         when (homeBackground.style) {
             HomeBackgroundStyle.TONAL -> {
                 HomePremiumBackground(
