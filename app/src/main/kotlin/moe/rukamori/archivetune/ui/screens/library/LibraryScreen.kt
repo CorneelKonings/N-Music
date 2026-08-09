@@ -41,8 +41,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,9 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -65,6 +65,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -74,7 +75,6 @@ import moe.rukamori.archivetune.LocalDatabase
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.AppBarHeight
 import moe.rukamori.archivetune.constants.ChipSortTypeKey
-import moe.rukamori.archivetune.constants.DisableBlurKey
 import moe.rukamori.archivetune.constants.LibraryFilter
 import moe.rukamori.archivetune.constants.ShowSpotifyPlaylistsKey
 import moe.rukamori.archivetune.constants.ShowTagsInLibraryKey
@@ -90,8 +90,7 @@ fun LibraryScreen(navController: NavController) {
     val (selectedTagIds, onSelectedTagIdsChange) = rememberPlaylistTagFilterState(database)
     val allTags by database.allTags().collectAsState(initial = emptyList())
     val (showTagsInLibrary) = rememberPreference(ShowTagsInLibraryKey, defaultValue = true)
-    val (showSpotifyPlaylists) = rememberPreference(ShowSpotifyPlaylistsKey, defaultValue = false)
-    val (disableBlur) = rememberPreference(DisableBlurKey, false)
+    val (showSpotifyPlaylists) = rememberPreference(ShowSpotifyPlaylistsKey, defaultValue = true)
     var showTagsManagementDialog by rememberSaveable { mutableStateOf(false) }
     val activeSelectedTagIds = if (showTagsInLibrary) selectedTagIds else emptySet()
     val libraryFilters =
@@ -129,143 +128,22 @@ fun LibraryScreen(navController: NavController) {
 
     val currentFilter = libraryFilters.getOrElse(pagerState.currentPage) { LibraryFilter.LIBRARY }
 
-    // Dynamic header content based on selection
-    val headerTitle =
-        when (currentFilter) {
-            LibraryFilter.LIBRARY -> stringResource(R.string.library_title)
-            LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
-            LibraryFilter.SPOTIFY -> stringResource(R.string.spotify_playlists)
-            LibraryFilter.SONGS -> stringResource(R.string.songs)
-            LibraryFilter.ARTISTS -> stringResource(R.string.artists)
-            LibraryFilter.ALBUMS -> stringResource(R.string.albums)
-            else -> stringResource(R.string.library_title)
-        }
-
-    val headerSubtitle =
-        when (currentFilter) {
-            LibraryFilter.LIBRARY -> stringResource(R.string.library_subtitle)
-            LibraryFilter.PLAYLISTS -> stringResource(R.string.library_playlists_subtitle)
-            LibraryFilter.SPOTIFY -> stringResource(R.string.spotify_show_playlist_desc)
-            LibraryFilter.SONGS -> stringResource(R.string.library_songs_subtitle)
-            LibraryFilter.ARTISTS -> stringResource(R.string.library_artists_subtitle)
-            LibraryFilter.ALBUMS -> stringResource(R.string.library_albums_subtitle)
-            else -> stringResource(R.string.library_subtitle)
-        }
-
-    val density = LocalDensity.current
     val configuration = LocalConfiguration.current
-
-    val maxHeaderHeight = 90.dp
-    val maxHeaderOffsetPx = with(density) { maxHeaderHeight.toPx() }
-    var headerOffsetPx by rememberSaveable { mutableStateOf(0f) }
-
-    val nestedScrollConnection =
-        remember {
-            object : NestedScrollConnection {
-                override fun onPreScroll(
-                    available: Offset,
-                    source: NestedScrollSource,
-                ): Offset {
-                    val delta = available.y
-                    // Scrolling down the page (dragging finger up, delta < 0): collapse header first
-                    if (delta < 0) {
-                        val newOffset = headerOffsetPx + delta
-                        val oldOffset = headerOffsetPx
-                        headerOffsetPx = newOffset.coerceIn(-maxHeaderOffsetPx, 0f)
-                        val consumedY = headerOffsetPx - oldOffset
-                        return Offset(0f, consumedY)
-                    }
-                    return Offset.Zero
-                }
-
-                override fun onPostScroll(
-                    consumed: Offset,
-                    available: Offset,
-                    source: NestedScrollSource,
-                ): Offset {
-                    val delta = available.y
-                    // Scrolling up the page (dragging finger down, delta > 0): expand header ONLY if list is at top
-                    if (delta > 0) {
-                        val newOffset = headerOffsetPx + delta
-                        val oldOffset = headerOffsetPx
-                        headerOffsetPx = newOffset.coerceIn(-maxHeaderOffsetPx, 0f)
-                        val consumedY = headerOffsetPx - oldOffset
-                        return Offset(0f, consumedY)
-                    }
-                    return Offset.Zero
-                }
-            }
-        }
-
-    // Only collapse the header after the first few items have scrolled past
-    // We use a larger header height so the collapse feels more gradual
-
-    val headerHeight = maxHeaderHeight + with(density) { headerOffsetPx.toDp() }
-    val progress = 1f + (headerOffsetPx / maxHeaderOffsetPx)
-    val tonalStart = MaterialTheme.colorScheme.primaryContainer
-    val tonalMiddle = MaterialTheme.colorScheme.secondaryContainer
+    val density = LocalDensity.current
+    val headerState = rememberLibraryCollapsingHeaderState(LibraryHeaderHeight)
 
     Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.fillMaxSize(),
     ) {
-        if (!disableBlur) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(430.dp)
-                        .align(Alignment.TopCenter)
-                        .drawWithCache {
-                            val brush =
-                                Brush.verticalGradient(
-                                    0f to tonalStart.copy(alpha = 0.30f),
-                                    0.42f to tonalMiddle.copy(alpha = 0.14f),
-                                    1f to Color.Transparent,
-                                )
-                            onDrawBehind { drawRect(brush) }
-                        },
-            )
-        }
-
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(top = AppBarHeight)
-                    .nestedScroll(nestedScrollConnection),
+                    .nestedScroll(headerState.nestedScrollConnection),
         ) {
-            // Main Top Header Section
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(headerHeight)
-                        .clipToBounds()
-                        .graphicsLayer { alpha = progress }
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 16.dp, bottom = 4.dp),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = headerTitle,
-                    style =
-                        MaterialTheme.typography.headlineLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 32.sp,
-                        ),
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = headerSubtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                )
-            }
+            LibraryCollapsingHeader(currentFilter = currentFilter, state = headerState)
 
             val tabListState = rememberLazyListState()
             val coroutineScope = rememberCoroutineScope()
@@ -280,7 +158,7 @@ fun LibraryScreen(navController: NavController) {
 
             // Sync Pager -> Preference & lazy list centering
             LaunchedEffect(pagerState.currentPage, libraryFilters) {
-                headerOffsetPx = 0f
+                headerState.reset()
                 val targetPage = pagerState.currentPage.coerceIn(0, libraryFilters.lastIndex)
                 val targetFilter = libraryFilters.getOrElse(targetPage) { LibraryFilter.LIBRARY }
 
@@ -679,6 +557,128 @@ fun ExpressiveTabChip(
                     fontSize = 15.sp,
                 ),
             color = contentColor,
+        )
+    }
+}
+
+private val LibraryHeaderHeight = 90.dp
+
+@Stable
+private class LibraryCollapsingHeaderState(
+    private val maxHeaderOffsetPx: Float,
+) {
+    var headerOffsetPx by mutableFloatStateOf(0f)
+        private set
+
+    val progress: Float
+        get() = 1f + (headerOffsetPx / maxHeaderOffsetPx)
+
+    val nestedScrollConnection =
+        object : NestedScrollConnection {
+            override fun onPreScroll(
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset {
+                val delta = available.y
+                // Scrolling down the page (dragging finger up, delta < 0): collapse header first
+                if (delta < 0) {
+                    val newOffset = headerOffsetPx + delta
+                    val oldOffset = headerOffsetPx
+                    headerOffsetPx = newOffset.coerceIn(-maxHeaderOffsetPx, 0f)
+                    val consumedY = headerOffsetPx - oldOffset
+                    return Offset(0f, consumedY)
+                }
+                return Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset {
+                val delta = available.y
+                // Scrolling up the page (dragging finger down, delta > 0): expand header ONLY if list is at top
+                if (delta > 0) {
+                    val newOffset = headerOffsetPx + delta
+                    val oldOffset = headerOffsetPx
+                    headerOffsetPx = newOffset.coerceIn(-maxHeaderOffsetPx, 0f)
+                    val consumedY = headerOffsetPx - oldOffset
+                    return Offset(0f, consumedY)
+                }
+                return Offset.Zero
+            }
+        }
+
+    fun reset() {
+        headerOffsetPx = 0f
+    }
+}
+
+@Composable
+private fun rememberLibraryCollapsingHeaderState(maxHeaderHeight: Dp): LibraryCollapsingHeaderState {
+    val density = LocalDensity.current
+    val maxHeaderOffsetPx = with(density) { maxHeaderHeight.toPx() }
+    return remember(maxHeaderOffsetPx) {
+        LibraryCollapsingHeaderState(maxHeaderOffsetPx = maxHeaderOffsetPx)
+    }
+}
+
+@Composable
+private fun LibraryCollapsingHeader(
+    currentFilter: LibraryFilter,
+    state: LibraryCollapsingHeaderState,
+    modifier: Modifier = Modifier,
+) {
+    val density = LocalDensity.current
+    val headerHeight = LibraryHeaderHeight + with(density) { state.headerOffsetPx.toDp() }
+
+    val headerTitle =
+        when (currentFilter) {
+            LibraryFilter.LIBRARY -> stringResource(R.string.library_title)
+            LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
+            LibraryFilter.SPOTIFY -> stringResource(R.string.spotify_playlists)
+            LibraryFilter.SONGS -> stringResource(R.string.songs)
+            LibraryFilter.ARTISTS -> stringResource(R.string.artists)
+            LibraryFilter.ALBUMS -> stringResource(R.string.albums)
+            else -> stringResource(R.string.library_title)
+        }
+
+    val headerSubtitle =
+        when (currentFilter) {
+            LibraryFilter.LIBRARY -> stringResource(R.string.library_subtitle)
+            LibraryFilter.PLAYLISTS -> stringResource(R.string.library_playlists_subtitle)
+            LibraryFilter.SPOTIFY -> stringResource(R.string.spotify_show_playlist_desc)
+            LibraryFilter.SONGS -> stringResource(R.string.library_songs_subtitle)
+            LibraryFilter.ARTISTS -> stringResource(R.string.library_artists_subtitle)
+            LibraryFilter.ALBUMS -> stringResource(R.string.library_albums_subtitle)
+            else -> stringResource(R.string.library_subtitle)
+        }
+
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(headerHeight)
+                .clipToBounds()
+                .graphicsLayer { alpha = state.progress }
+                .padding(horizontal = 24.dp)
+                .padding(top = 16.dp, bottom = 4.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = headerTitle,
+            style =
+                MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 32.sp,
+                ),
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = headerSubtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
         )
     }
 }
