@@ -34,8 +34,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,7 +103,11 @@ fun HomeScreen(
     }
 
     val successState = screenState as? HomeScreenState.Success
-    val uiState = successState?.uiState
+    var retainedUiState by remember { mutableStateOf<HomeUiState?>(null) }
+    val uiState = successState?.uiState ?: retainedUiState
+    if (successState != null) {
+        retainedUiState = successState.uiState
+    }
     val selectedChip = uiState?.selectedChip
 
     LaunchedEffect(uiState?.homePage?.continuation) {
@@ -150,47 +156,57 @@ fun HomeScreen(
                     },
                 ),
     ) {
-        when (val state = screenState) {
-            HomeScreenState.Loading -> {
-                HomeStatePane(
-                    iconResId = null,
-                    messageResId = null,
-                    showLoadingIndicator = true,
-                )
+        if (uiState != null) {
+            HomeContent(
+                uiState = uiState,
+                mediaMetadata = mediaMetadata,
+                isPlaying = isPlaying,
+                navController = navController,
+                playerConnection = playerConnection,
+                menuState = menuState,
+                haptic = haptic,
+                scope = scope,
+                lazyListState = lazyListState,
+                forgottenFavoritesGridState = forgottenFavoritesGridState,
+                onAction = viewModel::onAction,
+            )
+            if (screenState is HomeScreenState.Loading) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    LoadingIndicator()
+                }
             }
+        } else {
+            when (val state = screenState) {
+                HomeScreenState.Loading -> {
+                    HomeStatePane(
+                        iconResId = null,
+                        messageResId = null,
+                        showLoadingIndicator = true,
+                    )
+                }
 
-            HomeScreenState.Empty -> {
-                HomeStatePane(
-                    iconResId = R.drawable.music_note,
-                    messageResId = R.string.no_results_found,
-                    actionResId = R.string.retry,
-                    onAction = { viewModel.onAction(HomeAction.Refresh) },
-                )
-            }
+                HomeScreenState.Empty -> {
+                    HomeStatePane(
+                        iconResId = R.drawable.music_note,
+                        messageResId = R.string.no_results_found,
+                        actionResId = R.string.retry,
+                        onAction = { viewModel.onAction(HomeAction.Refresh) },
+                    )
+                }
 
-            is HomeScreenState.Error -> {
-                HomeStatePane(
-                    iconResId = R.drawable.ic_about,
-                    messageResId = state.messageResId,
-                    actionResId = R.string.retry,
-                    onAction = { viewModel.onAction(HomeAction.Refresh) },
-                )
-            }
+                is HomeScreenState.Error -> {
+                    HomeStatePane(
+                        iconResId = R.drawable.ic_about,
+                        messageResId = state.messageResId,
+                        actionResId = R.string.retry,
+                        onAction = { viewModel.onAction(HomeAction.Refresh) },
+                    )
+                }
 
-            is HomeScreenState.Success -> {
-                HomeContent(
-                    uiState = state.uiState,
-                    mediaMetadata = mediaMetadata,
-                    isPlaying = isPlaying,
-                    navController = navController,
-                    playerConnection = playerConnection,
-                    menuState = menuState,
-                    haptic = haptic,
-                    scope = scope,
-                    lazyListState = lazyListState,
-                    forgottenFavoritesGridState = forgottenFavoritesGridState,
-                    onAction = viewModel::onAction,
-                )
+                is HomeScreenState.Success -> {}
             }
         }
     }
