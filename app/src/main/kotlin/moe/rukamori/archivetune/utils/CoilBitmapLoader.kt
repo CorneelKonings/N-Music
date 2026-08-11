@@ -10,7 +10,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.core.graphics.createBitmap
 import androidx.media3.common.util.BitmapLoader
 import coil3.imageLoader
 import coil3.request.ErrorResult
@@ -24,7 +23,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.future
 import moe.rukamori.archivetune.utils.reportException
-import kotlin.math.roundToInt
 
 class CoilBitmapLoader(
     private val context: Context,
