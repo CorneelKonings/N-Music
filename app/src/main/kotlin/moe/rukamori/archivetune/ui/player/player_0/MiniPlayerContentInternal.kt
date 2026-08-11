@@ -47,9 +47,10 @@ internal fun MiniPlayerContentInternal(
     )
 
     val rotation = remember { Animatable(0f) }
+    val isMiniVisible = remember { derivedStateOf { expansionFractionProvider() < 0.99f } }
 
-    LaunchedEffect(state.isPlaying) {
-        if (state.isPlaying) {
+    LaunchedEffect(state.isPlaying, isMiniVisible.value) {
+        if (state.isPlaying && isMiniVisible.value) {
             while (true) {
                 rotation.animateTo(
                     targetValue = rotation.value + 360f,

@@ -52,7 +52,7 @@ fun AutoScrollingTextOnDemand(
     val effectiveCanScroll = canScroll && !disableAnimations
 
     var overflow by remember(text, style) { mutableStateOf(false) }
-    val canStart by remember(text, style) {
+    val canStart by remember(text, style, expansionFractionProvider) {
         derivedStateOf { expansionFractionProvider() > 0.99f && overflow }
     }
 

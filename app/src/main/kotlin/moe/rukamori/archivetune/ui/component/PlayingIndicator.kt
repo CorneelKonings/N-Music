@@ -44,6 +44,7 @@ fun PlayingIndicator(
     bars: Int = 3,
     barWidth: Dp = 4.dp,
     cornerRadius: Dp = ThumbnailCornerRadius,
+    isActive: Boolean = true,
 ) {
     val animatables =
         remember {
@@ -52,7 +53,8 @@ fun PlayingIndicator(
             }
         }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isActive) {
+        if (!isActive) return@LaunchedEffect
         delay(300)
         animatables.forEach { animatable ->
             launch {
@@ -107,6 +109,7 @@ fun PlayingIndicatorBox(
                 PlayingIndicator(
                     color = color,
                     modifier = Modifier.height(24.dp),
+                    isActive = isActive,
                 )
             } else {
                 Icon(
