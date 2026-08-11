@@ -768,22 +768,28 @@ class HomeViewModel
                     val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                     val hideVideo = context.dataStore.get(HideVideoKey, false)
                     val blockedArtistIds = database.getBlockedArtistIds().toSet()
-                    val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull() ?: return@launch
-
-                    homePage.value =
-                        nextSections.copy(
-                            chips = homePage.value?.chips,
-                            sections =
-                                nextSections.sections.map { section ->
-                                    section.copy(
-                                        items =
-                                            section.items
-                                                .filterExplicit(hideExplicit)
-                                                .filterVideo(hideVideo)
-                                                .filterBlockedArtists(blockedArtistIds),
-                                    )
-                                },
-                        )
+                    YouTube.home(params = chip.endpoint?.params)
+                        .onSuccess { nextSections ->
+                            homePage.value =
+                                nextSections.copy(
+                                    chips = homePage.value?.chips,
+                                    sections =
+                                        nextSections.sections.map { section ->
+                                            section.copy(
+                                                items =
+                                                    section.items
+                                                        .filterExplicit(hideExplicit)
+                                                        .filterVideo(hideVideo)
+                                                        .filterBlockedArtists(blockedArtistIds),
+                                            )
+                                        },
+                                )
+                        }
+                        .onFailure {
+                            reportException(it)
+                            loadError.value = R.string.error_unknown
+                            homePage.value = homePage.value?.copy(sections = emptyList())
+                        }
                 }
         }
 
