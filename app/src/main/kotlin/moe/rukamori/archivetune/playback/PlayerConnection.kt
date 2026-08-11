@@ -99,8 +99,8 @@ class PlayerConnection(
         playWhenReady.value = player.playWhenReady
         playbackParameters.value = player.playbackParameters
         queueTitle.value = service.queueTitle
-        updateQueueWindows()
-        
+        queueWindows.value = player.getQueueWindows()
+        currentWindowIndex.value = player.getCurrentQueueIndex()
         currentMediaItemIndex.value = player.currentMediaItemIndex
         shuffleModeEnabled.value = player.shuffleModeEnabled
         repeatMode.value = player.repeatMode
@@ -180,7 +180,7 @@ class PlayerConnection(
         reason: Int,
     ) {
         currentMediaItemIndex.value = player.currentMediaItemIndex
-        
+        currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
     }
 
@@ -188,17 +188,17 @@ class PlayerConnection(
         timeline: Timeline,
         reason: Int,
     ) {
-        updateQueueWindows()
+        queueWindows.value = player.getQueueWindows()
         queueTitle.value = service.queueTitle
         currentMediaItemIndex.value = player.currentMediaItemIndex
-        
+        currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
     }
 
     override fun onShuffleModeEnabledChanged(enabled: Boolean) {
         shuffleModeEnabled.value = enabled
-        updateQueueWindows()
-        
+        queueWindows.value = player.getQueueWindows()
+        currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
     }
 
@@ -254,17 +254,6 @@ class PlayerConnection(
                     }
                 }
             }
-        }
-    }
-
-    private var queueUpdateJob: kotlinx.coroutines.Job? = null
-
-    private fun updateQueueWindows() {
-        queueUpdateJob?.cancel()
-        queueUpdateJob = scope.launch {
-            kotlinx.coroutines.delay(10)
-            queueWindows.value = player.getQueueWindows()
-            currentWindowIndex.value = player.getCurrentQueueIndex()
         }
     }
 

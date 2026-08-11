@@ -910,12 +910,12 @@ fun Queue(
 
                     itemsIndexed(
                         items = mutableQueueWindows,
-                        key = { _, item -> item.uid.toString() },
+                        key = { index, item -> "${item.queueItemKey}_$index" },
                         contentType = { _, _ -> "queue_item" },
                     ) { index, window ->
                         ReorderableItem(
                             state = reorderableState,
-                            key = window.uid.toString(),
+                            key = "${window.queueItemKey}_$index",
                         ) {
                             val currentItem by rememberUpdatedState(window)
                             val isActive = window.uid == currentPlayingUid
