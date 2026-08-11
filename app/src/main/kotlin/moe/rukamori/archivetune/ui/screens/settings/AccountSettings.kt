@@ -11,8 +11,13 @@ package moe.rukamori.archivetune.ui.screens.settings
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -1008,19 +1013,35 @@ private fun ProfileIdentityCard(
     val spot2Alpha = if (isDark) 0.25f else 0.20f
     val spot2AlphaMid = if (isDark) 0.09f else 0.06f
 
+    val transition = rememberInfiniteTransition(label = "profileMeshGlow")
+    val time by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 12000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "time"
+    )
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
             .drawWithCache {
-                // Static glow dots stay stable during swipes; colors still follow the theme.
+                val spot1X = size.width * (0.5f + 0.35f * kotlin.math.cos(time))
+                val spot1Y = size.height * (0.5f + 0.30f * kotlin.math.sin(time))
+
+                val spot2X = size.width * (0.5f + 0.40f * kotlin.math.sin(time + 1.8f))
+                val spot2Y = size.height * (0.5f + 0.35f * kotlin.math.cos(time + 1.8f))
+
                 val spot1Gradient = Brush.radialGradient(
                     colors = listOf(
                         animatedPrimary.copy(alpha = spot1Alpha),
                         animatedPrimary.copy(alpha = spot1AlphaMid),
                         Color.Transparent
                     ),
-                    center = Offset(size.width * 0.85f, size.height * 0.20f),
+                    center = Offset(spot1X, spot1Y),
                     radius = size.width * 0.85f
                 )
 
@@ -1030,7 +1051,7 @@ private fun ProfileIdentityCard(
                         animatedTertiary.copy(alpha = spot2AlphaMid),
                         Color.Transparent
                     ),
-                    center = Offset(size.width * 0.35f, size.height * 0.75f),
+                    center = Offset(spot2X, spot2Y),
                     radius = size.width * 0.90f
                 )
 
