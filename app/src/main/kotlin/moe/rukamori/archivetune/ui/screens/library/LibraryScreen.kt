@@ -148,14 +148,17 @@ fun LibraryScreen(navController: NavController) {
             val tabListState = rememberLazyListState()
             val coroutineScope = rememberCoroutineScope()
 
-            var lastPage by rememberSaveable { androidx.compose.runtime.mutableIntStateOf(pagerState.currentPage) }
+            LaunchedEffect(defaultFilter, libraryFilters) {
+                val selectedFilter = defaultFilter.takeIf { it in libraryFilters } ?: LibraryFilter.LIBRARY
+                val selectedPage = libraryFilters.indexOf(selectedFilter).takeIf { it >= 0 } ?: 0
+                if (pagerState.currentPage != selectedPage) {
+                    pagerState.scrollToPage(selectedPage)
+                }
+            }
 
             // Sync Pager -> Preference & lazy list centering
             LaunchedEffect(pagerState.currentPage, libraryFilters) {
-                if (lastPage != pagerState.currentPage) {
-                    headerState.reset()
-                    lastPage = pagerState.currentPage
-                }
+                headerState.reset()
                 val targetPage = pagerState.currentPage.coerceIn(0, libraryFilters.lastIndex)
                 val targetFilter = libraryFilters.getOrElse(targetPage) { LibraryFilter.LIBRARY }
 
@@ -563,9 +566,8 @@ private val LibraryHeaderHeight = 90.dp
 @Stable
 private class LibraryCollapsingHeaderState(
     private val maxHeaderOffsetPx: Float,
-    initialOffset: Float = 0f,
 ) {
-    var headerOffsetPx by mutableFloatStateOf(initialOffset)
+    var headerOffsetPx by mutableFloatStateOf(0f)
         private set
 
     val progress: Float
@@ -616,13 +618,7 @@ private class LibraryCollapsingHeaderState(
 private fun rememberLibraryCollapsingHeaderState(maxHeaderHeight: Dp): LibraryCollapsingHeaderState {
     val density = LocalDensity.current
     val maxHeaderOffsetPx = with(density) { maxHeaderHeight.toPx() }
-    return rememberSaveable(
-        maxHeaderOffsetPx,
-        saver = androidx.compose.runtime.saveable.Saver(
-            save = { it.headerOffsetPx },
-            restore = { LibraryCollapsingHeaderState(maxHeaderOffsetPx, it) }
-        )
-    ) {
+    return remember(maxHeaderOffsetPx) {
         LibraryCollapsingHeaderState(maxHeaderOffsetPx = maxHeaderOffsetPx)
     }
 }
