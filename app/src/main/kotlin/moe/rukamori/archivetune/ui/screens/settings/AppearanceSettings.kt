@@ -78,6 +78,8 @@ import moe.rukamori.archivetune.constants.DynamicThemeKey
 import moe.rukamori.archivetune.constants.FontPreferenceKey
 import moe.rukamori.archivetune.constants.ForceHighRefreshRateKey
 import moe.rukamori.archivetune.constants.HomeBackgroundBrightnessKey
+import moe.rukamori.archivetune.constants.IMMERSIVE_DIM_DEFAULT
+import moe.rukamori.archivetune.constants.ImmersiveDimKey
 import moe.rukamori.archivetune.constants.HomeBackgroundParallaxEnabledKey
 import moe.rukamori.archivetune.constants.HomeBackgroundParallaxStrengthKey
 import moe.rukamori.archivetune.constants.HomeBackgroundStyle
@@ -142,6 +144,8 @@ fun AppearanceSettings(navController: NavController) {
         rememberPreference(HomeBackgroundParallaxStrengthKey, defaultValue = 0.6f)
     val (homeBackgroundBrightness, onHomeBackgroundBrightnessChange) =
         rememberPreference(HomeBackgroundBrightnessKey, defaultValue = 1f)
+    val (immersiveDim, onImmersiveDimChange) =
+        rememberPreference(ImmersiveDimKey, defaultValue = IMMERSIVE_DIM_DEFAULT)
     val (forceHighRefreshRate, onForceHighRefreshRateChange) =
         rememberPreference(
             ForceHighRefreshRateKey,
@@ -417,6 +421,18 @@ fun AppearanceSettings(navController: NavController) {
                 }
 
                 item {
+                    HomeBackgroundSliderItem(
+                        title = stringResource(R.string.immersive_dim),
+                        value = immersiveDim,
+                        onValueChangeFinished = onImmersiveDimChange,
+                        valueRange = IMMERSIVE_DIM_RANGE,
+                        valueText = { dim ->
+                            "${(dim * 100).roundToInt()}%"
+                        },
+                    )
+                }
+
+                item {
                     SwitchPreference(
                         title = { Text(stringResource(R.string.force_high_refresh_rate)) },
                         description =
@@ -632,6 +648,7 @@ private const val DEFAULT_REFRESH_RATE_REQUEST = 0f
 
 private val HOME_BACKGROUND_PARALLAX_RANGE = 0.1f..1.5f
 private val HOME_BACKGROUND_BRIGHTNESS_RANGE = 0.1f..1.5f
+private val IMMERSIVE_DIM_RANGE = 0f..1f
 
 @Composable
 private fun HomeBackgroundSliderItem(

@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 //import moe.rukamori.archivetune.data.lyrics.internal.LyricLine
 import androidx.compose.runtime.Immutable
+import moe.rukamori.archivetune.constants.IMMERSIVE_DIM_DEFAULT
 /**
  * Единый источник правды (State) для всего интерфейса Spot.
  * Описывает текущий визуальный снимок экрана в любую миллисекунду времени.
@@ -58,6 +59,7 @@ data class PlayerUiState(
     val aiTranslationError: String? = null,
 
     val isImmersiveEnabled: Boolean = false,
+    val immersiveDim: Float = IMMERSIVE_DIM_DEFAULT,
     val showCodecInfo: Boolean = false,
     val isAlbumCoverGlowEnabled: Boolean = false,
     val codecInfo: String = "",

@@ -38,6 +38,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -226,6 +228,15 @@ class PlayerViewModel @Inject constructor(
 
         val isFirstLaunch = settingsRepository.isFirstLaunch()
         _uiState.update { it.copy(shouldShowWelcome = isFirstLaunch) }
+
+        viewModelScope.launch {
+            application.dataStore.data
+                .map { prefs -> prefs[ImmersiveDimKey] ?: IMMERSIVE_DIM_DEFAULT }
+                .distinctUntilChanged()
+                .collect { dim ->
+                    _uiState.update { it.copy(immersiveDim = dim) }
+                }
+        }
     }
 
     // ==========================================
