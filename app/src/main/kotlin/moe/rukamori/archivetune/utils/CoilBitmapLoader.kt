@@ -46,14 +46,12 @@ class CoilBitmapLoader(
                 throw IllegalStateException("Could not decode image data")
             } catch (e: Exception) {
                 reportException(e)
-                return@future createBitmap(64, 64)
+                throw e
             }
         }
 
     override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> =
         scope.future(Dispatchers.IO) {
-            val density = context.resources.displayMetrics.density
-            val maxIconSizePx = (density * 128f).roundToInt().coerceIn(128, 512)
             val attempts = 3
             for (attempt in 1..attempts) {
                 try {
@@ -62,7 +60,6 @@ class CoilBitmapLoader(
                             .Builder(context)
                             .data(uri)
                             .allowHardware(false)
-                            .size(maxIconSizePx, maxIconSizePx)
                             .build()
 
                     val result = context.imageLoader.execute(request)
@@ -71,27 +68,10 @@ class CoilBitmapLoader(
                         is SuccessResult -> {
                             try {
                                 val bitmap = result.image.toBitmap()
-                                val scaled =
-                                    if (bitmap.width <= 0 || bitmap.height <= 0) {
-                                        null
-                                    } else if (bitmap.width <= maxIconSizePx && bitmap.height <= maxIconSizePx) {
-                                        bitmap
-                                    } else {
-                                        val scale =
-                                            minOf(
-                                                maxIconSizePx.toFloat() / bitmap.width.toFloat(),
-                                                maxIconSizePx.toFloat() / bitmap.height.toFloat(),
-                                            )
-                                        val targetWidth = (bitmap.width * scale).roundToInt().coerceAtLeast(1)
-                                        val targetHeight = (bitmap.height * scale).roundToInt().coerceAtLeast(1)
-                                        Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
-                                    }
-
-                                if (scaled == null) {
-                                    return@future createBitmap(64, 64)
+                                if (bitmap.width <= 0 || bitmap.height <= 0) {
+                                    throw IllegalStateException("Invalid bitmap dimensions")
                                 }
-
-                                return@future scaled.copy(Bitmap.Config.ARGB_8888, false)
+                                return@future bitmap.copy(Bitmap.Config.ARGB_8888, false)
                             } catch (e: Exception) {
                                 reportException(e)
                             }
@@ -110,6 +90,6 @@ class CoilBitmapLoader(
                     continue
                 }
             }
-            createBitmap(64, 64)
+            throw IllegalStateException("Could not load bitmap after $attempts attempts")
         }
 }

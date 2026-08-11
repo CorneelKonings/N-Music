@@ -162,7 +162,13 @@ class AboutContributorsRepository
                     val item = jsonArray.getJSONObject(index)
                     val login = item.optString("login", "")
                     val type = item.optString("type", "")
-                    val avatarUrl = item.optString("avatar_url", "")
+                    val avatarUrl = item.optString("avatar_url", "").let { url ->
+                        if (url.isNotBlank() && !url.contains("?size=") && !url.contains("&size=")) {
+                            if (url.contains("?")) "$url&size=88" else "$url?size=88"
+                        } else {
+                            url
+                        }
+                    }
                     val profileUrl = item.optString("html_url", "")
                     val isBot =
                         type.equals("Bot", ignoreCase = true) ||
