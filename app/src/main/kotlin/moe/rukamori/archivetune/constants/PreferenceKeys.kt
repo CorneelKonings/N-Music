@@ -74,10 +74,6 @@ val HomeBackgroundStyleKey = stringPreferencesKey("homeBackgroundStyle")
 val HomeBackgroundParallaxEnabledKey = booleanPreferencesKey("homeBackgroundParallaxEnabled")
 val HomeBackgroundParallaxStrengthKey = floatPreferencesKey("homeBackgroundParallaxStrength")
 val HomeBackgroundBrightnessKey = floatPreferencesKey("homeBackgroundBrightness")
-val ImmersiveDimKey = floatPreferencesKey("immersiveDim")
-
-const val IMMERSIVE_DIM_DEFAULT = 0.15f
-const val IMMERSIVE_DIM_MAX_EFFECT = 0.6f
 
 enum class AodThumbnailShape {
     ROUNDED,

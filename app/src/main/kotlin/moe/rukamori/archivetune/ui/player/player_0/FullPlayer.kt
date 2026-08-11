@@ -9,7 +9,6 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -49,7 +48,6 @@ import androidx.compose.ui.Alignment
 import moe.rukamori.archivetune.ui.player.player_0.sett.PlayerMenuScreen
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
-import moe.rukamori.archivetune.constants.IMMERSIVE_DIM_MAX_EFFECT
 
 val GoogleSans = FontFamily(
     Font(R.font.google_sans_regular, FontWeight.Normal),
@@ -141,27 +139,6 @@ fun FullPlayer(
 
     // ── Root ──────────────────────────────────────────────────────────────────
     PlayerBackgroundLayers(state = state, gradientBrush = gradientBrush)
-    val immersiveDimAlpha by animateFloatAsState(
-        targetValue = if (state.isImmersiveEnabled && !state.isLyricsVisible) {
-            state.immersiveDim * IMMERSIVE_DIM_MAX_EFFECT
-        } else {
-            0f
-        },
-        animationSpec = tween(durationMillis = 450, easing = FastOutSlowInEasing),
-        label = "ImmersiveDimOverlayAlpha"
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer { alpha = immersiveDimAlpha }
-            .background(
-                Brush.verticalGradient(
-                    0.0f to Color.Transparent,
-                    0.62f to Color.Transparent,
-                    1.0f to Color.Black.copy(alpha = 1f)
-                )
-            )
-    )
     Box(
         modifier = modifier
             .fillMaxSize()
