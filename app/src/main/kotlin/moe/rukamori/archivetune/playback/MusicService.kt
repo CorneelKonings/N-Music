@@ -2540,45 +2540,13 @@ class MusicService :
             localPlayer.pauseAtEndOfMediaItems = false
             player.volume = 0f
             crossfadeHandoffInProgress = true
+            player.seekTo(targetIndex, incomingPosition)
+            player.playWhenReady = shouldContinuePlayback
             if (shouldContinuePlayback) {
-                val futurePosition = incomingPosition + CROSSFADE_HANDOFF_SEEK_GUARD_MS
-                player.seekTo(targetIndex, futurePosition)
-                player.playWhenReady = false
-
-                var synced = false
                 if (awaitPrimaryCrossfadeHandoffReady(incomingPlayer)) {
-                    if (incomingPlayer.currentPosition <= futurePosition) {
-                        val deadlineMs = android.os.SystemClock.elapsedRealtime() + 5000L
-                        while (kotlinx.coroutines.currentCoroutineContext().isActive &&
-                            incomingPlayer.currentPosition < futurePosition &&
-                            android.os.SystemClock.elapsedRealtime() < deadlineMs
-                        ) {
-                            val state = player.playbackState
-                            if (state == Player.STATE_ENDED || state == Player.STATE_IDLE) break
-                            val inState = incomingPlayer.playbackState
-                            if (inState == Player.STATE_ENDED || inState == Player.STATE_IDLE) break
-                            delay(10L)
-                        }
-                        player.playWhenReady = true
-                        synced = true
-                    }
+                    val syncedIncomingPosition = incomingPlayer.currentPosition.coerceAtLeast(0L)
+                    player.seekTo(targetIndex, syncedIncomingPosition)
                 }
-
-                if (!synced) {
-                    val fallbackPosition = incomingPlayer.currentPosition.coerceAtLeast(0L)
-                    player.seekTo(targetIndex, fallbackPosition)
-                    player.playWhenReady = true
-
-                    val fallbackDeadlineMs = android.os.SystemClock.elapsedRealtime() + 1000L
-                    while (kotlinx.coroutines.currentCoroutineContext().isActive && android.os.SystemClock.elapsedRealtime() < fallbackDeadlineMs) {
-                        val state = player.playbackState
-                        if (state == Player.STATE_READY || state == Player.STATE_ENDED || state == Player.STATE_IDLE) break
-                        if (!player.playWhenReady) break
-                        delay(10L)
-                    }
-                }
-            } else {
-                player.seekTo(targetIndex, incomingPosition)
             }
             currentMediaMetadata.value = player.getMediaItemAt(targetIndex).metadata
             handoffCompleted = true
