@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -125,8 +126,10 @@ fun UnifiedPlayerSheetV2(
         val visualOvershootScaleY = remember { Animatable(1f) }
         var predictiveBackProgress by remember { mutableStateOf(0f) }
 
-        LaunchedEffect(expansionFraction.value) {
-            onExpansionFractionChanged(expansionFraction.value)
+        LaunchedEffect(Unit) {
+            snapshotFlow { expansionFraction.value }.collect { fraction ->
+                onExpansionFractionChanged(fraction)
+            }
         }
 
         LaunchedEffect(collapsedY) {
@@ -165,20 +168,24 @@ fun UnifiedPlayerSheetV2(
             }
         }
 
-        LaunchedEffect(lyricsTransitionFraction.value) {
-            if (lyricsTransitionFraction.value > 0.8f && state.isLyricsVisible) {
-                wasLyricsFullyOpened = true
-            }
+        LaunchedEffect(Unit) {
+            snapshotFlow { lyricsTransitionFraction.value }.collect { fraction ->
+                if (fraction > 0.8f && state.isLyricsVisible) {
+                    wasLyricsFullyOpened = true
+                }
 
-            if (wasLyricsFullyOpened && lyricsTransitionFraction.value < 0.2f && state.isLyricsVisible) {
-                wasLyricsFullyOpened = false
-                onCloseLyricsClick()
+                if (wasLyricsFullyOpened && fraction < 0.2f && state.isLyricsVisible) {
+                    wasLyricsFullyOpened = false
+                    onCloseLyricsClick()
+                }
             }
         }
 
-        LaunchedEffect(expansionFraction.value) {
-            if (expansionFraction.value == 0f && state.isLyricsVisible) {
-                onCloseLyricsClick()
+        LaunchedEffect(Unit) {
+            snapshotFlow { expansionFraction.value }.collect { fraction ->
+                if (fraction == 0f && state.isLyricsVisible) {
+                    onCloseLyricsClick()
+                }
             }
         }
 
