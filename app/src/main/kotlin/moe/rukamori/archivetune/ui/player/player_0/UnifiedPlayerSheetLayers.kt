@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -68,38 +71,37 @@ internal fun UnifiedPlayerSheetLayers(
         // ==========================================
         // СЛОЙ 2: БОЛЬШОЙ ПУЛЬТ
         // ==========================================
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset {
-                    val fraction = expansionFractionProvider()
-                    val lyricsFraction = lyricsFractionProvider()
-                    if (fraction < 0.01f || lyricsFraction > 0.99f) {
-                        IntOffset(99999, 0)
-                    } else {
-                        IntOffset(0, 0)
+        val isFullPlayerVisible by remember {
+            derivedStateOf {
+                expansionFractionProvider() >= 0.005f && lyricsFractionProvider() <= 0.995f
+            }
+        }
+
+        if (isFullPlayerVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val lyricsFraction = lyricsFractionProvider()
+                        alpha = fullPlayerVisualState.contentAlpha * (1f - lyricsFraction)
+                        translationY = fullPlayerVisualState.translationY - (200f * density * lyricsFraction)
                     }
-                }
-                .graphicsLayer {
-                    val lyricsFraction = lyricsFractionProvider()
-                    alpha = fullPlayerVisualState.contentAlpha * (1f - lyricsFraction)
-                    translationY = fullPlayerVisualState.translationY - (200f * density * lyricsFraction)
-                }
-        ) {
-            // ЧИСТЫЙ ВЫЗОВ: без удалённых параметров
-            FullPlayer(
-                state = state,
-                updateState = updateState,
-                slideOffset = expansionFractionProvider,
-                density = density,
-                onCollapseClick = onCollapseClick,
-                onAction = onAction,
-                onSeek = onSeek,
-                onBackgroundStyleChanged = onBackgroundStyleChanged,
-                onImmersiveChanged = onImmersiveChanged,
-                onOpenSettingsMenu = onOpenSettingsMenu,
-                onSeekStarted = onSeekStarted
-            )
+            ) {
+                // ЧИСТЫЙ ВЫЗОВ: без удалённых параметров
+                FullPlayer(
+                    state = state,
+                    updateState = updateState,
+                    slideOffset = expansionFractionProvider,
+                    density = density,
+                    onCollapseClick = onCollapseClick,
+                    onAction = onAction,
+                    onSeek = onSeek,
+                    onBackgroundStyleChanged = onBackgroundStyleChanged,
+                    onImmersiveChanged = onImmersiveChanged,
+                    onOpenSettingsMenu = onOpenSettingsMenu,
+                    onSeekStarted = onSeekStarted
+                )
+            }
         }
 
         // ==========================================
