@@ -84,31 +84,25 @@ fun Modifier.yumaClickable(
 fun Modifier.yumaCombinedClickable(
     enabled: Boolean = true,
     pressedScale: Float = 0.96f,
-    pressedAlpha: Float = 0.9f,
-    hapticFeedback: Boolean = true,
     onLongClick: (() -> Unit)? = null,
     onDoubleClick: (() -> Unit)? = null,
     onClick: () -> Unit
 ): Modifier {
     val interactionSource = remember { MutableInteractionSource() }
     val disableAnimations = LocalDisableAnimations.current
-    val haptics = LocalHapticFeedback.current
+    val haptic = LocalHapticFeedback.current
 
-    val hapticOnClick = remember(onClick, hapticFeedback, haptics) {
+    val hapticOnClick = remember(onClick, haptic) {
         {
-            if (hapticFeedback) {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            }
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             onClick()
         }
     }
 
-    val hapticOnLongClick = remember(onLongClick, hapticFeedback, haptics) {
+    val hapticOnLongClick = remember(onLongClick, haptic) {
         onLongClick?.let {
             {
-                if (hapticFeedback) {
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                }
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 it()
             }
         }
@@ -119,7 +113,7 @@ fun Modifier.yumaCombinedClickable(
             interactionSource = interactionSource,
             indication = null,
             enabled = enabled,
-            onLongClick = hapticOnLongClick,
+            onLongClick = if (onLongClick != null) hapticOnLongClick else null,
             onDoubleClick = onDoubleClick,
             onClick = hapticOnClick
         )
@@ -127,33 +121,17 @@ fun Modifier.yumaCombinedClickable(
 
     val isPressedState = interactionSource.collectIsPressedAsState()
 
-    // Плавная пружина: сжимается быстро, возвращается мягко
-    val animatedScale by animateFloatAsState(
-        targetValue = if (isPressedState.value) pressedScale else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "yumaClickableScale"
-    )
-
-    val animatedAlpha by animateFloatAsState(
-        targetValue = if (isPressedState.value) pressedAlpha else 1f,
-        animationSpec = tween(100),
-        label = "yumaClickableAlpha"
-    )
-
     return this
         .graphicsLayer {
-            scaleX = animatedScale
-            scaleY = animatedScale
-            alpha = animatedAlpha
+            val isPressed = isPressedState.value
+            scaleX = if (isPressed) pressedScale else 1f
+            scaleY = if (isPressed) pressedScale else 1f
         }
         .combinedClickable(
             interactionSource = interactionSource,
             indication = null,
-            enabled = true,
-            onLongClick = hapticOnLongClick,
+            enabled = enabled,
+            onLongClick = if (onLongClick != null) hapticOnLongClick else null,
             onDoubleClick = onDoubleClick,
             onClick = hapticOnClick
         )
