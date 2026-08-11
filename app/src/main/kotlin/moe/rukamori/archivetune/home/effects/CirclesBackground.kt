@@ -89,7 +89,6 @@ fun CirclesBackground(
         val parallaxBase = unit * 0.1f
 
         circleSpecs.forEach { spec ->
-            // Вычисляем честный радиус без искусственного сжатия
             val radius = (spec.radiusRatio * unit).coerceAtMost(spec.maxRadiusDp.dp.toPx())
             val parallaxStrength = spec.parallaxWeight * parallaxBase
 

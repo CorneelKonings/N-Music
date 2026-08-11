@@ -5,6 +5,10 @@
 
 package moe.rukamori.archivetune.ui.theme
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +24,11 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 
 @Composable
 fun Modifier.yumaGlassCard(
@@ -42,15 +51,14 @@ fun Modifier.yumaClickable(
     pressedScale: Float = 0.96f,
     onClick: () -> Unit
 ): Modifier {
-    if (!enabled) return this
-
     val interactionSource = remember { MutableInteractionSource() }
     val disableAnimations = LocalDisableAnimations.current
 
-    if (disableAnimations) {
+    if (disableAnimations || !enabled) {
         return this.clickable(
             interactionSource = interactionSource,
             indication = null,
+            enabled = enabled,
             onClick = onClick
         )
     }
@@ -59,13 +67,94 @@ fun Modifier.yumaClickable(
 
     return this
         .graphicsLayer {
-            scaleX = if (isPressedState.value) pressedScale else 1f
-            scaleY = if (isPressedState.value) pressedScale else 1f
+            val isPressed = isPressedState.value
+            scaleX = if (isPressed) pressedScale else 1f
+            scaleY = if (isPressed) pressedScale else 1f
         }
         .clickable(
             interactionSource = interactionSource,
             indication = null,
-            enabled = enabled,
+            enabled = true,
             onClick = onClick
+        )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun Modifier.yumaCombinedClickable(
+    enabled: Boolean = true,
+    pressedScale: Float = 0.96f,
+    pressedAlpha: Float = 0.9f,
+    hapticFeedback: Boolean = true,
+    onLongClick: (() -> Unit)? = null,
+    onDoubleClick: (() -> Unit)? = null,
+    onClick: () -> Unit
+): Modifier {
+    val interactionSource = remember { MutableInteractionSource() }
+    val disableAnimations = LocalDisableAnimations.current
+    val haptics = LocalHapticFeedback.current
+
+    val hapticOnClick = remember(onClick, hapticFeedback, haptics) {
+        {
+            if (hapticFeedback) {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            }
+            onClick()
+        }
+    }
+
+    val hapticOnLongClick = remember(onLongClick, hapticFeedback, haptics) {
+        onLongClick?.let {
+            {
+                if (hapticFeedback) {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+                it()
+            }
+        }
+    }
+
+    if (disableAnimations || !enabled) {
+        return this.combinedClickable(
+            interactionSource = interactionSource,
+            indication = null,
+            enabled = enabled,
+            onLongClick = hapticOnLongClick,
+            onDoubleClick = onDoubleClick,
+            onClick = hapticOnClick
+        )
+    }
+
+    val isPressedState = interactionSource.collectIsPressedAsState()
+
+    // Плавная пружина: сжимается быстро, возвращается мягко
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isPressedState.value) pressedScale else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "yumaClickableScale"
+    )
+
+    val animatedAlpha by animateFloatAsState(
+        targetValue = if (isPressedState.value) pressedAlpha else 1f,
+        animationSpec = tween(100),
+        label = "yumaClickableAlpha"
+    )
+
+    return this
+        .graphicsLayer {
+            scaleX = animatedScale
+            scaleY = animatedScale
+            alpha = animatedAlpha
+        }
+        .combinedClickable(
+            interactionSource = interactionSource,
+            indication = null,
+            enabled = true,
+            onLongClick = hapticOnLongClick,
+            onDoubleClick = onDoubleClick,
+            onClick = hapticOnClick
         )
 }

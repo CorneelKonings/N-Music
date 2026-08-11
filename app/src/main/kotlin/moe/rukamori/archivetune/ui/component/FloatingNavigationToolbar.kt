@@ -49,6 +49,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -58,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.screens.Screens
+import moe.rukamori.archivetune.ui.theme.yumaCombinedClickable
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 private val BarHeight = 68.dp
@@ -184,20 +187,28 @@ private fun FluidTabsContainer(
         val tabWidth = maxWidth / items.size
         val activeIndex = items.indexOfFirst { isSelected(it) }.coerceAtLeast(0)
 
-        // Математика ползунка: центрируем капсулу внутри активного слота
-        val pillOffsetX = (tabWidth * activeIndex) + ((tabWidth - PillWidth) / 2)
+        val density = LocalDensity.current
+        val pillOffsetPx = remember(tabWidth, activeIndex) {
+            with(density) { ((tabWidth * activeIndex) + ((tabWidth - PillWidth) / 2)).toPx() }
+        }
 
-        val animatedPillOffsetX by animateDpAsState(
-            targetValue = pillOffsetX,
-            animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow),
-            label = "FluidPillOffsetX"
+        val animatedPillPx by animateFloatAsState(
+            targetValue = pillOffsetPx,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "FluidPillOffset"
         )
 
+
         Box(modifier = Modifier.fillMaxSize()) {
-            // Скользящий задний фон (Pill) - позиционируется в верхней части, где иконки
             Box(
                 modifier = Modifier
-                    .offset(x = animatedPillOffsetX, y = 10.dp)
+                    .graphicsLayer {
+                        translationX = animatedPillPx
+                        translationY = 10.dp.toPx()
+                    }
                     .width(PillWidth)
                     .height(PillHeight)
                     .background(
@@ -223,26 +234,23 @@ private fun FluidTabsContainer(
                         label = "LabelTint_$index"
                     )
 
-                    val interactionSource = remember { MutableInteractionSource() }
-                    val isPressed by interactionSource.collectIsPressedAsState()
-                    val bounceScale by animateFloatAsState(
-                        targetValue = if (isPressed) 0.93f else 1f,
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
-                        label = "TabBounce_$index"
-                    )
+                    val onClickLambda = remember(screen, selected, onItemClick) {
+                        { onItemClick(screen, selected) }
+                    }
+
+                    val onDoubleClickLambda = remember(screen, onSearchItemDoubleClick) {
+                        if (screen == Screens.Search) onSearchItemDoubleClick else null
+                    }
 
                     Column(
                         modifier = Modifier
                             .width(tabWidth)
                             .fillMaxHeight()
-                            .scale(bounceScale)
                             .clip(RoundedCornerShape(18.dp))
-                            .combinedClickable(
-                                interactionSource = interactionSource,
-                                indication = null, // Убираем серый ripple
-                                role = Role.Tab,
-                                onClick = { onItemClick(screen, selected) },
-                                onDoubleClick = { if (screen == Screens.Search) onSearchItemDoubleClick?.invoke() }
+                            .yumaCombinedClickable(
+                                pressedScale = 0.93f,
+                                onClick = onClickLambda,
+                                onDoubleClick = onDoubleClickLambda
                             )
                             .padding(top = 14.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,

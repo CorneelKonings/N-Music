@@ -552,7 +552,7 @@ class LibraryMixViewModel
                         )
                     }
                 }
-            }.stateIn(viewModelScope, SharingStarted.Lazily, LibraryTopMixesUiState.Loading)
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryTopMixesUiState.Loading)
 
         val mostPlayedAlbumUiState =
             context.dataStore.data
@@ -595,7 +595,7 @@ class LibraryMixViewModel
                     if (throwable is CancellationException) throw throwable
                     reportException(throwable)
                     emit(MostPlayedAlbumUiState.Error(context.getString(R.string.error_unknown)))
-                }.stateIn(viewModelScope, SharingStarted.Lazily, MostPlayedAlbumUiState.Loading)
+                }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MostPlayedAlbumUiState.Loading)
 
         init {
             viewModelScope.launch(Dispatchers.IO) {
