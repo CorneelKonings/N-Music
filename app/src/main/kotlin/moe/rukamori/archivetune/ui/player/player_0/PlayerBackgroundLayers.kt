@@ -61,9 +61,9 @@ fun PlayerBackgroundLayers(
     val standardVeilBrush = remember(standardVeilColor) {
         Brush.verticalGradient(
             colors = listOf(
-                standardVeilColor.copy(alpha = 0.15f),
-                standardVeilColor.copy(alpha = 0.00f),
-                standardVeilColor.copy(alpha = 0.30f)
+                standardVeilColor.copy(alpha = 0.50f),
+                standardVeilColor.copy(alpha = 0.30f),
+                standardVeilColor.copy(alpha = 0.70f)
             )
         )
     }
