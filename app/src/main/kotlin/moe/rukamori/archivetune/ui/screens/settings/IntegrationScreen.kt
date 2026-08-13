@@ -37,6 +37,7 @@ import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.component.TextFieldDialog
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberPreference
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

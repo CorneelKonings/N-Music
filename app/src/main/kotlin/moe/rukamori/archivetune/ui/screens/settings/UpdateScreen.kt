@@ -138,6 +138,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

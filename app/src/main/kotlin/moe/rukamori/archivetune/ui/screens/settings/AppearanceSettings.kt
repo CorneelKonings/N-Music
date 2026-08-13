@@ -104,6 +104,7 @@ import moe.rukamori.archivetune.utils.isLowRamDevice
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 import kotlin.math.roundToInt
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -76,6 +76,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @Composable
 fun InternetWarningBox(modifier: Modifier = Modifier) {

@@ -33,6 +33,7 @@ import moe.rukamori.archivetune.utils.ReleaseInfo
 import moe.rukamori.archivetune.utils.Updater
 import java.text.SimpleDateFormat
 import java.util.Locale
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

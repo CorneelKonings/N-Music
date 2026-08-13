@@ -4,7 +4,7 @@
  * GPL-3.0 License | Contributors: see git history
  */
 
-package moe.rukamori.archivetune.ui.screens.settings
+package moe.rukamori.archivetune.ui.settings
 
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Spring
@@ -15,17 +15,17 @@ import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.LocalAnimationsDisabled
 
 object SettingsDimensions {
-    val GroupCardCornerRadius = 16.dp
-    val BannerCardCornerRadius = 18.dp
+    val GroupCardCornerRadius = 12.dp
+    val BannerCardCornerRadius = 14.dp
 
     val ScreenHorizontalPadding = 16.dp
-    val ScreenBottomPadding = 32.dp
-    val SectionSpacing = 14.dp
-    val RowVerticalPadding = 14.dp
-    val RowHorizontalPadding = 16.dp
+    val ScreenBottomPadding = 24.dp
+    val SectionSpacing = 10.dp
+    val RowVerticalPadding = 8.dp
+    val RowHorizontalPadding = 14.dp
 
-    val RowIconSize = 36.dp
-    val RowIconInnerSize = 20.dp
+    val RowIconSize = 28.dp
+    val RowIconInnerSize = 18.dp
     val BannerIconSize = 44.dp
     val BannerIconInnerSize = 22.dp
     val ChevronSize = 18.dp

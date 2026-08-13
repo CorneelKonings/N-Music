@@ -100,6 +100,7 @@ import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.PoTokenState
 import moe.rukamori.archivetune.viewmodels.PoTokenViewModel
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 private const val DEFAULT_EXTRACT_URL = "https://youtube.com/account"
 

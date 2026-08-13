@@ -111,6 +111,7 @@ import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.AiIntegrationSettingsViewModel
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 private enum class TestApiVisualState { Idle, Testing, Success, Failed }
 

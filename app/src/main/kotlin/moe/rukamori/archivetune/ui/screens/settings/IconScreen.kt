@@ -92,6 +92,7 @@ import moe.rukamori.archivetune.viewmodels.IconScreenEffect
 import moe.rukamori.archivetune.viewmodels.IconScreenState
 import moe.rukamori.archivetune.viewmodels.IconScreenUiModel
 import moe.rukamori.archivetune.viewmodels.IconViewModel
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @Composable
 fun IconScreen(

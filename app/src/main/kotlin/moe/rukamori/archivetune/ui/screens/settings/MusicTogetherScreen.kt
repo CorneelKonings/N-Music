@@ -113,6 +113,7 @@ import moe.rukamori.archivetune.viewmodels.MusicTogetherStatusUiModel
 import moe.rukamori.archivetune.viewmodels.MusicTogetherUiModel
 import moe.rukamori.archivetune.viewmodels.MusicTogetherViewModel
 import moe.rukamori.archivetune.ui.component.IconButton as AtIconButton
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

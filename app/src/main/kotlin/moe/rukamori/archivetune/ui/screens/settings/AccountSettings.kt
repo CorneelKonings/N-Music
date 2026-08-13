@@ -170,6 +170,7 @@ import moe.rukamori.archivetune.viewmodels.AccountChannelUiModel
 import moe.rukamori.archivetune.viewmodels.AccountChannelsState
 import moe.rukamori.archivetune.viewmodels.HomeViewModel
 import java.util.UUID
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 private val CardShape = RoundedCornerShape(28.dp)
 private val InnerTileShape = RoundedCornerShape(22.dp)

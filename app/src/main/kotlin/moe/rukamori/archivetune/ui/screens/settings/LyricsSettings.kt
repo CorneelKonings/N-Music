@@ -117,6 +117,7 @@ import moe.rukamori.archivetune.viewmodels.PaxsenixStatsState
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.roundToInt
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @Composable
 fun LyricsSettings(
