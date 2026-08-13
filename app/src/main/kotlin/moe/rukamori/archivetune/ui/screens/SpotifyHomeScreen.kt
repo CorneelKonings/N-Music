@@ -73,7 +73,8 @@ import moe.rukamori.archivetune.ui.theme.yumaClickable
 fun SpotifyHomeScreen(
     navController: NavController,
     headerScrollConnection: NestedScrollConnection? = null,
-    viewModel: SpotifyHomeViewModel = hiltViewModel()
+    viewModel: SpotifyHomeViewModel = hiltViewModel(),
+    onSwitchToYoutube: () -> Unit = {}
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
@@ -105,12 +106,21 @@ fun SpotifyHomeScreen(
                 )
             }
             is SpotifyHomeScreenState.Error -> {
-                HomeStatePane(
-                    iconResId = R.drawable.ic_about,
-                    messageResId = state.messageResId,
-                    actionResId = R.string.retry,
-                    onAction = { viewModel.onAction(SpotifyHomeAction.Refresh) },
-                )
+                if (state.notAuthenticated == true) {
+                    HomeStatePane(
+                        iconResId = R.drawable.ic_about,
+                        messageResId = R.string.spotify_not_connected,
+                        actionResId = R.string.home_switch_to_yt,
+                        onAction = onSwitchToYoutube,
+                    )
+                } else {
+                    HomeStatePane(
+                        iconResId = R.drawable.ic_about,
+                        messageResId = state.messageResId,
+                        actionResId = R.string.retry,
+                        onAction = { viewModel.onAction(SpotifyHomeAction.Refresh) },
+                    )
+                }
             }
             is SpotifyHomeScreenState.Success -> {
                 ExpressivePullToRefreshBox(

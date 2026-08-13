@@ -1070,5 +1070,6 @@
     <string name="spotify_discover">Discover</string>
     <string name="spotify_your_playlists">Your Playlists</string>
     <string name="spotify_new_releases">New Releases</string>
+    <string name="home_switch_to_yt">Open YouTube Music</string>
 
 </resources>
