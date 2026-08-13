@@ -1058,4 +1058,17 @@
     <string name="lyrics_error_loading">Error loading lyrics</string>
     <string name="lyrics_search_hint">Search for lyrics…</string>
     <string name="immersive_mode">Immersive Mode</string>
+    <string name="home_screen_provider">Home screen</string>
+    <string name="home_screen_provider_desc">YouTube Music / Spotify</string>
+    <string name="home_provider_youtube_music">YouTube Music</string>
+    <string name="home_provider_spotify">Spotify</string>
+
+    <string name="spotify_because_you_like">Because you like %1$s</string>
+    <string name="spotify_top_tracks">Top Tracks</string>
+    <string name="spotify_top_artists">Top Artists</string>
+    <string name="spotify_made_for_you">Made For You</string>
+    <string name="spotify_discover">Discover</string>
+    <string name="spotify_your_playlists">Your Playlists</string>
+    <string name="spotify_new_releases">New Releases</string>
+
 </resources>

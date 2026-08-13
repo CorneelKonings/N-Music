@@ -74,6 +74,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SplitButtonDefaults
 import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Surface
@@ -136,6 +139,7 @@ import moe.rukamori.archivetune.constants.InnerTubeCookieKey
 import moe.rukamori.archivetune.constants.SavedAccountsKey
 import moe.rukamori.archivetune.constants.SelectedYtmPlaylistsKey
 import moe.rukamori.archivetune.constants.ShowSpotifyPlaylistsKey
+import moe.rukamori.archivetune.constants.UseSpotifyHomeKey
 import moe.rukamori.archivetune.spotify.SpotifyAccountUiState
 import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
 import moe.rukamori.archivetune.constants.UseLoginForBrowse
@@ -244,6 +248,7 @@ fun AccountSettings(
     val spotifyAccountViewModel: SpotifyAccountViewModel = hiltViewModel()
     val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
     val (showSpotifyPlaylists, onShowSpotifyPlaylistsChange) = rememberPreference(ShowSpotifyPlaylistsKey, true)
+    val (useSpotifyHome, onUseSpotifyHomeChange) = rememberPreference(UseSpotifyHomeKey, false)
     var showSpotifyOptionsDialog by remember { mutableStateOf(false) }
     var showSpotifyLogin by remember { mutableStateOf(false) }
 
@@ -536,6 +541,14 @@ fun AccountSettings(
                                 showSpotifyLogin = true
                             }
                         },
+                    )
+
+                    ExpressiveSegmentedRow(
+                        icon = painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon),
+                        title = stringResource(R.string.home_screen_provider),
+                        subtitle = stringResource(R.string.home_screen_provider_desc),
+                        selectedValue = useSpotifyHome,
+                        onValueSelected = onUseSpotifyHomeChange,
                     )
 
                     ExpressiveActionRow(
@@ -1657,6 +1670,121 @@ private fun ExpressiveSwitchRow(
                         uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.40f),
                     ),
             )
+        }
+    }
+}
+
+@Composable
+private fun ExpressiveSegmentedRow(
+    icon: Painter,
+    title: String,
+    subtitle: String? = null,
+    selectedValue: Boolean,
+    onValueSelected: (Boolean) -> Unit,
+) {
+    val colors = LocalYumaColors.current
+
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius),
+                    backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
+                    borderColor = Color.Transparent,
+                )
+                .padding(
+                    horizontal = SettingsDimensions.RowHorizontalPadding,
+                    vertical = SettingsDimensions.RowVerticalPadding,
+                ),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemPaddingVertical)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(SettingsDimensions.RowIconSpacing),
+            ) {
+                ExpressiveRowIcon(
+                    icon = icon,
+                    title = title,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    AutoScrollingTextOnDemand(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                    )
+                    subtitle?.let {
+                        AutoScrollingTextOnDemand(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
+                        )
+                    }
+                }
+            }
+            
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                SegmentedButton(
+                    shape = RoundedCornerShape(
+                        topStart = SettingsDimensions.SegmentedCornerLarge,
+                        bottomStart = SettingsDimensions.SegmentedCornerLarge,
+                        topEnd = SettingsDimensions.SegmentedCornerSmall,
+                        bottomEnd = SettingsDimensions.SegmentedCornerSmall
+                    ),
+                    onClick = { onValueSelected(false) },
+                    selected = !selectedValue,
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        inactiveContainerColor = MaterialTheme.colorScheme.surface,
+                        inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_provider_youtube_music),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
+                SegmentedButton(
+                    shape = RoundedCornerShape(
+                        topStart = SettingsDimensions.SegmentedCornerSmall,
+                        bottomStart = SettingsDimensions.SegmentedCornerSmall,
+                        topEnd = SettingsDimensions.SegmentedCornerLarge,
+                        bottomEnd = SettingsDimensions.SegmentedCornerLarge
+                    ),
+                    onClick = { onValueSelected(true) },
+                    selected = selectedValue,
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        inactiveContainerColor = MaterialTheme.colorScheme.surface,
+                        inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_provider_spotify),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
+            }
         }
     }
 }
