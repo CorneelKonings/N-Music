@@ -14,14 +14,11 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -208,8 +205,6 @@ fun SettingsScreen(
         ) { innerPadding ->
         LazyColumn(
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SectionSpacing),
-            /* verticalArrangement = Arrangement.spacedBy(2.dp), */
             modifier =
                 Modifier
                     .fillMaxSize()
@@ -262,22 +257,18 @@ fun SettingsScreen(
             }
 
             settingsGroups.forEachIndexed { groupIndex, group ->
-                if (groupIndex > 0) {
-                    item(
-                        key = "settings_group_spacing_$groupIndex",
-                        contentType = "settings_group_spacing",
-                    ) {
-                        Spacer(modifier = Modifier.height(SettingsDimensions.SectionSpacing))
-                    }
-                }
-
                 item(
                     key = "settings_group_label_$groupIndex",
                     contentType = "settings_group_label",
                 ) {
                     SettingsSectionLabel(
                         text = group.title,
-                        modifier = Modifier.padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
+                        modifier = Modifier
+                            .padding(
+                                top = if (groupIndex == 0) 0.dp else SettingsDimensions.SectionSpacing,
+                                bottom = SettingsDimensions.SectionHeaderBottomPadding
+                            )
+                            .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
                     )
                 }
 
