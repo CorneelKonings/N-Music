@@ -39,7 +39,7 @@ object SettingsDimensions {
     val SectionHeaderBottomPadding = 6.dp
     val SectionHeaderHorizontalPadding = 20.dp
 
-    val SegmentedGroupHorizontalPadding = 26.dp
+    val SegmentedGroupHorizontalPadding = 16.dp
     val SegmentedItemGap = 2.dp
 }
 

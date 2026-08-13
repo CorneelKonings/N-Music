@@ -614,7 +614,7 @@ fun SettingsSegmentedItem(
         shape = shape,
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
