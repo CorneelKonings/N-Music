@@ -11,9 +11,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.spotify.models.SpotifyTrack
 import moe.rukamori.archivetune.utils.reportException
@@ -66,33 +68,32 @@ class SpotifyLikedSongsViewModel
             viewModelScope.launch(Dispatchers.IO) {
                 _isLoading.value = true
                 _error.value = null
-                try {
-                    val fetchedTracks = repository.likedSongs()
-                    _tracks.value = fetchedTracks
-                    _total.value = fetchedTracks.size
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e
-                } catch (e: Throwable) {
-                    reportException(e)
-                    _error.value = e.message
-                } finally {
-                    _isLoading.value = false
-                }
+                repository.likedSongsFlow()
+                    .catch { e ->
+                        if (e is CancellationException) throw e
+                        reportException(e)
+                        _error.value = e.message
+                    }
+                    .collect { tracks ->
+                        _tracks.value = tracks
+                        _total.value = tracks.size
+                        _isLoading.value = false
+                    }
             }
         }
 
         private suspend fun resetAndLoadFirstChunk() {
             _error.value = null
-            try {
-                val fetchedTracks = repository.likedSongs()
-                _tracks.value = fetchedTracks
-                _total.value = fetchedTracks.size
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (e: Throwable) {
-                reportException(e)
-                _error.value = e.message
-            }
+            repository.likedSongsFlow()
+                .catch { e ->
+                    if (e is CancellationException) throw e
+                    reportException(e)
+                    _error.value = e.message
+                }
+                .collect { tracks ->
+                    _tracks.value = tracks
+                    _total.value = tracks.size
+                }
         }
 
     }

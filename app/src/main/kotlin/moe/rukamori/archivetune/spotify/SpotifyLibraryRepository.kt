@@ -11,10 +11,15 @@ import androidx.datastore.preferences.core.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -236,27 +241,26 @@ class SpotifyLibraryRepository
                 tracks
             }
 
-        suspend fun likedSongs(): List<SpotifyTrack> =
-            withContext(Dispatchers.IO) {
+        fun likedSongsFlow(): Flow<List<SpotifyTrack>> =
+            flow {
                 ensureAuthenticated()
-                val tracks = ArrayList<SpotifyTrack>()
+                val accumulated = mutableListOf<SpotifyTrack>()
                 var offset = 0
                 val limit = 50
 
-                while (true) {
+                while (currentCoroutineContext().isActive) {
                     val page =
                         spotifyCallWithTokenRetry {
                             Spotify.likedSongs(limit = limit, offset = offset).getOrThrow()
                         }
                     if (page.items.isEmpty()) break
                     val pageTracks = page.items.mapNotNull { it.track?.takeUnless(SpotifyTrack::isLocal) }
-                    tracks += pageTracks
+                    accumulated += pageTracks
+                    emit(accumulated.toList())
                     offset += page.items.size
                     if (offset >= page.total || page.items.size < limit) break
                 }
-
-                tracks
-            }
+            }.flowOn(Dispatchers.IO)
 
         private suspend fun ensureAuthenticated() {
             val prefs = context.dataStore.data.first()
