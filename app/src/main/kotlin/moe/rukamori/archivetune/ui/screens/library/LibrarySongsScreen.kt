@@ -40,6 +40,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.toBitmap
+import androidx.palette.graphics.Palette
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import moe.rukamori.archivetune.constants.PureBlackKey
+import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -319,9 +334,19 @@ fun LibrarySongsScreen(
                     key = { index, songWrapper -> "${songWrapper.item.id}_$index" },
                     contentType = { _, _ -> CONTENT_TYPE_SONG },
                 ) { index, songWrapper ->
+                    val isActive = songWrapper.item.id == mediaMetadata?.id
+                    val activeColor = if (isActive) {
+                        ArtworkColorUtils.rememberArtworkCardColor(
+                            thumbnailUrl = songWrapper.item.song.thumbnailUrl,
+                            fallbackColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    } else {
+                        Color.Transparent
+                    }
+
                     SongListItem(
                         song = songWrapper.item,
-                        isActive = songWrapper.item.id == mediaMetadata?.id,
+                        isActive = isActive,
                         isPlaying = isPlaying,
                         showInLibraryIcon = true,
                         trailingContent = {
@@ -346,6 +371,15 @@ fun LibrarySongsScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
+                            .then(
+                                if (isActive) {
+                                    Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(activeColor)
+                                } else {
+                                    Modifier
+                                }
+                            )
                             .combinedClickable(
                                 onClick = {
                                     if (songWrapper.item.id == mediaMetadata?.id) {
@@ -412,5 +446,91 @@ fun SongSubFilterChip(
             ),
             color = contentColor,
         )
+    }
+}
+private object ArtworkColorUtils {
+    @Composable
+    fun rememberArtworkGradient(
+        thumbnailUrl: String?,
+        fallbackColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    ): List<Color> {
+        val context = LocalContext.current
+        var colors by remember(thumbnailUrl) { mutableStateOf(listOf(fallbackColor, fallbackColor.copy(alpha = 0.5f))) }
+
+        LaunchedEffect(thumbnailUrl) {
+            if (thumbnailUrl == null) return@LaunchedEffect
+            val request =
+                ImageRequest
+                    .Builder(context)
+                    .data(thumbnailUrl)
+                    .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
+                    .allowHardware(false)
+                    .build()
+
+            val result =
+                runCatching {
+                    context.imageLoader.execute(request)
+                }.getOrNull()
+
+            if (result != null) {
+                val bitmap = result.image?.toBitmap()
+                if (bitmap != null) {
+                    val palette =
+                        withContext(Dispatchers.Default) {
+                            Palette
+                                .from(bitmap)
+                                .maximumColorCount(PlayerColorExtractor.Config.MAX_COLOR_COUNT)
+                                .resizeBitmapArea(PlayerColorExtractor.Config.BITMAP_AREA)
+                                .generate()
+                        }
+
+                    val extractedColors =
+                        PlayerColorExtractor.extractGradientColors(
+                            palette = palette,
+                            fallbackColor = fallbackColor.toArgb(),
+                        )
+                    if (extractedColors.size >= 2) {
+                        colors = extractedColors
+                    } else if (extractedColors.isNotEmpty()) {
+                        colors = listOf(extractedColors[0], extractedColors[0].copy(alpha = 0.5f))
+                    }
+                }
+            }
+        }
+        return colors
+    }
+
+    @Composable
+    fun rememberArtworkCardColor(
+        thumbnailUrl: String?,
+        fallbackColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    ): Color {
+        val gradientColors =
+            rememberArtworkGradient(
+                thumbnailUrl = thumbnailUrl,
+                fallbackColor = fallbackColor,
+            )
+        val surfaceColor = MaterialTheme.colorScheme.surface
+        val useDarkTheme = remember(surfaceColor) { ColorUtils.calculateLuminance(surfaceColor.toArgb()) < 0.5 }
+        val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
+
+        return remember(gradientColors, useDarkTheme, pureBlack) {
+            val baseColor = gradientColors.firstOrNull() ?: fallbackColor
+            val baseArgb = baseColor.toArgb()
+            val hsv = FloatArray(3)
+            android.graphics.Color.colorToHSV(baseArgb, hsv)
+            val hue = hsv[0]
+
+            if (useDarkTheme) {
+                // Issue 6/3 fix: increased brightness for visibility in pure black mode
+                val s = (hsv[1] * 0.45f).coerceIn(0.06f, 0.20f)
+                val v = if (pureBlack) 0.18f else 0.12f
+                Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, s, v)))
+            } else {
+                val s = (hsv[1] * 0.30f).coerceIn(0.03f, 0.12f)
+                val v = 0.95f
+                Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, s, v)))
+            }
+        }
     }
 }
