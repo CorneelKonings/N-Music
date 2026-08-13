@@ -118,6 +118,7 @@ import moe.rukamori.archivetune.ui.menu.SelectionSongMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadItem
+import moe.rukamori.archivetune.ui.utils.HeaderDownloadProgressIndicator
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadState
 import moe.rukamori.archivetune.ui.utils.ItemWrapper
 import moe.rukamori.archivetune.ui.utils.backToMain
@@ -213,6 +214,34 @@ fun AutoPlaylistScreen(
     LaunchedEffect(ytmSync, playlistType) {
         if (ytmSync && playlistType == PlaylistType.LIKE) {
             viewModel.syncLikedSongs()
+        }
+    }
+
+    val globalDownloadState = remember(downloads) {
+        val activeDownloads = downloads.values.filter {
+            it.state == Download.STATE_DOWNLOADING ||
+            it.state == Download.STATE_QUEUED ||
+            it.state == Download.STATE_RESTARTING ||
+            it.state == Download.STATE_STOPPED
+        }
+        if (activeDownloads.isEmpty()) {
+            HeaderDownloadState.None
+        } else {
+            var progressTotal = 0f
+            var hasRunning = false
+            var hasPaused = false
+            activeDownloads.forEach { download ->
+                val progress = download.percentDownloaded.takeIf { it >= 0f }?.div(100f) ?: 0f
+                progressTotal += progress.coerceIn(0f, 1f)
+                if (download.state == Download.STATE_STOPPED) {
+                    hasPaused = hasPaused || download.stopReason == 1
+                } else {
+                    hasRunning = true
+                }
+            }
+            HeaderDownloadState.Partial(
+                progress = progressTotal / activeDownloads.size,
+            )
         }
     }
 
@@ -603,6 +632,27 @@ fun AutoPlaylistScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 ToggleButton(
+                                    checked = false,
+                                    onCheckedChange = {
+                                        navController.navigate("auto_playlist/downloaded?tab=progress")
+                                    },
+                                    modifier = Modifier.size(48.dp),
+                                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                                    colors =
+                                        ToggleButtonDefaults.toggleButtonColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            checkedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            checkedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        ),
+                                ) {
+                                    val globalProgress = (globalDownloadState as? HeaderDownloadState.Partial)?.progress ?: 0f
+                                    HeaderDownloadProgressIndicator(
+                                        progress = globalProgress,
+                                    )
+                                }
+
+                                ToggleButton(
                                     checked = downloadState == HeaderDownloadState.Completed,
                                     onCheckedChange = {
                                         when (downloadState) {
@@ -626,7 +676,7 @@ fun AutoPlaylistScreen(
                                         }
                                     },
                                     modifier = Modifier.size(48.dp),
-                                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                                    shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
                                     colors =
                                         ToggleButtonDefaults.toggleButtonColors(
                                             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -863,6 +913,7 @@ fun AutoPlaylistScreen(
         )
 
         TopAppBar(
+            scrollBehavior = scrollBehavior,
             colors =
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = if (transparentAppBar) Color.Transparent else MaterialTheme.colorScheme.surface,
@@ -999,6 +1050,24 @@ fun AutoPlaylistScreen(
                             painter = painterResource(R.drawable.ic_search),
                             contentDescription = null,
                         )
+                    }
+                    if (songs.isNotEmpty()) {
+                        androidx.compose.material3.IconButton(
+                            onClick = {
+                                menuState.show {
+                                    SelectionSongMenu(
+                                        songSelection = songs,
+                                        onDismiss = menuState::dismiss,
+                                        clearAction = {},
+                                    )
+                                }
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.more_horiz),
+                                contentDescription = stringResource(R.string.more_options),
+                            )
+                        }
                     }
                 }
             },
