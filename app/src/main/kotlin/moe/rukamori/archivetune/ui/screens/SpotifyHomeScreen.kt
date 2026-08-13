@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,16 +50,21 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
+import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.models.AlbumItem
 import moe.rukamori.archivetune.innertube.models.Artist
+import moe.rukamori.archivetune.innertube.models.ArtistItem
 import moe.rukamori.archivetune.innertube.models.PlaylistItem
 import moe.rukamori.archivetune.spotify.SectionType
 import moe.rukamori.archivetune.spotify.SpotifyHomeAction
 import moe.rukamori.archivetune.spotify.SpotifyHomeSection
 import moe.rukamori.archivetune.spotify.SpotifyHomeScreenState
 import moe.rukamori.archivetune.spotify.SpotifyHomeViewModel
+import moe.rukamori.archivetune.spotify.SpotifyTracksQueue
 import moe.rukamori.archivetune.spotify.models.SpotifyAlbum
 import moe.rukamori.archivetune.spotify.models.SpotifyArtist
 import moe.rukamori.archivetune.spotify.models.SpotifyPlaylist
@@ -76,6 +82,8 @@ fun SpotifyHomeScreen(
     viewModel: SpotifyHomeViewModel = hiltViewModel(),
     onSwitchToYoutube: () -> Unit = {}
 ) {
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val scope = rememberCoroutineScope()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
     Box(
@@ -153,7 +161,13 @@ fun SpotifyHomeScreen(
                                             tracks = section.tracks,
                                             horizontalItemWidth = 320.dp,
                                             onTrackClick = { track ->
-                                                // TODO: Playback wiring
+                                                playerConnection.playQueue(
+                                                    SpotifyTracksQueue(
+                                                        title = section.title,
+                                                        initialTracks = section.tracks,
+                                                        startIndex = section.tracks.indexOf(track)
+                                                    )
+                                                )
                                             },
                                             modifier = Modifier.animateItem()
                                         )
@@ -162,7 +176,13 @@ fun SpotifyHomeScreen(
                                         SpotifyArtistSectionRow(
                                             artists = section.artists,
                                             onArtistClick = { artist ->
-                                                // TODO: Navigation
+                                                scope.launch {
+                                                    val result = YouTube.search(artist.name, YouTube.SearchFilter.FILTER_ARTIST).getOrNull()
+                                                    val artistItem = result?.items?.firstOrNull() as? ArtistItem
+                                                    if (artistItem != null) {
+                                                        navController.navigate("artist/${artistItem.id}")
+                                                    }
+                                                }
                                             },
                                             modifier = Modifier.animateItem()
                                         )
@@ -171,7 +191,13 @@ fun SpotifyHomeScreen(
                                         SpotifyAlbumSectionRow(
                                             albums = section.albums,
                                             onAlbumClick = { album ->
-                                                // TODO: Navigation
+                                                scope.launch {
+                                                    val result = YouTube.search(album.name, YouTube.SearchFilter.FILTER_ALBUM).getOrNull()
+                                                    val albumItem = result?.items?.firstOrNull() as? AlbumItem
+                                                    if (albumItem != null) {
+                                                        navController.navigate("album/${albumItem.browseId}")
+                                                    }
+                                                }
                                             },
                                             modifier = Modifier.animateItem()
                                         )
