@@ -37,6 +37,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +74,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -90,10 +92,11 @@ import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.extensions.togglePlayPause
 import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
+import moe.rukamori.archivetune.ui.component.ItemThumbnail
 import moe.rukamori.archivetune.ui.component.LocalMenuState
-import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.menu.SongMenu
 import moe.rukamori.archivetune.ui.utils.ItemWrapper
+import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.LibrarySongsViewModel
@@ -287,7 +290,7 @@ fun LibrarySongsScreen(
             LazyColumn(
                 state = lazyListState,
                 contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = playerAwareBottomPadding),
-                verticalArrangement = Arrangement.spacedBy(if (pureBlack && isDark) 14.dp else 8.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 item(key = "collection_spotlight") {
@@ -362,7 +365,7 @@ fun LibrarySongsScreen(
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 itemsIndexed(
@@ -370,55 +373,38 @@ fun LibrarySongsScreen(
                     key = { index, songWrapper -> "${songWrapper.item.id}_$index" },
                     contentType = { _, _ -> CONTENT_TYPE_SONG },
                 ) { index, songWrapper ->
-                    val isActive = songWrapper.item.id == mediaMetadata?.id
-                    val activeColor = if (isActive) {
-                        ArtworkColorUtils.rememberArtworkCardColor(
-                            thumbnailUrl = songWrapper.item.song.thumbnailUrl,
-                            fallbackColor = MaterialTheme.colorScheme.primaryContainer
+                    val song = songWrapper.item
+                    val isActive = song.id == mediaMetadata?.id
+
+                    val activeCardColor = ArtworkColorUtils.rememberArtworkCardColor(
+                        thumbnailUrl = song.song.thumbnailUrl,
+                        fallbackColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                    val inactiveCardColor = MaterialTheme.colorScheme.surfaceContainerLow
+
+                    val showDivider = isDark && pureBlack && index > 0
+                    if (showDivider) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+                            thickness = 0.5.dp,
                         )
-                    } else {
-                        Color.Transparent
                     }
 
-                    SongListItem(
-                        song = songWrapper.item,
-                        isActive = isActive,
-                        isPlaying = isPlaying,
-                        showInLibraryIcon = true,
-                        trailingContent = {
-                            IconButton(
-                                onClick = {
-                                    menuState.show {
-                                        SongMenu(
-                                            originalSong = songWrapper.item,
-                                            navController = navController,
-                                            onDismiss = menuState::dismiss,
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.size(24.dp),
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.more_vert),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                            }
-                        },
+                    val cornerRadius = if (isActive) 36.dp else 24.dp
+                    val topPadding = if (index == 0 || showDivider) 0.dp else 8.dp
+
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .then(
-                                if (isActive) {
-                                    Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(activeColor)
-                                } else {
-                                    Modifier
-                                }
+                            .padding(top = topPadding, bottom = 0.dp)
+                            .clip(RoundedCornerShape(cornerRadius))
+                            .background(
+                                if (isActive) activeCardColor else inactiveCardColor,
                             )
                             .combinedClickable(
                                 onClick = {
-                                    if (songWrapper.item.id == mediaMetadata?.id) {
+                                    if (song.id == mediaMetadata?.id) {
                                         playerConnection.player.togglePlayPause()
                                     } else {
                                         val visibleSongs = displaySongs.map { it.item }
@@ -435,14 +421,107 @@ fun LibrarySongsScreen(
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     menuState.show {
                                         SongMenu(
-                                            originalSong = songWrapper.item,
+                                            originalSong = song,
                                             navController = navController,
                                             onDismiss = menuState::dismiss,
                                         )
                                     }
                                 },
-                            ),
-                    )
+                            )
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val thumbCorner = if (isActive) 26.dp else 10.dp
+                        ItemThumbnail(
+                            thumbnailUrl = song.song.thumbnailUrl,
+                            isActive = isActive,
+                            isPlaying = isPlaying,
+                            shape = RoundedCornerShape(thumbCorner),
+                            placeholderIconRes = R.drawable.music_note,
+                            modifier = Modifier.size(52.dp),
+                        )
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = song.song.title,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp,
+                                ),
+                                color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = song.artists.joinToString(", ") { it.name },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isActive) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f)
+                                },
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            if (isActive && isPlaying) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.graphic_eq),
+                                    contentDescription = stringResource(R.string.playing_desc),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+
+                            val durationText = makeTimeString(song.song.duration * 1000L)
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (isActive) 0.5f else 0.8f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                            ) {
+                                Text(
+                                    text = durationText,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    ),
+                                    color = if (isActive) {
+                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                                )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    menuState.show {
+                                        SongMenu(
+                                            originalSong = song,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss,
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.size(24.dp),
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.more_vert),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
