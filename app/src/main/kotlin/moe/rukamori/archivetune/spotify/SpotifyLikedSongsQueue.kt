@@ -12,7 +12,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.flow.first
+import moe.rukamori.archivetune.constants.SpotifyAccessTokenExpiresAtKey
+import moe.rukamori.archivetune.constants.SpotifyAccessTokenKey
+import moe.rukamori.archivetune.constants.SpotifySpDcKey
+import moe.rukamori.archivetune.constants.SpotifySpKeyKey
 import moe.rukamori.archivetune.models.MediaMetadata
+import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.playback.queues.Queue
 import moe.rukamori.archivetune.spotify.models.SpotifyTrack
 
@@ -106,12 +113,22 @@ class SpotifyLikedSongsQueue(
 
     private suspend fun fetchNextApiPage() {
         if (!apiHasMore) return
-        val result =
-            Spotify
-                .likedSongs(
-                    limit = SPOTIFY_PAGE_SIZE,
-                    offset = apiFetchOffset,
-                ).getOrThrow()
+        val result = runCatching {
+            Spotify.likedSongs(limit = SPOTIFY_PAGE_SIZE, offset = apiFetchOffset).getOrThrow()
+        }.getOrElse { error ->
+            if ((error as? Spotify.SpotifyException)?.statusCode != 401) throw error
+            val context = moe.rukamori.archivetune.App.instance
+            val prefs = context.dataStore.data.first()
+            val spDc = prefs[SpotifySpDcKey].orEmpty()
+            if (spDc.isBlank()) throw error
+            val token = SpotifyAuth.fetchAccessToken(spDc = spDc, spKey = prefs[SpotifySpKeyKey].orEmpty()).getOrThrow()
+            Spotify.accessToken = token.accessToken
+            context.dataStore.edit { p ->
+                p[SpotifyAccessTokenKey] = token.accessToken
+                p[SpotifyAccessTokenExpiresAtKey] = token.accessTokenExpirationTimestampMs
+            }
+            Spotify.likedSongs(limit = SPOTIFY_PAGE_SIZE, offset = apiFetchOffset).getOrThrow()
+        }
         apiTotal = result.total
         val fetched = result.items.mapNotNull { it.track?.takeUnless(SpotifyTrack::isLocal) }
         allTracks += fetched
