@@ -41,6 +41,7 @@ class SpotifyLibraryViewModel
             viewModelScope.launch(Dispatchers.IO) {
                 syncUtils.trySpotifyAutoSync()
                 repository.restoreCachedPlaylists()
+                repository.restoreCachedLikedSongs()
                 repository.refreshLikedSongsTotal()
             }
         }

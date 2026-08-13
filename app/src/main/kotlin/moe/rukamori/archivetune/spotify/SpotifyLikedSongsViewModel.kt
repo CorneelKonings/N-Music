@@ -15,7 +15,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.spotify.models.SpotifyTrack
 import moe.rukamori.archivetune.utils.reportException
@@ -44,14 +43,50 @@ class SpotifyLikedSongsViewModel
         val error = _error.asStateFlow()
 
         init {
+            viewModelScope.launch {
+                repository.likedSongs.collect { tracks ->
+                    _tracks.value = tracks
+                    _total.value = tracks.size
+                    if (tracks.isNotEmpty()) _isLoading.value = false
+                }
+            }
             loadLikedSongs()
+        }
+
+        fun loadLikedSongs() {
+            viewModelScope.launch(Dispatchers.IO) {
+                _isLoading.value = true
+                _error.value = null
+                try {
+                    repository.restoreCachedLikedSongs()
+                    if (repository.likedSongs.value.isEmpty()) {
+                        repository.refreshLikedSongs()
+                    } else {
+                        _isLoading.value = false
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    reportException(e)
+                    _error.value = e.message
+                    _isLoading.value = false
+                }
+            }
         }
 
         fun refresh() {
             viewModelScope.launch(Dispatchers.IO) {
                 _isRefreshing.value = true
-                resetAndLoadFirstChunk()
-                _isRefreshing.value = false
+                try {
+                    repository.refreshLikedSongs()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    reportException(e)
+                    _error.value = e.message
+                } finally {
+                    _isRefreshing.value = false
+                }
             }
         }
 
@@ -62,38 +97,6 @@ class SpotifyLikedSongsViewModel
         }
 
         fun loadMoreSongs() {
-        }
-
-        private fun loadLikedSongs() {
-            viewModelScope.launch(Dispatchers.IO) {
-                _isLoading.value = true
-                _error.value = null
-                repository.likedSongsFlow()
-                    .catch { e ->
-                        if (e is CancellationException) throw e
-                        reportException(e)
-                        _error.value = e.message
-                    }
-                    .collect { tracks ->
-                        _tracks.value = tracks
-                        _total.value = tracks.size
-                        _isLoading.value = false
-                    }
-            }
-        }
-
-        private suspend fun resetAndLoadFirstChunk() {
-            _error.value = null
-            repository.likedSongsFlow()
-                .catch { e ->
-                    if (e is CancellationException) throw e
-                    reportException(e)
-                    _error.value = e.message
-                }
-                .collect { tracks ->
-                    _tracks.value = tracks
-                    _total.value = tracks.size
-                }
         }
 
     }
