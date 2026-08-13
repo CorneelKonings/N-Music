@@ -20,6 +20,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.compose.runtime.getValue
+import moe.rukamori.archivetune.constants.SpotifySpDcKey
+import moe.rukamori.archivetune.constants.UseSpotifyHomeKey
+import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.constants.UpdateChannel
 import moe.rukamori.archivetune.defaultUpdateChannel
 import moe.rukamori.archivetune.musicrecognition.MusicRecognitionRoute
@@ -78,7 +82,13 @@ fun NavGraphBuilder.navigationBuilder(
     searchScrollConnection: NestedScrollConnection? = null,
 ) {
     composable(Screens.Home.route) {
-        HomeScreen(navController, headerScrollConnection = homeScrollConnection)
+        val useSpotify by rememberPreference(UseSpotifyHomeKey, defaultValue = false)
+        val spDc by rememberPreference(SpotifySpDcKey, defaultValue = "")
+        if (useSpotify && spDc.isNotBlank()) {
+            SpotifyHomeScreen(navController, headerScrollConnection = homeScrollConnection)
+        } else {
+            HomeScreen(navController, headerScrollConnection = homeScrollConnection)
+        }
     }
     composable(
         Screens.Library.route,
