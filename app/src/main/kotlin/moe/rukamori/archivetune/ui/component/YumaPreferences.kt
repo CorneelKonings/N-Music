@@ -24,11 +24,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.settings.SettingsAnimations
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
@@ -64,16 +61,21 @@ fun YumaPreferenceCategory(
                 text = title,
                 style = TextStyle(
                     color = colors.textSecondary,
-                    fontSize = 12.sp,
+                    fontSize = SettingsDimensions.YumaTitleFontSize,
                     fontWeight = FontWeight.Bold,
                     fontFamily = localFont
                 ),
-                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp, top = 8.dp)
+                modifier =
+                    Modifier.padding(
+                        start = SettingsDimensions.YumaTitlePaddingStart,
+                        bottom = SettingsDimensions.YumaTitlePaddingBottom,
+                        top = SettingsDimensions.YumaTitlePaddingBottom,
+                    )
             )
         }
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(SettingsDimensions.YumaCategorySpacing),
             content = content
         )
     }
@@ -99,8 +101,8 @@ fun YumaPreferenceRow(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed && enabled && onClick != null) 0.96f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed && enabled && onClick != null) SettingsAnimations.PressScale else 1f,
+        animationSpec = SettingsAnimations.pressSpring(),
         label = "SettingsRowScale"
     )
 
@@ -108,8 +110,15 @@ fun YumaPreferenceRow(
         modifier = modifier
             .fillMaxWidth()
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .clip(RoundedCornerShape(16.dp))
-            .background(Brush.verticalGradient(listOf(Color(0x1AFFFFFF), Color(0x08FFFFFF))))
+            .clip(RoundedCornerShape(SettingsDimensions.GlassCornerRadius))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        SettingsDimensions.GlassStartColor,
+                        SettingsDimensions.GlassEndColor,
+                    ),
+                ),
+            )
             .then(
                 if (onClick != null && enabled) {
                     Modifier.clickable(
@@ -134,10 +143,10 @@ fun YumaPreferenceRow(
                 Icon(
                     painter = painterResource(iconResId),
                     contentDescription = title,
-                    tint = Color.White.copy(alpha = 0.8f),
+                    tint = Color.White.copy(alpha = SettingsDimensions.YumaRowIconAlpha),
                     modifier = Modifier
-                        .size(24.dp)
-                        .padding(end = 12.dp)
+                        .size(SettingsDimensions.YumaRowIconSize)
+                        .padding(end = SettingsDimensions.YumaRowIconSpacing)
                 )
             }
 
@@ -147,20 +156,20 @@ fun YumaPreferenceRow(
             ) {
                 Text(
                     text = title,
-                    color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f),
-                    fontSize = 15.sp,
+                    color = if (enabled) Color.White else Color.White.copy(alpha = SettingsDimensions.YumaRowDisabledAlpha),
+                    fontSize = SettingsDimensions.YumaRowTitleSize,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = localFont,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 if (subtitle != null) {
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(SettingsDimensions.YumaRowTextSpacing))
                     Text(
                         text = subtitle,
-                        color = Color.White.copy(alpha = 0.65f),
-                        fontSize = 11.sp,
-                        lineHeight = 14.sp,
+                        color = Color.White.copy(alpha = SettingsDimensions.YumaRowSubtitleAlpha),
+                        fontSize = SettingsDimensions.YumaRowSubtitleSize,
+                        lineHeight = SettingsDimensions.YumaRowSubtitleLineHeight,
                         fontFamily = localFont,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
@@ -169,12 +178,12 @@ fun YumaPreferenceRow(
             }
 
             if (showArrow) {
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(SettingsDimensions.YumaRowArrowSpacing))
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_right),
                     contentDescription = "Go",
-                    tint = Color.White.copy(alpha = 0.3f),
-                    modifier = Modifier.size(24.dp)
+                    tint = Color.White.copy(alpha = SettingsDimensions.YumaRowArrowAlpha),
+                    modifier = Modifier.size(SettingsDimensions.YumaRowArrowSize)
                 )
             }
         }
@@ -197,8 +206,8 @@ fun YumaSwitchPreferenceRow(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed && enabled) 0.96f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed && enabled) SettingsAnimations.PressScale else 1f,
+        animationSpec = SettingsAnimations.pressSpring(),
         label = "SettingsSwitchRowScale"
     )
 
@@ -206,8 +215,15 @@ fun YumaSwitchPreferenceRow(
         modifier = modifier
             .fillMaxWidth()
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .clip(RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius))
-            .background(Brush.verticalGradient(listOf(Color(0x1AFFFFFF), Color(0x08FFFFFF))))
+            .clip(RoundedCornerShape(SettingsDimensions.GlassCornerRadius))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        SettingsDimensions.GlassStartColor,
+                        SettingsDimensions.GlassEndColor,
+                    ),
+                ),
+            )
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -227,10 +243,10 @@ fun YumaSwitchPreferenceRow(
                 Icon(
                     painter = painterResource(iconResId),
                     contentDescription = title,
-                    tint = Color.White.copy(alpha = 0.8f),
+                    tint = Color.White.copy(alpha = SettingsDimensions.YumaRowIconAlpha),
                     modifier = Modifier
-                        .size(24.dp)
-                        .padding(end = 12.dp)
+                        .size(SettingsDimensions.YumaRowIconSize)
+                        .padding(end = SettingsDimensions.YumaRowIconSpacing)
                 )
             }
 
@@ -240,20 +256,20 @@ fun YumaSwitchPreferenceRow(
             ) {
                 Text(
                     text = title,
-                    color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f),
-                    fontSize = 15.sp,
+                    color = if (enabled) Color.White else Color.White.copy(alpha = SettingsDimensions.YumaRowDisabledAlpha),
+                    fontSize = SettingsDimensions.YumaRowTitleSize,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = localFont,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 if (subtitle != null) {
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(SettingsDimensions.YumaRowTextSpacing))
                     Text(
                         text = subtitle,
-                        color = Color.White.copy(alpha = 0.65f),
-                        fontSize = 11.sp,
-                        lineHeight = 14.sp,
+                        color = Color.White.copy(alpha = SettingsDimensions.YumaRowSubtitleAlpha),
+                        fontSize = SettingsDimensions.YumaRowSubtitleSize,
+                        lineHeight = SettingsDimensions.YumaRowSubtitleLineHeight,
                         fontFamily = localFont,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
@@ -267,9 +283,9 @@ fun YumaSwitchPreferenceRow(
                 enabled = enabled,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
-                    checkedTrackColor = Color.White.copy(alpha = 0.3f),
-                    uncheckedThumbColor = Color.White.copy(alpha = 0.6f),
-                    uncheckedTrackColor = Color(0x0DFFFFFF),
+                    checkedTrackColor = Color.White.copy(alpha = SettingsDimensions.YumaSwitchTrackAlpha),
+                    uncheckedThumbColor = Color.White.copy(alpha = SettingsDimensions.YumaSwitchUncheckedThumbAlpha),
+                    uncheckedTrackColor = SettingsDimensions.YumaSwitchUncheckedTrackColor,
                     uncheckedBorderColor = Color.Transparent
                 )
             )

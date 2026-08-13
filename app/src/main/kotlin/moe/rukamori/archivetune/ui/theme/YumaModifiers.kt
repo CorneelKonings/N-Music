@@ -1,14 +1,10 @@
 /*
- * YumaPlayer (2026) | Modified work by MuwMix
+ * YumaPlayer (2026) | Original work by MuwMix
  * GPL-3.0 License | Contributors: see git history
  */
 
 package moe.rukamori.archivetune.ui.theme
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,16 +19,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.isSpecified
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import moe.rukamori.archivetune.ui.settings.SettingsAnimations
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @Composable
 fun Modifier.yumaGlassCard(
-    shape: Shape = RoundedCornerShape(16.dp),
+    shape: Shape = RoundedCornerShape(SettingsDimensions.GlassCornerRadius),
     backgroundColor: Color = LocalYumaColors.current.glassBackground,
     borderColor: Color = LocalYumaColors.current.glassBorder
 ): Modifier {
@@ -40,7 +36,7 @@ fun Modifier.yumaGlassCard(
         .clip(shape)
         .background(backgroundColor, shape)
     return if (borderColor.isSpecified && borderColor != Color.Transparent) {
-        mod.border(1.dp, borderColor, shape)
+        mod.border(SettingsDimensions.GlassBorderThickness, borderColor, shape)
     } else {
         mod
     }
@@ -48,7 +44,7 @@ fun Modifier.yumaGlassCard(
 @Composable
 fun Modifier.yumaClickable(
     enabled: Boolean = true,
-    pressedScale: Float = 0.96f,
+    pressedScale: Float = SettingsAnimations.PressScale,
     onClick: () -> Unit
 ): Modifier {
     val interactionSource = remember { MutableInteractionSource() }
@@ -83,7 +79,7 @@ fun Modifier.yumaClickable(
 @Composable
 fun Modifier.yumaCombinedClickable(
     enabled: Boolean = true,
-    pressedScale: Float = 0.96f,
+    pressedScale: Float = SettingsAnimations.PressScale,
     onLongClick: (() -> Unit)? = null,
     onDoubleClick: (() -> Unit)? = null,
     onClick: () -> Unit

@@ -1,6 +1,5 @@
 /*
- * YumaPlayer (2026) | Modified work by MuwMix
- * ArchiveTune (2026) | Original work by © Rukamori
+ * YumaPlayer (2026) | Original work by MuwMix
  * GPL-3.0 License | Contributors: see git history
  */
 
@@ -138,6 +137,7 @@ object SettingsDimensions {
     val YumaRowArrowAlpha = 0.3f
     val YumaSwitchUncheckedThumbAlpha = 0.6f
     val YumaSwitchTrackAlpha = 0.3f
+    val YumaSwitchUncheckedTrackColor = Color(0x0DFFFFFF)
 }
 
 object SettingsAnimations {

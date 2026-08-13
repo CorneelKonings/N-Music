@@ -170,6 +170,7 @@ import moe.rukamori.archivetune.viewmodels.AccountChannelUiModel
 import moe.rukamori.archivetune.viewmodels.AccountChannelsState
 import moe.rukamori.archivetune.viewmodels.HomeViewModel
 import java.util.UUID
+import moe.rukamori.archivetune.ui.settings.SettingsAnimations
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 private val CardShape = RoundedCornerShape(28.dp)
@@ -177,7 +178,6 @@ private val InnerTileShape = RoundedCornerShape(22.dp)
 private val AvatarSize = 88.dp
 private val QuickTileIconSize = 48.dp
 private val RowIconSize = 42.dp
-private const val PressScale = 0.96f
 
 @Composable
 fun AccountSettings(
@@ -310,28 +310,7 @@ fun AccountSettings(
         onSavedAccountsJsonChange(encodeSavedAccounts(existing.filter { it.id != account.id }))
     }
 
-    val primaryAccent = MaterialTheme.colorScheme.primary
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val bgTopColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = 0.22f).compositeOver(surfaceColor)
-    }
-    val bgMidColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = 0.06f).compositeOver(surfaceColor)
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        bgTopColor,
-                        bgMidColor,
-                        surfaceColor
-                    )
-                )
-            )
-    ) {
+    SettingsScreenBackground {
         Scaffold(
             modifier =
                 Modifier
@@ -1429,7 +1408,7 @@ private fun UpdateBannerStrip(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) PressScale else 1f,
+        targetValue = if (isPressed) SettingsAnimations.PressScale else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessHigh),
         label = "updateScale",
     )

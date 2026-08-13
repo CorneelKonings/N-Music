@@ -138,6 +138,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.roundToInt
+import moe.rukamori.archivetune.ui.settings.SettingsAnimations
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1109,7 +1110,7 @@ private fun ChannelSelectChip(
 
     Box(
         modifier = modifier
-            .yumaClickable(pressedScale = 0.96f, onClick = onClick)
+            .yumaClickable(pressedScale = SettingsAnimations.PressScale, onClick = onClick)
             .clip(RoundedCornerShape(12.dp))
             .background(containerColor)
             .padding(horizontal = 12.dp, vertical = 8.dp),

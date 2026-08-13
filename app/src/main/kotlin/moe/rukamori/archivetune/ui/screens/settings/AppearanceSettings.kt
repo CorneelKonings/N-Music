@@ -55,9 +55,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -240,28 +238,7 @@ fun AppearanceSettings(navController: NavController) {
         targetFps = supportedHighestFps,
     )
 
-    val primaryAccent = MaterialTheme.colorScheme.primary
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val bgTopColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = 0.22f).compositeOver(surfaceColor)
-    }
-    val bgMidColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = 0.06f).compositeOver(surfaceColor)
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        bgTopColor,
-                        bgMidColor,
-                        surfaceColor
-                    )
-                )
-            )
-    ) {
+    SettingsScreenBackground {
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
