@@ -126,13 +126,13 @@ fun SettingsProfileHeader(
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = SettingsDimensions.CardElevation),
     ) {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(SettingsDimensions.BannerContentPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -140,7 +140,7 @@ fun SettingsProfileHeader(
                     Modifier
                         .size(SettingsDimensions.ProfileCardAvatarSize)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)),
+                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = SettingsDimensions.ProfileAvatarBgAlpha)),
                 contentAlignment = Alignment.Center,
             ) {
                 if (state.isLoading) {
@@ -170,7 +170,7 @@ fun SettingsProfileHeader(
                 }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(SettingsDimensions.BannerContentPadding))
 
             Column(modifier = Modifier.weight(1f)) {
                 AutoScrollingTextOnDemand(
@@ -184,7 +184,7 @@ fun SettingsProfileHeader(
                     AutoScrollingTextOnDemand(
                         text = s,
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = SettingsDimensions.BannerSubtitleAlpha),
                         ),
                     )
                 }
@@ -193,7 +193,7 @@ fun SettingsProfileHeader(
             Icon(
                 painter = painterResource(R.drawable.ic_arrow_right),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = SettingsDimensions.ProfileChevronAlpha),
                 modifier = Modifier.size(SettingsDimensions.ChevronSize),
             )
         }
@@ -212,13 +212,13 @@ fun SettingsPermissionBanner(
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = SettingsDimensions.CardElevation),
     ) {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(SettingsDimensions.BannerContentPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -226,7 +226,7 @@ fun SettingsPermissionBanner(
                     Modifier
                         .size(SettingsDimensions.BannerIconSize)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.12f)),
+                        .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = SettingsDimensions.BannerIconBgAlpha)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -237,11 +237,11 @@ fun SettingsPermissionBanner(
                 )
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(SettingsDimensions.BannerIconSpacing))
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(SettingsDimensions.BannerColumnSpacing),
             ) {
                 Text(
                     text = stringResource(R.string.permissions_title),
@@ -254,13 +254,13 @@ fun SettingsPermissionBanner(
                 Text(
                     text = stringResource(R.string.permissions_subtitle),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = SettingsDimensions.BannerSubtitleAlpha),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(SettingsDimensions.BannerTextSpacing))
 
             Button(
                 onClick = onRequestPermission,
@@ -269,7 +269,11 @@ fun SettingsPermissionBanner(
                         containerColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         contentColor = MaterialTheme.colorScheme.secondaryContainer,
                     ),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding =
+                    PaddingValues(
+                        horizontal = SettingsDimensions.BannerButtonPaddingH,
+                        vertical = SettingsDimensions.BannerButtonPaddingV,
+                    ),
                 shapes = ButtonDefaults.shapes(),
             ) {
                 Text(
@@ -307,7 +311,10 @@ fun SettingsUpdateBanner(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                    .padding(
+                        horizontal = SettingsDimensions.BannerContentPadding,
+                        vertical = SettingsDimensions.BannerIconSpacing,
+                    ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -315,7 +322,7 @@ fun SettingsUpdateBanner(
                     Modifier
                         .size(SettingsDimensions.BannerIconSize)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.10f)),
+                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = SettingsDimensions.BannerIconBgAlphaSoft)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -326,11 +333,11 @@ fun SettingsUpdateBanner(
                 )
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(SettingsDimensions.BannerIconSpacing))
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(SettingsDimensions.BannerColumnSpacing),
             ) {
                 Text(
                     text = stringResource(R.string.new_version_available),
@@ -341,7 +348,7 @@ fun SettingsUpdateBanner(
                 Text(
                     text = if (latestVersion.startsWith("v", ignoreCase = true)) latestVersion else "v$latestVersion",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = SettingsDimensions.BannerVersionAlpha),
                     fontWeight = FontWeight.Medium,
                 )
             }
@@ -350,8 +357,8 @@ fun SettingsUpdateBanner(
                 Icon(
                     painter = painterResource(R.drawable.close),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = SettingsDimensions.BannerCloseAlpha),
+                    modifier = Modifier.size(SettingsDimensions.BannerCloseIconSize),
                 )
             }
         }
@@ -383,7 +390,7 @@ fun SettingsGroupCard(
                 CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = SettingsDimensions.CardElevation),
         ) {
             Column {
                 group.items.forEachIndexed { index, item ->
@@ -415,12 +422,12 @@ fun SettingsRow(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
+        targetValue = if (isPressed) SettingsAnimations.PressScale else 1f,
         animationSpec = SettingsAnimations.pressSpring(),
         label = "rowScale",
     )
     val bgAlpha by animateFloatAsState(
-        targetValue = if (isPressed) 0.06f else 0f,
+        targetValue = if (isPressed) SettingsAnimations.PressBackgroundAlpha else 0f,
         animationSpec = SettingsAnimations.pressSpring(),
         label = "rowBgAlpha",
     )
@@ -451,7 +458,7 @@ fun SettingsRow(
                     .size(SettingsDimensions.RowIconSize)
                     .clip(iconShape)
                     .background(
-                        color = effectiveAccent.copy(alpha = 0.12f),
+                        color = effectiveAccent.copy(alpha = SettingsDimensions.RowIconBgAlpha),
                         shape = iconShape,
                     ),
                 contentAlignment = Alignment.Center,
@@ -461,7 +468,7 @@ fun SettingsRow(
                         badge = {
                             Badge(
                                 containerColor = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(8.dp),
+                                modifier = Modifier.size(SettingsDimensions.BadgeSize),
                             )
                         },
                     ) {
@@ -482,7 +489,7 @@ fun SettingsRow(
                 }
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(SettingsDimensions.RowIconSpacing))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -497,7 +504,7 @@ fun SettingsRow(
                     ),
                 )
                 item.subtitle?.let { subtitle ->
-                    Spacer(modifier = Modifier.height(1.dp))
+                    Spacer(modifier = Modifier.height(SettingsDimensions.RowTextSpacing))
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
@@ -517,26 +524,29 @@ fun SettingsRow(
             }
 
             item.badge?.let { badge ->
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(SettingsDimensions.BadgeSpacing))
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(SettingsDimensions.BadgeCornerRadius),
                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
                 ) {
                     Text(
                         text = badge,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(
+                            horizontal = SettingsDimensions.BadgePaddingH,
+                            vertical = SettingsDimensions.BadgePaddingV,
+                        ),
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(SettingsDimensions.RowChevronSpacing))
 
             Icon(
                 painter = painterResource(R.drawable.ic_arrow_right),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = SettingsDimensions.RowChevronAlpha),
                 modifier = Modifier.size(SettingsDimensions.ChevronSize),
             )
         }
@@ -545,7 +555,7 @@ fun SettingsRow(
             HorizontalDivider(
                 modifier = Modifier.padding(start = SettingsDimensions.DividerStartIndent),
                 thickness = SettingsDimensions.DividerThickness,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = SettingsDimensions.DividerAlpha),
             )
         }
     }
@@ -618,21 +628,24 @@ fun SettingsSegmentedItem(
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = SettingsDimensions.CardElevation),
     ) {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 88.dp)
-                    .padding(horizontal = 22.dp, vertical = 14.dp),
+                    .heightIn(min = SettingsDimensions.SegmentedItemMinHeight)
+                    .padding(
+                        horizontal = SettingsDimensions.SegmentedItemPaddingHorizontal,
+                        vertical = SettingsDimensions.SegmentedItemPaddingVertical,
+                    ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val iconShape = rememberPreferenceIconShape(item.title)
             Box(
                 modifier =
                     Modifier
-                        .size(52.dp)
+                        .size(SettingsDimensions.SegmentedIconBoxSize)
                         .clip(iconShape)
                         .background(effectiveAccent),
                 contentAlignment = Alignment.Center,
@@ -642,7 +655,7 @@ fun SettingsSegmentedItem(
                         badge = {
                             Badge(
                                 containerColor = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(9.dp),
+                                modifier = Modifier.size(SettingsDimensions.SegmentedBadgeSize),
                             )
                         },
                     ) {
@@ -650,7 +663,7 @@ fun SettingsSegmentedItem(
                             painter = item.icon,
                             contentDescription = null,
                             tint = iconContentColor,
-                            modifier = Modifier.size(26.dp),
+                            modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
                         )
                     }
                 } else {
@@ -658,12 +671,12 @@ fun SettingsSegmentedItem(
                         painter = item.icon,
                         contentDescription = null,
                         tint = iconContentColor,
-                        modifier = Modifier.size(26.dp),
+                        modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(18.dp))
+            Spacer(modifier = Modifier.width(SettingsDimensions.SegmentedIconSpacing))
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -678,7 +691,7 @@ fun SettingsSegmentedItem(
                     overflow = TextOverflow.Ellipsis,
                 )
                 item.subtitle?.let { subtitle ->
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedRowSpacing))
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodyMedium,
@@ -690,16 +703,20 @@ fun SettingsSegmentedItem(
             }
 
             item.badge?.let { badge ->
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(SettingsDimensions.SegmentedBadgeSpacing))
                 Surface(
-                    shape = RoundedCornerShape(50),
+                    shape = RoundedCornerShape(SettingsDimensions.SegmentedBadgeCornerPercent),
                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
                 ) {
                     Text(
                         text = badge,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        modifier =
+                            Modifier.padding(
+                                horizontal = SettingsDimensions.SegmentedBadgePaddingH,
+                                vertical = SettingsDimensions.SegmentedBadgePaddingV,
+                            ),
                     )
                 }
             }
@@ -711,8 +728,8 @@ private fun segmentedSettingsItemShape(
     index: Int,
     count: Int,
 ): Shape {
-    val large = 28.dp
-    val small = 6.dp
+    val large = SettingsDimensions.SegmentedCornerLarge
+    val small = SettingsDimensions.SegmentedCornerSmall
     return when {
         count <= 1 -> {
             RoundedCornerShape(large)
@@ -765,7 +782,10 @@ fun SettingsFlatItem(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                    .padding(
+                        horizontal = SettingsDimensions.FlatPaddingH,
+                        vertical = SettingsDimensions.FlatPaddingV,
+                    ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (item.showUpdateIndicator) {
@@ -773,10 +793,14 @@ fun SettingsFlatItem(
                     badge = {
                         Badge(
                             containerColor = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(8.dp),
+                            modifier = Modifier.size(SettingsDimensions.BadgeSize),
                         )
                     },
-                    modifier = Modifier.padding(start = 8.dp, end = 16.dp),
+                    modifier =
+                        Modifier.padding(
+                            start = SettingsDimensions.FlatIconStartPadding,
+                            end = SettingsDimensions.FlatIconEndPadding,
+                        ),
                 ) {
                     Icon(
                         painter = item.icon,
@@ -789,7 +813,11 @@ fun SettingsFlatItem(
                     painter = item.icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp, end = 16.dp),
+                    modifier =
+                        Modifier.padding(
+                            start = SettingsDimensions.FlatIconStartPadding,
+                            end = SettingsDimensions.FlatIconEndPadding,
+                        ),
                 )
             }
 
@@ -797,7 +825,7 @@ fun SettingsFlatItem(
                 Text(
                     text = item.title,
                     maxLines = if (item.subtitle == null) 2 else 1,
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = SettingsDimensions.FlatTitleSize),
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 item.subtitle?.let { subtitle ->
@@ -808,7 +836,7 @@ fun SettingsFlatItem(
                             if (item.showUpdateIndicator) {
                                 effectiveAccent
                             } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = SettingsDimensions.FlatSubtitleAlpha)
                             },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -817,16 +845,20 @@ fun SettingsFlatItem(
             }
 
             item.badge?.let { badge ->
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(SettingsDimensions.FlatBadgeSpacing))
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(SettingsDimensions.BadgeCornerRadius),
                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
                 ) {
                     Text(
                         text = badge,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier =
+                            Modifier.padding(
+                                horizontal = SettingsDimensions.BadgePaddingH,
+                                vertical = SettingsDimensions.BadgePaddingV,
+                            ),
                     )
                 }
             }
@@ -842,10 +874,10 @@ fun SettingsScreenBackground(
     val primaryAccent = MaterialTheme.colorScheme.primary
     val surfaceColor = MaterialTheme.colorScheme.surface
     val bgTopColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = 0.22f).compositeOver(surfaceColor)
+        primaryAccent.copy(alpha = SettingsDimensions.BackgroundTopAlpha).compositeOver(surfaceColor)
     }
     val bgMidColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = 0.06f).compositeOver(surfaceColor)
+        primaryAccent.copy(alpha = SettingsDimensions.BackgroundMidAlpha).compositeOver(surfaceColor)
     }
 
     Box(
