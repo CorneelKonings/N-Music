@@ -8,11 +8,14 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -358,38 +361,29 @@ fun SettingsGroupCard(
     group: SettingsGroup,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalYumaColors.current
-    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
-
     Column(modifier = modifier) {
         Text(
             text = group.title.uppercase(),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = colors.textSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing * 1.2f,
             modifier =
                 Modifier.padding(
-                    horizontal = 12.dp,
-                    vertical = 8.dp,
+                    horizontal = SettingsDimensions.SectionHeaderHorizontalPadding,
+                    vertical = SettingsDimensions.SectionHeaderBottomPadding,
                 ),
         )
 
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .yumaGlassCard(
-                        shape = cardShape,
-                        backgroundColor = colors.glassBackground,
-                        borderColor = colors.glassBorder,
-                    )
-                    .padding(8.dp),
+        Card(
+            shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Column {
                 group.items.forEachIndexed { index, item ->
                     CompositionLocalProvider(LocalPreferenceItemIndex provides index) {
                         SettingsRow(
@@ -409,31 +403,44 @@ fun SettingsRow(
     showDivider: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalYumaColors.current
     val effectiveAccent =
         if (item.accentColor.isSpecified) {
             item.accentColor
         } else {
-            colors.textPrimary
+            MaterialTheme.colorScheme.primary
         }
 
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .yumaClickable(onClick = item.onClick)
-                .yumaGlassCard(
-                    shape = RoundedCornerShape(14.dp),
-                    backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
-                    borderColor = Color.Transparent,
-                )
-                .padding(
-                    horizontal = SettingsDimensions.RowHorizontalPadding,
-                    vertical = SettingsDimensions.RowVerticalPadding,
-                ),
-    ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = SettingsAnimations.pressSpring(),
+        label = "rowScale",
+    )
+    val bgAlpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.06f else 0f,
+        animationSpec = SettingsAnimations.pressSpring(),
+        label = "rowBgAlpha",
+    )
+
+    Column(modifier = modifier) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }.background(MaterialTheme.colorScheme.primary.copy(alpha = bgAlpha))
+                    .focusable()
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = item.onClick,
+                    ).padding(
+                        horizontal = SettingsDimensions.RowHorizontalPadding,
+                        vertical = SettingsDimensions.RowVerticalPadding,
+                    ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val iconShape = rememberPreferenceIconShape(item.title)
@@ -442,7 +449,7 @@ fun SettingsRow(
                     .size(SettingsDimensions.RowIconSize)
                     .clip(iconShape)
                     .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                        color = effectiveAccent.copy(alpha = 0.12f),
                         shape = iconShape,
                     ),
                 contentAlignment = Alignment.Center,
@@ -459,7 +466,7 @@ fun SettingsRow(
                         Icon(
                             painter = item.icon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = effectiveAccent,
                             modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                         )
                     }
@@ -467,7 +474,7 @@ fun SettingsRow(
                     Icon(
                         painter = item.icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = effectiveAccent,
                         modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                     )
                 }
@@ -478,10 +485,9 @@ fun SettingsRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = localFont,
-                    color = colors.textPrimary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     modifier = Modifier.basicMarquee(
                         iterations = Int.MAX_VALUE,
@@ -489,16 +495,15 @@ fun SettingsRow(
                     ),
                 )
                 item.subtitle?.let { subtitle ->
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(1.dp))
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        fontFamily = localFont,
                         color =
                             if (item.showUpdateIndicator) {
                                 effectiveAccent
                             } else {
-                                colors.textSecondary
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             },
                         maxLines = 1,
                         modifier = Modifier.basicMarquee(
@@ -583,55 +588,80 @@ fun SettingsSegmentedItem(
         } else {
             MaterialTheme.colorScheme.surface
         }
-    /* val shape = remember(index, count) { segmentedSettingsItemShape(index, count) } */
-    val shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
-    val colors = LocalYumaColors.current
+    val shape = remember(index, count) { segmentedSettingsItemShape(index, count) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) SettingsAnimations.PressScale else 1f,
+        animationSpec = SettingsAnimations.pressSpring(),
+        label = "settingsSegmentScale",
+    )
 
-    Box(
+    Card(
         modifier =
             modifier
                 .fillMaxWidth()
-                .yumaClickable(onClick = item.onClick)
-                .yumaGlassCard(
-                    shape = shape,
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }.clip(shape)
+                .focusable()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = item.onClick,
                 ),
+        shape = shape,
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(
-                        horizontal = SettingsDimensions.RowHorizontalPadding,
-                        vertical = SettingsDimensions.RowVerticalPadding
-                    ),
+                    .heightIn(min = 88.dp)
+                    .padding(horizontal = 22.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (item.showUpdateIndicator) {
-                BadgedBox(
-                    badge = {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(8.dp),
+            val iconShape = rememberPreferenceIconShape(item.title)
+            Box(
+                modifier =
+                    Modifier
+                        .size(52.dp)
+                        .clip(iconShape)
+                        .background(effectiveAccent),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (item.showUpdateIndicator) {
+                    BadgedBox(
+                        badge = {
+                            Badge(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(9.dp),
+                            )
+                        },
+                    ) {
+                        Icon(
+                            painter = item.icon,
+                            contentDescription = null,
+                            tint = iconContentColor,
+                            modifier = Modifier.size(26.dp),
                         )
-                    },
-                ) {
+                    }
+                } else {
                     Icon(
                         painter = item.icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
+                        tint = iconContentColor,
+                        modifier = Modifier.size(26.dp),
                     )
                 }
-            } else {
-                Icon(
-                    painter = item.icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
-                )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(18.dp))
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -640,9 +670,8 @@ fun SettingsSegmentedItem(
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = localFont,
-                    color = colors.textPrimary,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -650,10 +679,9 @@ fun SettingsSegmentedItem(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = localFont,
-                        color = colors.textSecondary,
-                        maxLines = 2,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -673,14 +701,6 @@ fun SettingsSegmentedItem(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                painter = painterResource(R.drawable.ic_arrow_right),
-                contentDescription = null,
-                tint = colors.textSecondary.copy(alpha = 0.5f),
-                modifier = Modifier.size(SettingsDimensions.ChevronSize),
-            )
         }
     }
 }
