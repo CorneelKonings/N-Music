@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import moe.rukamori.archivetune.constants.HideExplicitKey
 import moe.rukamori.archivetune.constants.PureBlackKey
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 
@@ -132,6 +134,32 @@ fun LibrarySongsScreen(
 
     val wrappedSongs = remember(songs) {
         songs.map { item -> ItemWrapper(item) }.toMutableStateList()
+    }
+
+    val hideExplicit by rememberPreference(HideExplicitKey, defaultValue = false)
+    val displaySongs = remember(wrappedSongs, hideExplicit) {
+        if (hideExplicit) wrappedSongs.filter { !it.item.song.explicit } else wrappedSongs
+    }
+
+    val totalDurationSec = remember(displaySongs) { displaySongs.sumOf { it.item.song.duration } }
+    val totalDurationText = remember(totalDurationSec) {
+        if (totalDurationSec <= 0) {
+            ""
+        } else {
+            val days = totalDurationSec / 86400
+            var remaining = totalDurationSec % 86400
+            val hours = remaining / 3600
+            remaining %= 3600
+            val minutes = remaining / 60
+            val seconds = remaining % 60
+
+            when {
+                days > 0 -> "${days}d ${hours}h ${minutes}m"
+                hours > 0 -> "${hours}h ${minutes}m"
+                minutes > 0 -> "${minutes}m ${seconds}s"
+                else -> "${seconds}s"
+            }
+        }
     }
 
     ExpressivePullToRefreshBox(
@@ -253,10 +281,13 @@ fun LibrarySongsScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
+            val isDark = isSystemInDarkTheme()
+
             LazyColumn(
                 state = lazyListState,
                 contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = playerAwareBottomPadding),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(if (pureBlack && isDark) 14.dp else 8.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 item(key = "collection_spotlight") {
@@ -287,8 +318,13 @@ fun LibrarySongsScreen(
                                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
+                                    val songsCountText = "${displaySongs.size} ${stringResource(if (displaySongs.size == 1) R.string.song_singular else R.string.songs)}"
                                     Text(
-                                        text = "${wrappedSongs.size} ${stringResource(if (wrappedSongs.size == 1) R.string.song_singular else R.string.songs)}",
+                                        text = if (totalDurationText.isNotEmpty()) {
+                                            "$songsCountText • $totalDurationText"
+                                        } else {
+                                            songsCountText
+                                        },
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
                                     )
@@ -296,11 +332,11 @@ fun LibrarySongsScreen(
 
                                 Button(
                                     onClick = {
-                                        if (wrappedSongs.isNotEmpty()) {
+                                        if (displaySongs.isNotEmpty()) {
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = context.getString(R.string.queue_all_songs),
-                                                    items = wrappedSongs.map { it.item.toMediaItem() },
+                                                    items = displaySongs.map { it.item.toMediaItem() },
                                                 ),
                                             )
                                         }
@@ -330,7 +366,7 @@ fun LibrarySongsScreen(
                 }
 
                 itemsIndexed(
-                    items = wrappedSongs,
+                    items = displaySongs,
                     key = { index, songWrapper -> "${songWrapper.item.id}_$index" },
                     contentType = { _, _ -> CONTENT_TYPE_SONG },
                 ) { index, songWrapper ->
@@ -385,7 +421,7 @@ fun LibrarySongsScreen(
                                     if (songWrapper.item.id == mediaMetadata?.id) {
                                         playerConnection.player.togglePlayPause()
                                     } else {
-                                        val visibleSongs = wrappedSongs.map { it.item }
+                                        val visibleSongs = displaySongs.map { it.item }
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = context.getString(R.string.queue_all_songs),
