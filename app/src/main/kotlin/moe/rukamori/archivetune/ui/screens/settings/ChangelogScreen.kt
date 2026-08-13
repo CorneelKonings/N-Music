@@ -28,12 +28,15 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.UpdateChannel
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.MarkdownText
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.ReleaseInfo
 import moe.rukamori.archivetune.utils.Updater
 import java.text.SimpleDateFormat
 import java.util.Locale
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
+import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -233,5 +236,13 @@ private fun ReleaseCard(release: ReleaseInfo) {
                 )
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun ChangelogScreenPreview() {
+    TestThemeWrapper {
+        ChangelogScreen(navController = rememberNavController())
     }
 }

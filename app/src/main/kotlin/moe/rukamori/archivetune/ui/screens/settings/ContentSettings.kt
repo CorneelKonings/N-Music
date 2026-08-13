@@ -43,6 +43,9 @@ import moe.rukamori.archivetune.ui.component.EditTextPreference
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.ListPreference
 import moe.rukamori.archivetune.ui.component.PreferenceEntry
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
+import androidx.navigation.compose.rememberNavController
 import moe.rukamori.archivetune.ui.component.PreferenceGroup
 import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.utils.backToMain
@@ -236,5 +239,13 @@ fun ContentSettings(navController: NavController) {
                 )
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun ContentSettingsPreview() {
+    TestThemeWrapper {
+        ContentSettings(navController = rememberNavController())
     }
 }

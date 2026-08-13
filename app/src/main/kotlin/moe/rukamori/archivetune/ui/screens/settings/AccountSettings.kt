@@ -1794,3 +1794,14 @@ private fun previewSecureValue(value: String): String {
     }
     return normalized.take(52) + "\u2025" + normalized.takeLast(18)
 }
+
+@ThemePreviews
+@Composable
+private fun AccountSettingsPreview() {
+    TestThemeWrapper {
+        AccountSettings(
+            navController = rememberNavController(),
+            updateState = UpdateState.NoUpdate,
+        )
+    }
+}

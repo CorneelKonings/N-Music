@@ -23,26 +23,26 @@ object SettingsDimensions {
 
     // -- Cards -------------------------------------------------------------
     val CardElevation = 0.dp
-    val GroupCardCornerRadius = 12.dp
-    val BannerCardCornerRadius = 14.dp
+    val GroupCardCornerRadius = 18.dp
+    val BannerCardCornerRadius = 18.dp
 
     // -- Screen layout -----------------------------------------------------
     val ScreenHorizontalPadding = 16.dp
     val ScreenBottomPadding = 24.dp
-    val SectionSpacing = 10.dp
-    val RowVerticalPadding = 8.dp
+    val SectionSpacing = 12.dp
+    val RowVerticalPadding = 10.dp
     val RowHorizontalPadding = 14.dp
 
     // -- Row icons ---------------------------------------------------------
-    val RowIconSize = 28.dp
-    val RowIconInnerSize = 18.dp
-    val BannerIconSize = 44.dp
-    val BannerIconInnerSize = 22.dp
+    val RowIconSize = 32.dp
+    val RowIconInnerSize = 20.dp
+    val BannerIconSize = 46.dp
+    val BannerIconInnerSize = 24.dp
     val ChevronSize = 18.dp
 
     // -- Profile card ------------------------------------------------------
-    val ProfileCardAvatarSize = 56.dp
-    val ProfileCardAvatarIconSize = 26.dp
+    val ProfileCardAvatarSize = 52.dp
+    val ProfileCardAvatarIconSize = 24.dp
 
     // -- Dividers ----------------------------------------------------------
     val DividerThickness = 0.5.dp
@@ -54,21 +54,21 @@ object SettingsDimensions {
 
     // -- Segmented groups (settings list) ----------------------------------
     val SegmentedGroupHorizontalPadding = 16.dp
-    val SegmentedItemGap = 2.dp
-    val SegmentedCornerLarge = 28.dp
-    val SegmentedCornerSmall = 6.dp
-    val SegmentedItemMinHeight = 88.dp
-    val SegmentedItemPaddingHorizontal = 22.dp
-    val SegmentedItemPaddingVertical = 14.dp
-    val SegmentedIconBoxSize = 52.dp
-    val SegmentedIconSize = 26.dp
-    val SegmentedIconSpacing = 18.dp
-    val SegmentedBadgeSize = 9.dp
+    val SegmentedItemGap = 1.5.dp
+    val SegmentedCornerLarge = 22.dp
+    val SegmentedCornerSmall = 5.dp
+    val SegmentedItemMinHeight = 72.dp
+    val SegmentedItemPaddingHorizontal = 18.dp
+    val SegmentedItemPaddingVertical = 12.dp
+    val SegmentedIconBoxSize = 46.dp
+    val SegmentedIconSize = 25.dp
+    val SegmentedIconSpacing = 16.dp
+    val SegmentedBadgeSize = 8.dp
     val SegmentedRowSpacing = 2.dp
-    val SegmentedBadgeSpacing = 12.dp
+    val SegmentedBadgeSpacing = 10.dp
     val SegmentedBadgeCornerPercent = 50
-    val SegmentedBadgePaddingH = 10.dp
-    val SegmentedBadgePaddingV = 5.dp
+    val SegmentedBadgePaddingH = 8.dp
+    val SegmentedBadgePaddingV = 4.dp
 
     // -- Settings row ------------------------------------------------------
     val RowIconBgAlpha = 0.12f
@@ -101,10 +101,10 @@ object SettingsDimensions {
 
     // -- Flat items --------------------------------------------------------
     val FlatPaddingH = 16.dp
-    val FlatPaddingV = 16.dp
+    val FlatPaddingV = 14.dp
     val FlatIconStartPadding = 8.dp
     val FlatIconEndPadding = 16.dp
-    val FlatTitleSize = 20.sp
+    val FlatTitleSize = 19.sp
     val FlatSubtitleAlpha = 0.7f
     val FlatBadgeSpacing = 6.dp
 
@@ -113,7 +113,7 @@ object SettingsDimensions {
     val BackgroundMidAlpha = 0.06f
 
     // -- Yuma glass preferences --------------------------------------------
-    val GlassCornerRadius = 16.dp
+    val GlassCornerRadius = 18.dp
     val GlassBorderThickness = 1.dp
     val GlassStartColor = Color(0x1AFFFFFF)
     val GlassEndColor = Color(0x08FFFFFF)
@@ -123,7 +123,7 @@ object SettingsDimensions {
     val YumaTitlePaddingStart = 4.dp
     val YumaTitlePaddingBottom = 8.dp
     val YumaCategorySpacing = 8.dp
-    val YumaRowIconSize = 24.dp
+    val YumaRowIconSize = 26.dp
     val YumaRowIconSpacing = 12.dp
     val YumaRowArrowSize = 24.dp
     val YumaRowArrowSpacing = 8.dp
@@ -145,7 +145,6 @@ object SettingsAnimations {
     val PressScale = 0.96f
     val PressDampingRatio = 0.6f
     val PressStiffness = Spring.StiffnessMedium
-    val PressBackgroundAlpha = 0.06f
 
     @Composable
     fun <T> pressSpring(): FiniteAnimationSpec<T> =

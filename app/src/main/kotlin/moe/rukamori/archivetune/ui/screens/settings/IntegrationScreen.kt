@@ -35,9 +35,12 @@ import moe.rukamori.archivetune.ui.component.PreferenceEntry
 import moe.rukamori.archivetune.ui.component.PreferenceGroup
 import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.component.TextFieldDialog
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
+import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,5 +150,13 @@ fun IntegrationScreen(navController: NavController) {
                 InfoLabel(text = stringResource(R.string.listenbrainz_scrobbling_description))
             },
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun IntegrationScreenPreview() {
+    TestThemeWrapper {
+        IntegrationScreen(navController = rememberNavController())
     }
 }

@@ -124,9 +124,12 @@ import moe.rukamori.archivetune.ui.component.PreferenceGroup
 import moe.rukamori.archivetune.ui.component.SegmentedPreference
 import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
+import androidx.navigation.compose.rememberNavController
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.AppUpdateInstaller
 import moe.rukamori.archivetune.utils.GitCommit
@@ -1422,3 +1425,11 @@ private fun formatCommitDate(isoDate: String): String =
     } catch (e: Exception) {
         isoDate.take(10)
     }
+
+@ThemePreviews
+@Composable
+private fun UpdateScreenPreview() {
+    TestThemeWrapper {
+        UpdateScreen(navController = rememberNavController())
+    }
+}

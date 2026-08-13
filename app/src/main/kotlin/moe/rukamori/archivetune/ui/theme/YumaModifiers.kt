@@ -5,6 +5,7 @@
 
 package moe.rukamori.archivetune.ui.theme
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,12 +62,16 @@ fun Modifier.yumaClickable(
     }
 
     val isPressedState = interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressedState.value) pressedScale else 1f,
+        animationSpec = SettingsAnimations.pressSpring(),
+        label = "yumaClickScale",
+    )
 
     return this
         .graphicsLayer {
-            val isPressed = isPressedState.value
-            scaleX = if (isPressed) pressedScale else 1f
-            scaleY = if (isPressed) pressedScale else 1f
+            scaleX = scale
+            scaleY = scale
         }
         .clickable(
             interactionSource = interactionSource,
@@ -116,12 +122,16 @@ fun Modifier.yumaCombinedClickable(
     }
 
     val isPressedState = interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressedState.value) pressedScale else 1f,
+        animationSpec = SettingsAnimations.pressSpring(),
+        label = "yumaCombinedClickScale",
+    )
 
     return this
         .graphicsLayer {
-            val isPressed = isPressedState.value
-            scaleX = if (isPressed) pressedScale else 1f
-            scaleY = if (isPressed) pressedScale else 1f
+            scaleX = scale
+            scaleY = scale
         }
         .combinedClickable(
             interactionSource = interactionSource,

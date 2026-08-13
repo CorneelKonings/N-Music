@@ -426,11 +426,6 @@ fun SettingsRow(
         animationSpec = SettingsAnimations.pressSpring(),
         label = "rowScale",
     )
-    val bgAlpha by animateFloatAsState(
-        targetValue = if (isPressed) SettingsAnimations.PressBackgroundAlpha else 0f,
-        animationSpec = SettingsAnimations.pressSpring(),
-        label = "rowBgAlpha",
-    )
 
     Column(modifier = modifier) {
         Row(
@@ -440,8 +435,7 @@ fun SettingsRow(
                     .graphicsLayer {
                         scaleX = scale
                         scaleY = scale
-                    }.background(MaterialTheme.colorScheme.primary.copy(alpha = bgAlpha))
-                    .focusable()
+                    }.focusable()
                     .clickable(
                         interactionSource = interactionSource,
                         indication = null,

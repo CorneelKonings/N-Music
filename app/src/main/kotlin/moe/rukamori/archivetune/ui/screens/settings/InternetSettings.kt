@@ -68,10 +68,13 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.*
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.ui.component.*
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.ProxyUtils
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
+import androidx.navigation.compose.rememberNavController
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.Proxy
@@ -538,4 +541,12 @@ private fun IpRotationPreference(
                 { onCheckedChange(!checked) }
             },
     )
+}
+
+@ThemePreviews
+@Composable
+private fun InternetSettingsPreview() {
+    TestThemeWrapper {
+        InternetSettings(navController = rememberNavController())
+    }
 }

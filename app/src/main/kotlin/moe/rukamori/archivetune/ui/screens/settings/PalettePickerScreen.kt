@@ -31,8 +31,11 @@ import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.CustomThemeColorKey
 import moe.rukamori.archivetune.ui.component.IconButton
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberPreference
+import androidx.navigation.compose.rememberNavController
 
 // Оставляем только базовые сочные акценты для фолбэка приложения
 val TargetAccentColors = listOf(
@@ -132,4 +135,12 @@ fun ThemeCreatorScreen(navController: NavController) {
         navController.navigateUp()
     }
     Box(modifier = Modifier.fillMaxSize())
+}
+
+@ThemePreviews
+@Composable
+private fun PalettePickerScreenPreview() {
+    TestThemeWrapper {
+        PalettePickerScreen(navController = rememberNavController())
+    }
 }

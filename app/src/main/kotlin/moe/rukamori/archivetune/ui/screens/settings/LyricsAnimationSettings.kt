@@ -35,7 +35,10 @@ import moe.rukamori.archivetune.constants.LyricsV2LrcBounceEnabledKey
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.PreferenceEntry
 import moe.rukamori.archivetune.ui.component.PreferenceGroup
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
+import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
 import moe.rukamori.archivetune.ui.utils.backToMain
+import androidx.navigation.compose.rememberNavController
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
@@ -139,5 +142,13 @@ fun LyricsAnimationSettings(navController: NavController) {
                 }
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun LyricsAnimationSettingsPreview() {
+    TestThemeWrapper {
+        LyricsAnimationSettings(navController = rememberNavController())
     }
 }
