@@ -2,20 +2,18 @@ package moe.rukamori.archivetune.ui.screens
 import moe.rukamori.archivetune.ui.screens.HomeSectionHeader
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -25,14 +23,15 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,17 +48,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.models.AlbumItem
 import moe.rukamori.archivetune.innertube.models.Artist
-import moe.rukamori.archivetune.innertube.models.ArtistItem
 import moe.rukamori.archivetune.innertube.models.PlaylistItem
 import moe.rukamori.archivetune.spotify.SectionType
 import moe.rukamori.archivetune.spotify.SpotifyHomeAction
+import moe.rukamori.archivetune.spotify.SpotifyHomeNavigationEvent
 import moe.rukamori.archivetune.spotify.SpotifyHomeSection
 import moe.rukamori.archivetune.spotify.SpotifyHomeScreenState
 import moe.rukamori.archivetune.spotify.SpotifyHomeViewModel
@@ -70,7 +67,6 @@ import moe.rukamori.archivetune.spotify.models.SpotifyArtist
 import moe.rukamori.archivetune.spotify.models.SpotifyPlaylist
 import moe.rukamori.archivetune.spotify.models.SpotifyTrack
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
-import moe.rukamori.archivetune.ui.component.SpeedDialGridItem
 import moe.rukamori.archivetune.ui.component.SpotifyTrackListItem
 import moe.rukamori.archivetune.ui.component.YouTubeGridItem
 import moe.rukamori.archivetune.ui.theme.yumaClickable
@@ -84,8 +80,16 @@ fun SpotifyHomeScreen(
     onSwitchToYoutube: () -> Unit = {}
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-    val scope = rememberCoroutineScope()
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(viewModel) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is SpotifyHomeNavigationEvent.OpenAlbum -> navController.navigate("album/${event.browseId}")
+                is SpotifyHomeNavigationEvent.OpenArtist -> navController.navigate("artist/${event.id}")
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -146,24 +150,17 @@ fun SpotifyHomeScreen(
                                 recentItems = state.recentItems,
                                 frequentArtists = state.frequentArtists,
                                 onPlaylistClick = { playlist -> navController.navigate("spotify_playlist/${playlist.id}") },
-                                onAlbumClick = { album ->
-                                    scope.launch {
-                                        val result = YouTube.search(album.name, YouTube.SearchFilter.FILTER_ALBUM).getOrNull()
-                                        val albumItem = result?.items?.firstOrNull() as? AlbumItem
-                                        if (albumItem != null) {
-                                            navController.navigate("album/${albumItem.browseId}")
-                                        }
-                                    }
+                                onAlbumClick = { album -> 
+                                    viewModel.onAction(SpotifyHomeAction.AlbumClick(
+                                        moe.rukamori.archivetune.spotify.models.SpotifyAlbum(
+                                            id = album.id,
+                                            name = album.name,
+                                            artists = album.artists.map { moe.rukamori.archivetune.spotify.models.SpotifySimpleArtist(id = it.id, name = it.name, uri = it.uri) },
+                                            images = listOfNotNull(album.imageUrl?.let { moe.rukamori.archivetune.spotify.models.SpotifyImage(it, null, null) })
+                                        )
+                                    )) 
                                 },
-                                onArtistClick = { artist ->
-                                    scope.launch {
-                                        val result = YouTube.search(artist.name, YouTube.SearchFilter.FILTER_ARTIST).getOrNull()
-                                        val artistItem = result?.items?.firstOrNull() as? ArtistItem
-                                        if (artistItem != null) {
-                                            navController.navigate("artist/${artistItem.id}")
-                                        }
-                                    }
-                                },
+                                onArtistClick = { artist -> viewModel.onAction(SpotifyHomeAction.ArtistClick(artist)) },
                                 modifier = Modifier.animateItem()
                             )
                         }
@@ -203,30 +200,14 @@ fun SpotifyHomeScreen(
                                     SectionType.ARTISTS -> {
                                         SpotifyArtistSectionRow(
                                             artists = section.artists,
-                                            onArtistClick = { artist ->
-                                                scope.launch {
-                                                    val result = YouTube.search(artist.name, YouTube.SearchFilter.FILTER_ARTIST).getOrNull()
-                                                    val artistItem = result?.items?.firstOrNull() as? ArtistItem
-                                                    if (artistItem != null) {
-                                                        navController.navigate("artist/${artistItem.id}")
-                                                    }
-                                                }
-                                            },
+                                            onArtistClick = { artist -> viewModel.onAction(SpotifyHomeAction.ArtistClick(artist)) },
                                             modifier = Modifier.animateItem()
                                         )
                                     }
                                     SectionType.ALBUMS -> {
                                         SpotifyAlbumSectionRow(
                                             albums = section.albums,
-                                            onAlbumClick = { album ->
-                                                scope.launch {
-                                                    val result = YouTube.search(album.name, YouTube.SearchFilter.FILTER_ALBUM).getOrNull()
-                                                    val albumItem = result?.items?.firstOrNull() as? AlbumItem
-                                                    if (albumItem != null) {
-                                                        navController.navigate("album/${albumItem.browseId}")
-                                                    }
-                                                }
-                                            },
+                                            onAlbumClick = { album -> viewModel.onAction(SpotifyHomeAction.AlbumClick(album)) },
                                             modifier = Modifier.animateItem()
                                         )
                                     }
@@ -483,7 +464,6 @@ private fun HomeStatePane(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SpotifyRecentPanel(
     recentItems: List<SpotifyRecentItem>,
@@ -498,113 +478,126 @@ fun SpotifyRecentPanel(
             HomeSectionHeader(
                 title = stringResource(R.string.spotify_recently_played),
             )
-            LazyHorizontalGrid(
-                rows = GridCells.Fixed(2),
-                contentPadding = PaddingValues(horizontal = 12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(190.dp)
-            ) {
-                items(
-                    items = recentItems,
-                    key = { it.id },
-                    contentType = { "spotify_recent_item" }
-                ) { item ->
-                    when (item) {
-                        is SpotifyRecentItem.Playlist -> {
-                            val playlistItem = remember(item.id) {
-                                PlaylistItem(
-                                    id = item.id,
-                                    title = item.name,
-                                    author = null,
-                                    songCountText = null,
-                                    thumbnail = item.imageUrl ?: "",
-                                    playEndpoint = null,
-                                    shuffleEndpoint = null,
-                                    radioEndpoint = null,
-                                )
-                            }
-                            SpeedDialGridItem(
-                                item = playlistItem,
-                                isPinned = false,
-                                isActive = false,
-                                isPlaying = false,
-                                modifier = Modifier
-                                    .width(180.dp)
-                                    .padding(4.dp)
-                                    .yumaClickable(onClick = { onPlaylistClick(item) })
-                            )
-                        }
-                        is SpotifyRecentItem.Album -> {
-                            val albumItem = remember(item.id) {
-                                AlbumItem(
-                                    browseId = item.id,
-                                    playlistId = item.id,
-                                    title = item.name,
-                                    artists = item.artists.map { Artist(it.name, it.id) },
-                                    thumbnail = item.imageUrl ?: "",
-                                )
-                            }
-                            SpeedDialGridItem(
-                                item = albumItem,
-                                isPinned = false,
-                                isActive = false,
-                                isPlaying = false,
-                                modifier = Modifier
-                                    .width(180.dp)
-                                    .padding(4.dp)
-                                    .yumaClickable(onClick = { onAlbumClick(item) })
-                            )
-                        }
+            SpotifyQuickGrid(
+                items = recentItems,
+                maxItems = 8,
+                columns = 4
+            ) { item ->
+                when (item) {
+                    is SpotifyRecentItem.Playlist -> {
+                        SpotifyQuickGridCell(
+                            title = item.name,
+                            imageUrl = item.imageUrl,
+                            onClick = { onPlaylistClick(item) },
+                            isArtist = false
+                        )
+                    }
+                    is SpotifyRecentItem.Album -> {
+                        SpotifyQuickGridCell(
+                            title = item.name,
+                            imageUrl = item.imageUrl,
+                            onClick = { onAlbumClick(item) },
+                            isArtist = false
+                        )
                     }
                 }
             }
         }
 
         if (frequentArtists.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
             HomeSectionHeader(
                 title = stringResource(R.string.spotify_frequently_listened),
             )
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 10.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                items(
-                    items = frequentArtists,
-                    key = { "spotify_frequent_artist_${it.id}" },
-                    contentType = { "spotify_frequent_artist" }
-                ) { artist ->
-                    val thumbnail = remember(artist.id) {
-                        artist.images.firstOrNull { it.width in 200..400 }?.url
-                            ?: artist.images.firstOrNull()?.url
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .width(140.dp + 24.dp)
-                            .padding(horizontal = 6.dp)
-                            .yumaClickable(onClick = { onArtistClick(artist) }),
-                    ) {
-                        AsyncImage(
-                            model = thumbnail,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(140.dp)
-                                .clip(CircleShape),
-                        )
-                        Text(
-                            text = artist.name,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
+            SpotifyQuickGrid(
+                items = frequentArtists,
+                maxItems = 8,
+                columns = 4
+            ) { artist ->
+                val thumbnail = remember(artist.id) {
+                    artist.images.firstOrNull { it.width in 200..400 }?.url
+                        ?: artist.images.firstOrNull()?.url
                 }
+                SpotifyQuickGridCell(
+                    title = artist.name,
+                    imageUrl = thumbnail,
+                    onClick = { onArtistClick(artist) },
+                    isArtist = true
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun <T> SpotifyQuickGrid(
+    items: List<T>,
+    maxItems: Int = 8,
+    columns: Int = 4,
+    itemContent: @Composable (T) -> Unit
+) {
+    val displayItems = items.take(maxItems)
+    if (displayItems.isEmpty()) return
+    
+    val rows = displayItems.chunked(columns)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+    ) {
+        rows.forEachIndexed { rowIndex, rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                rowItems.forEach { item ->
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        itemContent(item)
+                    }
+                }
+                val emptyCells = columns - rowItems.size
+                repeat(emptyCells) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+            if (rowIndex < rows.lastIndex) {
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SpotifyQuickGridCell(
+    title: String,
+    imageUrl: String?,
+    onClick: () -> Unit,
+    isArtist: Boolean
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .yumaClickable(onClick = onClick)
+            .padding(4.dp)
+    ) {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(56.dp)
+                .clip(if (isArtist) CircleShape else RoundedCornerShape(8.dp))
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }
