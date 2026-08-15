@@ -188,7 +188,7 @@ fun SpotifyHomeScreen(
                                     SectionType.TRACKS -> {
                                         SpotifyTrackSectionRow(
                                             tracks = section.tracks,
-                                            horizontalItemWidth = 320.dp,
+                                            horizontalItemWidth = 240.dp,
                                             onTrackClick = { track ->
                                                 playerConnection.playQueue(
                                                     SpotifyTracksQueue(
@@ -278,7 +278,7 @@ fun SpotifyTrackSectionRow(
 ) {
     LazyHorizontalGrid(
         state = rememberLazyGridState(),
-        rows = GridCells.Fixed(4),
+        rows = GridCells.Fixed(2),
         contentPadding = WindowInsets.systemBars
             .only(WindowInsetsSides.Horizontal)
             .asPaddingValues(),
@@ -325,7 +325,7 @@ fun SpotifyArtistSectionRow(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .width(100.dp + 24.dp)
+                    .width(140.dp + 24.dp)
                     .padding(horizontal = 6.dp)
                     .yumaClickable(onClick = { onArtistClick(artist) }),
             ) {
@@ -334,7 +334,7 @@ fun SpotifyArtistSectionRow(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(140.dp)
                         .clip(CircleShape),
                 )
                 Text(
@@ -380,7 +380,7 @@ fun SpotifyAlbumSectionRow(
                 isActive = false,
                 isPlaying = false,
                 modifier = Modifier
-                    .width(100.dp + 24.dp)
+                    .width(180.dp + 24.dp)
                     .padding(horizontal = 6.dp)
                     .yumaClickable(onClick = { onAlbumClick(album) }),
             )
@@ -421,7 +421,7 @@ fun SpotifyPlaylistSectionRow(
                 isActive = false,
                 isPlaying = false,
                 modifier = Modifier
-                    .width(100.dp + 24.dp)
+                    .width(180.dp + 24.dp)
                     .padding(horizontal = 6.dp)
                     .yumaClickable(onClick = { onPlaylistClick(playlist) }),
             )
