@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.models.AlbumItem
 import moe.rukamori.archivetune.innertube.models.ArtistItem
@@ -72,7 +71,6 @@ sealed interface SpotifyHomeAction {
 @HiltViewModel
 class SpotifyHomeViewModel @Inject constructor(
     private val repository: SpotifyLibraryRepository,
-    private val database: MusicDatabase,
 ) : ViewModel() {
 
     private val _screenState = MutableStateFlow<SpotifyHomeScreenState>(SpotifyHomeScreenState.Loading)
@@ -179,13 +177,20 @@ class SpotifyHomeViewModel @Inject constructor(
                     }
                 }
 
-                val recentItems = database.recentSpotifyPlaylists(limit = 10).map { entity ->
-                    SpotifyRecentItem.Playlist(
-                        id = entity.spotifyId!!,
-                        name = entity.name,
-                        imageUrl = entity.thumbnailUrl,
-                    )
-                }
+                val recentItems = Spotify.recentlyPlayed(limit = 20)
+                    .getOrNull()
+                    ?.items
+                    ?.mapNotNull { it.track.album }
+                    ?.distinctBy { it.id }
+                    ?.map { album ->
+                        SpotifyRecentItem.Album(
+                            id = album.id,
+                            name = album.name,
+                            imageUrl = album.images.firstOrNull()?.url,
+                            artists = album.artists.map { SpotifyArtist(id = it.id.orEmpty(), name = it.name, uri = it.uri) }
+                        )
+                    }
+                    ?: emptyList()
 
                 if (sections.isEmpty()) {
                     _screenState.update { SpotifyHomeScreenState.Empty }

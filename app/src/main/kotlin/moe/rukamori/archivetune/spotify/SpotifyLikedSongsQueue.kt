@@ -130,7 +130,7 @@ class SpotifyLikedSongsQueue(
             Spotify.likedSongs(limit = SPOTIFY_PAGE_SIZE, offset = apiFetchOffset).getOrThrow()
         }
         apiTotal = result.total
-        val fetched = result.items.mapNotNull { it.track?.takeUnless(SpotifyTrack::isLocal) }
+        val fetched = result.items.mapNotNull { it.track.takeUnless(SpotifyTrack::isLocal) }
         allTracks += fetched
         apiFetchOffset += result.items.size
         apiHasMore = apiFetchOffset < apiTotal

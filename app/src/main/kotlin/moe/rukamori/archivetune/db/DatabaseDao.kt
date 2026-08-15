@@ -2115,17 +2115,4 @@ interface DatabaseDao {
             rawGetSpotifyMatchesByYouTubeIds(chunk)
         }
     }
-
-    @Query(
-        """
-        SELECT playlist.* FROM playlist
-        JOIN playlist_song_map ON playlist.id = playlist_song_map.playlistId
-        JOIN event ON event.songId = playlist_song_map.songId
-        WHERE playlist.spotifyId IS NOT NULL
-        GROUP BY playlist.id
-        ORDER BY MAX(event.id) DESC
-        LIMIT :limit
-        """
-    )
-    suspend fun recentSpotifyPlaylists(limit: Int): List<PlaylistEntity>
 }

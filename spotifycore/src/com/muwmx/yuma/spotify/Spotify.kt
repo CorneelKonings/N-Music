@@ -44,6 +44,7 @@ import moe.rukamori.archivetune.spotify.models.SpotifyPlaylist
 import moe.rukamori.archivetune.spotify.models.SpotifyPlaylistOwner
 import moe.rukamori.archivetune.spotify.models.SpotifyPlaylistTrack
 import moe.rukamori.archivetune.spotify.models.SpotifyPlaylistTracksRef
+import moe.rukamori.archivetune.spotify.models.SpotifyRecentlyPlayed
 import moe.rukamori.archivetune.spotify.models.SpotifyRecommendations
 import moe.rukamori.archivetune.spotify.models.SpotifySavedTrack
 import moe.rukamori.archivetune.spotify.models.SpotifySearchResult
@@ -1075,6 +1076,13 @@ object Spotify {
         }
 
     // ── Top Tracks (REST fallback — no GQL equivalent) ──────────────────
+
+    suspend fun recentlyPlayed(limit: Int = 20): Result<SpotifyRecentlyPlayed> =
+        runCatching {
+            authenticatedGet("me/player/recently-played", failFastOn429 = true) {
+                parameter("limit", limit)
+            }
+        }
 
     suspend fun topTracks(
         timeRange: String = "medium_term",

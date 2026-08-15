@@ -91,8 +91,17 @@ fun PlayerBottomBar(
     val repeatColor = if (isRepeatActive) activeColor else inactiveColor
     val lyricsColor = if (isLyricsActive) activeColor else inactiveButtonColor
 
-    val shuffleIcon = if (state.shuffleState == "smart") R.drawable.ic_shuffle_mix else R.drawable.ic_shuffle
-    val repeatIcon = if (state.repeatState == "one") R.drawable.ic_repeat_one else R.drawable.ic_repeat
+    val repeatIcon = when (state.repeatState) {
+        "one" -> R.drawable.ic_repeat_one
+        "all", "on" -> R.drawable.ic_repeat_on
+        else -> R.drawable.ic_repeat
+    }
+
+    val shuffleIcon = when (state.shuffleState) {
+        "smart" -> R.drawable.ic_shuffle_mix
+        "on" -> R.drawable.ic_shuffle
+        else -> R.drawable.ic_shuffle
+    }
 
     Row(
         modifier = modifier

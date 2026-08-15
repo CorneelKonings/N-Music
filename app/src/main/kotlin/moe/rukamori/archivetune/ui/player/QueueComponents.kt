@@ -347,7 +347,7 @@ fun CurrentSongHeader(
                         painterResource(
                             when (repeatMode) {
                                 Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-                                Player.REPEAT_MODE_ALL -> R.drawable.repeat_on
+                                Player.REPEAT_MODE_ALL -> R.drawable.ic_repeat_on
                                 else -> R.drawable.ic_repeat
                             },
                         ),

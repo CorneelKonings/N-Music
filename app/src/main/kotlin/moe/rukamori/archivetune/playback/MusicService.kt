@@ -3262,7 +3262,7 @@ class MusicService :
                             when (player.repeatMode) {
                                 REPEAT_MODE_OFF -> R.drawable.ic_repeat
                                 REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-                                REPEAT_MODE_ALL -> R.drawable.ic_repeat
+                                REPEAT_MODE_ALL -> R.drawable.ic_repeat_on
                                 else -> R.drawable.ic_repeat
                             },
                         ).setSessionCommand(CommandToggleRepeatMode)
