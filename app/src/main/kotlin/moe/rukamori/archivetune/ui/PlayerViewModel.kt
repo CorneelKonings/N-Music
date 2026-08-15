@@ -1,6 +1,7 @@
 package moe.rukamori.archivetune.ui
 
 import android.app.Application
+import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
@@ -377,6 +378,7 @@ class PlayerViewModel @Inject constructor(
         } else {
             _uiState.update {
                 it.copy(
+                    coverDrawable = null,
                     vibrantColor = android.graphics.Color.WHITE,
                     darkMutedColor = android.graphics.Color.parseColor("#282828"),
                     gradientColor = android.graphics.Color.parseColor("#121212")
@@ -727,6 +729,7 @@ class PlayerViewModel @Inject constructor(
                             _uiState.update {
                                 it.copy(
                                     coverUrl = url, // Сохраняем только чистый URL
+                                    coverDrawable = BitmapDrawable(application.resources, bitmap),
                                     vibrantColor = scheme.primary.toArgb(),
                                     darkMutedColor = scheme.secondaryContainer.toArgb(),
                                     gradientColor = scheme.primaryContainer.toArgb()
@@ -741,6 +744,7 @@ class PlayerViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             coverUrl = url,
+                            coverDrawable = null,
                             vibrantColor = android.graphics.Color.WHITE,
                             darkMutedColor = android.graphics.Color.parseColor("#282828"),
                             gradientColor = android.graphics.Color.parseColor("#121212")
