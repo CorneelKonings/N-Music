@@ -2,6 +2,7 @@ package moe.rukamori.archivetune.ui.screens
 import moe.rukamori.archivetune.ui.screens.HomeSectionHeader
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -294,7 +295,8 @@ fun SpotifyArtistSectionRow(
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 10.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier,
     ) {
         items(
@@ -310,8 +312,7 @@ fun SpotifyArtistSectionRow(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .width(140.dp + 24.dp)
-                    .padding(horizontal = 6.dp)
+                    .width(140.dp)
                     .yumaClickable(onClick = { onArtistClick(artist) }),
             ) {
                 AsyncImage(
@@ -343,7 +344,8 @@ fun SpotifyAlbumSectionRow(
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 10.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier,
     ) {
         items(
@@ -364,9 +366,9 @@ fun SpotifyAlbumSectionRow(
                 item = albumItem,
                 isActive = false,
                 isPlaying = false,
+                fillMaxWidth = true,
                 modifier = Modifier
-                    .width(180.dp + 24.dp)
-                    .padding(horizontal = 6.dp)
+                    .width(150.dp)
                     .yumaClickable(onClick = { onAlbumClick(album) }),
             )
         }
@@ -381,7 +383,8 @@ fun SpotifyPlaylistSectionRow(
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 10.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier,
     ) {
         items(
@@ -405,9 +408,9 @@ fun SpotifyPlaylistSectionRow(
                 item = playlistItem,
                 isActive = false,
                 isPlaying = false,
+                fillMaxWidth = true,
                 modifier = Modifier
-                    .width(180.dp + 24.dp)
-                    .padding(horizontal = 6.dp)
+                    .width(150.dp)
                     .yumaClickable(onClick = { onPlaylistClick(playlist) }),
             )
         }
@@ -576,8 +579,8 @@ private fun SpotifyQuickGridCell(
     onClick: () -> Unit,
     isArtist: Boolean
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .yumaClickable(onClick = onClick)
@@ -591,13 +594,14 @@ private fun SpotifyQuickGridCell(
                 .size(56.dp)
                 .clip(if (isArtist) CircleShape else RoundedCornerShape(8.dp))
         )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 4.dp)
+            textAlign = TextAlign.Start,
+            modifier = Modifier.weight(1f)
         )
     }
 }
