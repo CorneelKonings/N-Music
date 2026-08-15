@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -280,9 +278,7 @@ fun SpotifyTrackSectionRow(
     LazyHorizontalGrid(
         state = rememberLazyGridState(),
         rows = GridCells.Fixed(2),
-        contentPadding = WindowInsets.systemBars
-            .only(WindowInsetsSides.Horizontal)
-            .asPaddingValues(),
+        contentPadding = PaddingValues(horizontal = 16.dp),
         modifier = modifier
             .fillMaxWidth()
             .height(64.dp * 4)
@@ -317,7 +313,7 @@ fun SpotifyArtistSectionRow(
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 12.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp),
         modifier = modifier,
     ) {
         items(
@@ -366,7 +362,7 @@ fun SpotifyAlbumSectionRow(
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 12.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp),
         modifier = modifier,
     ) {
         items(
@@ -404,7 +400,7 @@ fun SpotifyPlaylistSectionRow(
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 12.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp),
         modifier = modifier,
     ) {
         items(
@@ -504,9 +500,7 @@ fun SpotifyRecentPanel(
             )
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(2),
-                contentPadding = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Horizontal)
-                    .asPaddingValues(),
+                contentPadding = PaddingValues(horizontal = 12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(190.dp)
@@ -572,7 +566,7 @@ fun SpotifyRecentPanel(
                 title = stringResource(R.string.spotify_frequently_listened),
             )
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 12.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 items(
