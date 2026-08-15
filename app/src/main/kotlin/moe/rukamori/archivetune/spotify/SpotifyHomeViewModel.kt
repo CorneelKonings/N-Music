@@ -168,29 +168,36 @@ class SpotifyHomeViewModel @Inject constructor(
                     frequentArtists = topArtists.items
                 }
 
+                var recentItems = emptyList<SpotifyRecentItem>()
+
                 homeResult.onSuccess { feed ->
                     feed.sections.forEach { raw ->
-                        val converted = convertHomeSection(raw)
-                        if (converted != null) {
-                            sections.add(converted)
+                        if (raw.title?.contains("Jump back in", ignoreCase = true) == true || 
+                            raw.title?.contains("Recently", ignoreCase = true) == true) {
+                            recentItems = raw.items.mapNotNull { item ->
+                                when (item) {
+                                    is SpotifyHomeFeedItem.Album -> SpotifyRecentItem.Album(
+                                        id = item.id,
+                                        name = item.name,
+                                        imageUrl = item.imageUrl,
+                                        artists = item.artists.map { SpotifyArtist(id = it.id.orEmpty(), name = it.name, uri = it.uri) }
+                                    )
+                                    is SpotifyHomeFeedItem.Playlist -> SpotifyRecentItem.Playlist(
+                                        id = item.id,
+                                        name = item.name,
+                                        imageUrl = item.imageUrl
+                                    )
+                                    else -> null
+                                }
+                            }
+                        } else {
+                            val converted = convertHomeSection(raw)
+                            if (converted != null) {
+                                sections.add(converted)
+                            }
                         }
                     }
                 }
-
-                val recentItems = Spotify.recentlyPlayed(limit = 20)
-                    .getOrNull()
-                    ?.items
-                    ?.mapNotNull { it.track.album }
-                    ?.distinctBy { it.id }
-                    ?.map { album ->
-                        SpotifyRecentItem.Album(
-                            id = album.id,
-                            name = album.name,
-                            imageUrl = album.images.firstOrNull()?.url,
-                            artists = album.artists.map { SpotifyArtist(id = it.id.orEmpty(), name = it.name, uri = it.uri) }
-                        )
-                    }
-                    ?: emptyList()
 
                 if (sections.isEmpty()) {
                     _screenState.update { SpotifyHomeScreenState.Empty }
