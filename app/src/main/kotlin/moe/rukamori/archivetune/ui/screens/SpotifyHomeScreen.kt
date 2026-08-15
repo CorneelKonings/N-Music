@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -291,12 +292,19 @@ fun SpotifyTrackSectionRow(
             key = { "spotify_track_${it.id}" },
             contentType = { "spotify_track" }
         ) { track ->
-            SpotifyTrackListItem(
-                track = track,
+            Box(
+                contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
-                    .width(horizontalItemWidth)
-                    .yumaClickable(onClick = { onTrackClick(track) }),
-            )
+                    .fillMaxHeight()
+                    .width(horizontalItemWidth),
+            ) {
+                SpotifyTrackListItem(
+                    track = track,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .yumaClickable(onClick = { onTrackClick(track) }),
+                )
+            }
         }
     }
 }
