@@ -22,9 +22,32 @@ import moe.rukamori.archivetune.spotify.models.SpotifyPlaylistOwner
 import moe.rukamori.archivetune.spotify.models.SpotifyPlaylistTracksRef
 import javax.inject.Inject
 
+sealed interface SpotifyRecentItem {
+    val id: String
+    val name: String
+    val imageUrl: String?
+
+    data class Playlist(
+        override val id: String,
+        override val name: String,
+        override val imageUrl: String?
+    ) : SpotifyRecentItem
+
+    data class Album(
+        override val id: String,
+        override val name: String,
+        override val imageUrl: String?,
+        val artists: List<SpotifyArtist>
+    ) : SpotifyRecentItem
+}
+
 sealed interface SpotifyHomeScreenState {
     data object Loading : SpotifyHomeScreenState
-    data class Success(val sections: List<SpotifyHomeSection>) : SpotifyHomeScreenState
+    data class Success(
+        val sections: List<SpotifyHomeSection>,
+        val recentItems: List<SpotifyRecentItem> = emptyList(),
+        val frequentArtists: List<SpotifyArtist> = emptyList()
+    ) : SpotifyHomeScreenState
     data object Empty : SpotifyHomeScreenState
     data class Error(val messageResId: Int, val notAuthenticated: Boolean = false) : SpotifyHomeScreenState
 }
@@ -63,12 +86,22 @@ class SpotifyHomeViewModel @Inject constructor(
                 }
 
                 val sections = mutableListOf<SpotifyHomeSection>()
+                var frequentArtists = emptyList<SpotifyArtist>()
+                var recentItems = emptyList<SpotifyRecentItem>()
 
-                val (topTracksResult, newReleasesResult, homeResult) = coroutineScope {
+                val (topTracksResult, newReleasesResult, homeResult, topArtistsResult) = coroutineScope {
                     val topTracksDeferred = async { Spotify.topTracks(limit = 20) }
                     val newReleasesDeferred = async { Spotify.newReleases(limit = 20) }
                     val homeDeferred = async { Spotify.home(sectionItemsLimit = 10) }
-                    Triple(topTracksDeferred.await(), newReleasesDeferred.await(), homeDeferred.await())
+                    val topArtistsDeferred = async { Spotify.topArtists(limit = 20) }
+                    
+                    data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+                    Quadruple(
+                        topTracksDeferred.await(),
+                        newReleasesDeferred.await(),
+                        homeDeferred.await(),
+                        topArtistsDeferred.await()
+                    )
                 }
 
                 topTracksResult.onSuccess { topTracks ->
@@ -96,6 +129,10 @@ class SpotifyHomeViewModel @Inject constructor(
                     }
                 }
 
+                topArtistsResult.onSuccess { topArtists ->
+                    frequentArtists = topArtists.items
+                }
+
                 homeResult.onSuccess { feed ->
                     feed.sections.forEach { raw ->
                         val converted = convertHomeSection(raw)
@@ -103,12 +140,53 @@ class SpotifyHomeViewModel @Inject constructor(
                             sections.add(converted)
                         }
                     }
+                    
+                    val allRecent = mutableListOf<SpotifyRecentItem>()
+                    feed.sections.forEach { section ->
+                        section.items.forEach { item ->
+                            when (item) {
+                                is SpotifyHomeFeedItem.Playlist -> {
+                                    allRecent.add(
+                                        SpotifyRecentItem.Playlist(
+                                            id = item.id,
+                                            name = item.name,
+                                            imageUrl = item.imageUrl
+                                        )
+                                    )
+                                }
+                                is SpotifyHomeFeedItem.Album -> {
+                                    allRecent.add(
+                                        SpotifyRecentItem.Album(
+                                            id = item.id,
+                                            name = item.name,
+                                            imageUrl = item.imageUrl,
+                                            artists = item.artists.map {
+                                                SpotifyArtist(
+                                                    id = it.id ?: "",
+                                                    name = it.name,
+                                                    uri = it.uri
+                                                )
+                                            }
+                                        )
+                                    )
+                                }
+                                else -> {}
+                            }
+                        }
+                    }
+                    recentItems = allRecent.distinctBy { it.id }.take(10)
                 }
 
                 if (sections.isEmpty()) {
                     _screenState.update { SpotifyHomeScreenState.Empty }
                 } else {
-                    _screenState.update { SpotifyHomeScreenState.Success(sections) }
+                    _screenState.update { 
+                        SpotifyHomeScreenState.Success(
+                            sections = sections,
+                            recentItems = recentItems,
+                            frequentArtists = frequentArtists
+                        ) 
+                    }
                 }
 
             } catch (e: Exception) {
