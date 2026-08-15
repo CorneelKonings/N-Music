@@ -64,12 +64,14 @@ import moe.rukamori.archivetune.spotify.SpotifyHomeAction
 import moe.rukamori.archivetune.spotify.SpotifyHomeSection
 import moe.rukamori.archivetune.spotify.SpotifyHomeScreenState
 import moe.rukamori.archivetune.spotify.SpotifyHomeViewModel
+import moe.rukamori.archivetune.spotify.SpotifyRecentItem
 import moe.rukamori.archivetune.spotify.SpotifyTracksQueue
 import moe.rukamori.archivetune.spotify.models.SpotifyAlbum
 import moe.rukamori.archivetune.spotify.models.SpotifyArtist
 import moe.rukamori.archivetune.spotify.models.SpotifyPlaylist
 import moe.rukamori.archivetune.spotify.models.SpotifyTrack
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
+import moe.rukamori.archivetune.ui.component.SpeedDialGridItem
 import moe.rukamori.archivetune.ui.component.SpotifyTrackListItem
 import moe.rukamori.archivetune.ui.component.YouTubeGridItem
 import moe.rukamori.archivetune.ui.theme.yumaClickable
@@ -140,6 +142,33 @@ fun SpotifyHomeScreen(
                         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
                         modifier = Modifier.fillMaxSize()
                     ) {
+                        item(key = "spotify_recent_panel", contentType = "recent_panel") {
+                            SpotifyRecentPanel(
+                                recentItems = state.recentItems,
+                                frequentArtists = state.frequentArtists,
+                                onPlaylistClick = { playlist -> navController.navigate("spotify_playlist/${playlist.id}") },
+                                onAlbumClick = { album ->
+                                    scope.launch {
+                                        val result = YouTube.search(album.name, YouTube.SearchFilter.FILTER_ALBUM).getOrNull()
+                                        val albumItem = result?.items?.firstOrNull() as? AlbumItem
+                                        if (albumItem != null) {
+                                            navController.navigate("album/${albumItem.browseId}")
+                                        }
+                                    }
+                                },
+                                onArtistClick = { artist ->
+                                    scope.launch {
+                                        val result = YouTube.search(artist.name, YouTube.SearchFilter.FILTER_ARTIST).getOrNull()
+                                        val artistItem = result?.items?.firstOrNull() as? ArtistItem
+                                        if (artistItem != null) {
+                                            navController.navigate("artist/${artistItem.id}")
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.animateItem()
+                            )
+                        }
+
                         state.sections.forEachIndexed { index, section ->
                             item(
                                 key = "spotify_section_title_${section.title}_$index",
@@ -443,6 +472,134 @@ private fun HomeStatePane(
                     Spacer(Modifier.height(20.dp))
                     androidx.compose.material3.FilledTonalButton(onClick = onAction) {
                         Text(stringResource(actionResId))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SpotifyRecentPanel(
+    recentItems: List<SpotifyRecentItem>,
+    frequentArtists: List<SpotifyArtist>,
+    onPlaylistClick: (SpotifyRecentItem.Playlist) -> Unit,
+    onAlbumClick: (SpotifyRecentItem.Album) -> Unit,
+    onArtistClick: (SpotifyArtist) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        if (recentItems.isNotEmpty()) {
+            HomeSectionHeader(
+                title = stringResource(R.string.spotify_recently_played),
+            )
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(2),
+                contentPadding = WindowInsets.systemBars
+                    .only(WindowInsetsSides.Horizontal)
+                    .asPaddingValues(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(190.dp)
+            ) {
+                items(
+                    items = recentItems,
+                    key = { it.id },
+                    contentType = { "spotify_recent_item" }
+                ) { item ->
+                    when (item) {
+                        is SpotifyRecentItem.Playlist -> {
+                            val playlistItem = remember(item.id) {
+                                PlaylistItem(
+                                    id = item.id,
+                                    title = item.name,
+                                    author = null,
+                                    songCountText = null,
+                                    thumbnail = item.imageUrl ?: "",
+                                    playEndpoint = null,
+                                    shuffleEndpoint = null,
+                                    radioEndpoint = null,
+                                )
+                            }
+                            SpeedDialGridItem(
+                                item = playlistItem,
+                                isPinned = false,
+                                isActive = false,
+                                isPlaying = false,
+                                modifier = Modifier
+                                    .width(180.dp)
+                                    .padding(4.dp)
+                                    .yumaClickable(onClick = { onPlaylistClick(item) })
+                            )
+                        }
+                        is SpotifyRecentItem.Album -> {
+                            val albumItem = remember(item.id) {
+                                AlbumItem(
+                                    browseId = item.id,
+                                    playlistId = item.id,
+                                    title = item.name,
+                                    artists = item.artists.map { Artist(it.name, it.id) },
+                                    thumbnail = item.imageUrl ?: "",
+                                )
+                            }
+                            SpeedDialGridItem(
+                                item = albumItem,
+                                isPinned = false,
+                                isActive = false,
+                                isPlaying = false,
+                                modifier = Modifier
+                                    .width(180.dp)
+                                    .padding(4.dp)
+                                    .yumaClickable(onClick = { onAlbumClick(item) })
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (frequentArtists.isNotEmpty()) {
+            HomeSectionHeader(
+                title = stringResource(R.string.spotify_frequently_listened),
+            )
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                items(
+                    items = frequentArtists,
+                    key = { "spotify_frequent_artist_${it.id}" },
+                    contentType = { "spotify_frequent_artist" }
+                ) { artist ->
+                    val thumbnail = remember(artist.id) {
+                        artist.images.firstOrNull { it.width in 200..400 }?.url
+                            ?: artist.images.firstOrNull()?.url
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .width(140.dp + 24.dp)
+                            .padding(horizontal = 6.dp)
+                            .yumaClickable(onClick = { onArtistClick(artist) }),
+                    ) {
+                        AsyncImage(
+                            model = thumbnail,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(140.dp)
+                                .clip(CircleShape),
+                        )
+                        Text(
+                            text = artist.name,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
                     }
                 }
             }
