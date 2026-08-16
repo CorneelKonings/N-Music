@@ -197,8 +197,46 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideLosslessStreamResolver(): moe.rukamori.archivetune.playback.resolvers.LosslessStreamResolver {
-        return moe.rukamori.archivetune.playback.resolvers.QobuzStreamResolver()
+    fun provideKennyyApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.KennyyApiClient {
+        return moe.rukamori.archivetune.playback.resolvers.qobuz.KennyyApiClient(okhttp3.OkHttpClient())
+    }
+
+    @Singleton
+    @Provides
+    fun provideSquidApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient {
+        return moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient(
+            httpClient = okhttp3.OkHttpClient(),
+            captchaCookie = "placeholder"
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideArcodApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient {
+        return moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient(
+            httpClient = okhttp3.OkHttpClient(),
+            stashKey = "placeholder",
+            bearerToken = "placeholder"
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideQobuzApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient {
+        return moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient(
+            httpClient = okhttp3.OkHttpClient(),
+            appId = "100000000",
+            appSecret = "placeholder",
+            userAuthToken = "placeholder"
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideLosslessStreamResolver(
+        registry: moe.rukamori.archivetune.playback.resolvers.StreamSourceRegistry
+    ): moe.rukamori.archivetune.playback.resolvers.LosslessStreamResolver {
+        return registry
     }
 }
 
