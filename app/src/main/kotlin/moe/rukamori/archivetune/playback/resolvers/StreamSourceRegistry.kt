@@ -16,28 +16,17 @@ class StreamSourceRegistry @Inject constructor(
 ) : LosslessStreamResolver {
     
     override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
-        val kennyyResult = try {
-            withTimeout(4_000L) {
-                kennyyResolver.resolve(song, quality)
+        val qbdlxResult = try {
+            withTimeout(35_000L) {
+                qbdlxResolver.resolve(song, quality)
             }
         } catch (e: TimeoutCancellationException) {
             null
         }
-        if (kennyyResult != null) {
-            return kennyyResult
+        if (qbdlxResult != null) {
+            return qbdlxResult
         }
-        
-        val squidResult = try {
-            withTimeout(4_000L) {
-                squidResolver.resolve(song, quality)
-            }
-        } catch (e: TimeoutCancellationException) {
-            null
-        }
-        if (squidResult != null) {
-            return squidResult
-        }
-        
+
         val arcodResult = try {
             withTimeout(35_000L) {
                 arcodResolver.resolve(song, quality)
@@ -48,10 +37,21 @@ class StreamSourceRegistry @Inject constructor(
         if (arcodResult != null) {
             return arcodResult
         }
-        
+
+        val kennyyResult = try {
+            withTimeout(4_000L) {
+                kennyyResolver.resolve(song, quality)
+            }
+        } catch (e: TimeoutCancellationException) {
+            null
+        }
+        if (kennyyResult != null) {
+            return kennyyResult
+        }
+
         return try {
-            withTimeout(35_000L) {
-                qbdlxResolver.resolve(song, quality)
+            withTimeout(4_000L) {
+                squidResolver.resolve(song, quality)
             }
         } catch (e: TimeoutCancellationException) {
             null
