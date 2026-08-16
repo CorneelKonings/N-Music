@@ -11,44 +11,38 @@ package moe.rukamori.archivetune.ui.screens.settings
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.widget.Toast
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
-import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
+import androidx.navigation.compose.rememberNavController
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.constants.*
+import moe.rukamori.archivetune.constants.AudioNormalizationKey
+import moe.rukamori.archivetune.constants.AudioQuality
+import moe.rukamori.archivetune.constants.AudioQualityKey
+import moe.rukamori.archivetune.constants.AutoSkipNextOnErrorKey
+import moe.rukamori.archivetune.constants.AutoStartOnBluetoothKey
+import moe.rukamori.archivetune.constants.CrossfadeDurationKey
+import moe.rukamori.archivetune.constants.CrossfadeEnabledKey
+import moe.rukamori.archivetune.constants.CrossfadeGaplessKey
+import moe.rukamori.archivetune.constants.PauseOnDeviceMuteKey
+import moe.rukamori.archivetune.constants.SkipSilenceKey
+import moe.rukamori.archivetune.constants.WakelockKey
 import moe.rukamori.archivetune.ui.component.CrossfadeSliderPreference
 import moe.rukamori.archivetune.ui.component.EnumListPreference
-import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.PreferenceEntry
 import moe.rukamori.archivetune.ui.component.PreferenceGroup
 import moe.rukamori.archivetune.ui.component.SwitchPreference
-import moe.rukamori.archivetune.ui.theme.ThemePreviews
 import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
+import moe.rukamori.archivetune.ui.theme.ThemePreviews
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
-import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun PlayerSettings(navController: NavController) {
@@ -112,7 +106,6 @@ fun PlayerSettings(navController: NavController) {
         onBackLongClick = navController::backToMain,
     ) {
 
-        // Группа 1: Аудио и Звук (4 элемента)
         PreferenceGroup(title = stringResource(R.string.player_and_audio)) {
             item {
                 EnumListPreference(
@@ -169,7 +162,6 @@ fun PlayerSettings(navController: NavController) {
             }
         }
 
-        // Группа 2: Кроссфейд и переходы (3 элемента)
         PreferenceGroup(title = stringResource(R.string.audio_crossfade_title)) {
             item {
                 SwitchPreference(
@@ -200,7 +192,6 @@ fun PlayerSettings(navController: NavController) {
             }
         }
 
-        // Группа 3: Воспроизведение и автопаузы (4 элемента)
         PreferenceGroup(title = stringResource(R.string.player)) {
             item {
                 SwitchPreference(
