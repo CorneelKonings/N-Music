@@ -1072,4 +1072,12 @@
     <string name="spotify_new_releases">New Releases</string>
     <string name="home_switch_to_yt">Open YouTube Music</string>
 
+    <string name="spotify_integration">Spotify</string>
+    <string name="enable_spotify">Enable Spotify Integration</string>
+    <string name="spotify_sync_likes">Sync Spotify Likes</string>
+    <string name="hide_ytm_liked_songs">Hide YTM Liked Songs</string>
+    <string name="lossless_integration">Lossless / FLAC</string>
+    <string name="enable_lossless">Enable Lossless</string>
+    <string name="memory_cache_toggle">Memory Cache</string>
+    <string name="select_flac_download_folder">Select FLAC Download Folder</string>
 </resources>
