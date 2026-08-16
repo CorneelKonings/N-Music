@@ -316,6 +316,7 @@ implementation(libs.animation.core)
     ksp(libs.kotlin.metadata.jvm)
 
     implementation(project(":core"))
+    implementation(project(":flaccore"))
     implementation(project(":lyrics:kugou"))
     implementation(project(":lyrics:lrclib"))
     implementation(project(":lyrics:simpmusic"))

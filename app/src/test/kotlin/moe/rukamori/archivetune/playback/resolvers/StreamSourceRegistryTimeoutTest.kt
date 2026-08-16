@@ -1,12 +1,10 @@
 package moe.rukamori.archivetune.playback.resolvers
 
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import moe.rukamori.archivetune.constants.FlacQuality
-import moe.rukamori.archivetune.db.entities.Song
-import moe.rukamori.archivetune.db.entities.SongEntity
+import moe.rukamori.archivetune.flaccore.streaming.FlacStreamRegistry
+import moe.rukamori.archivetune.flaccore.streaming.FlacStreamUrl
+import moe.rukamori.archivetune.flaccore.model.TrackQuery
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -14,44 +12,24 @@ class StreamSourceRegistryTimeoutTest {
 
     @Test
     fun `registry continues to next provider when one times out`() = runBlocking {
-        val kennyyResolver = mockk<KennyyStreamResolver>()
-        val squidResolver = mockk<SquidStreamResolver>()
-        val arcodResolver = mockk<ArcodStreamResolver>()
-        val qbdlxResolver = mockk<QbdlxStreamResolver>()
-
-        val registry = StreamSourceRegistry(
-            kennyyResolver,
-            squidResolver,
-            arcodResolver,
-            qbdlxResolver
-        )
-
-        val song = Song(
-            song = SongEntity(id = "1", title = "T"),
-            artists = emptyList()
-        )
-        val quality = FlacQuality.HI_RES
-
-        val expectedUrl = StreamUrl(
-            url = "http://squid.test",
+        val expectedUrl = FlacStreamUrl(
+            url = "http://arcod.test",
             expiresAtMs = 0L,
-            origin = "squid"
+            origin = "arcod"
         )
 
-        // kennyy hangs
-        coEvery { kennyyResolver.resolve(any(), any()) } coAnswers {
-            delay(10_000)
-            null
-        }
+        val registry = FlacStreamRegistry(
+            qbdlx = { _, _ -> 
+                delay(40_000) // FlacStreamRegistry has 35s timeout
+                null 
+            },
+            arcod = { _, _ -> 
+                expectedUrl 
+            }
+        )
 
-        // squid returns valid result
-        coEvery { squidResolver.resolve(any(), any()) } returns expectedUrl
-
-        // arcod and qbdlx return null
-        coEvery { arcodResolver.resolve(any(), any()) } returns null
-        coEvery { qbdlxResolver.resolve(any(), any()) } returns null
-
-        val result = registry.resolve(song, quality)
+        val query = TrackQuery(artist = "A", title = "T", durationMs = 1000L)
+        val result = registry.resolve(query, 7)
 
         assertEquals(expectedUrl, result)
     }

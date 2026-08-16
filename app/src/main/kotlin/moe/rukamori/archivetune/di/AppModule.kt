@@ -197,66 +197,119 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideKennyyApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.KennyyApiClient {
-        return moe.rukamori.archivetune.playback.resolvers.qobuz.KennyyApiClient(
-            okhttp3.OkHttpClient.Builder()
-                .connectTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
-                .build()
+    fun provideFlacConfig(@ApplicationContext context: Context): moe.rukamori.archivetune.flaccore.FlacConfig {
+        return moe.rukamori.archivetune.lossless.FlacConfigImpl(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideFlacKvStore(@ApplicationContext context: Context): moe.rukamori.archivetune.flaccore.FlacKvStore {
+        return moe.rukamori.archivetune.lossless.FlacKvStoreImpl(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideQbdlxSigner(): moe.rukamori.archivetune.flaccore.qbdlx.QbdlxSigner {
+        return moe.rukamori.archivetune.flaccore.qbdlx.QbdlxSigner()
+    }
+
+    @Singleton
+    @Provides
+    fun provideQbdlxCredentialStore(
+        config: moe.rukamori.archivetune.flaccore.FlacConfig,
+        kvStore: moe.rukamori.archivetune.flaccore.FlacKvStore
+    ): moe.rukamori.archivetune.flaccore.qbdlx.QbdlxCredentialStore {
+        return moe.rukamori.archivetune.flaccore.qbdlx.QbdlxCredentialStore(
+            config = config,
+            kvStore = kvStore,
+            poolProvider = moe.rukamori.archivetune.flaccore.qbdlx.QbdlxPoolProvider { kotlinx.coroutines.runBlocking { config.qbdlxTokenPool() } }
         )
     }
 
     @Singleton
     @Provides
-    fun provideSquidApiClient(
-        @ApplicationContext context: Context
-    ): moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient {
-        return moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient(
-            httpClient = okhttp3.OkHttpClient.Builder()
-                .connectTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
-                .build(),
-            captchaCookieProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.SquidCaptchaCookieKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.SQUID_CAPTCHA_COOKIE }
+    fun provideQbdlxApiClient(
+        config: moe.rukamori.archivetune.flaccore.FlacConfig,
+        signer: moe.rukamori.archivetune.flaccore.qbdlx.QbdlxSigner,
+        credentialStore: moe.rukamori.archivetune.flaccore.qbdlx.QbdlxCredentialStore
+    ): moe.rukamori.archivetune.flaccore.qbdlx.QbdlxApiClient {
+        val sharedClient = okhttp3.OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+        return moe.rukamori.archivetune.flaccore.qbdlx.QbdlxApiClient(
+            config = config,
+            sharedClient = sharedClient,
+            signer = signer,
+            signingResolver = credentialStore
         )
     }
 
     @Singleton
     @Provides
-    fun provideArcodApiClient(
-        @ApplicationContext context: Context
-    ): moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient {
-        return moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient(
-            httpClient = okhttp3.OkHttpClient.Builder()
-                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .build(),
-            stashKeyProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.ArcodStashKeyKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.ARCOD_STASH_KEY },
-            bearerTokenProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.ArcodBearerTokenKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.ARCOD_BEARER_TOKEN }
+    fun provideAggregatorRateLimiter(): moe.rukamori.archivetune.flaccore.ratelimit.AggregatorRateLimiter {
+        return moe.rukamori.archivetune.flaccore.ratelimit.AggregatorRateLimiter()
+    }
+
+    @Singleton
+    @Provides
+    fun provideQbdlxQobuzSource(
+        apiClient: moe.rukamori.archivetune.flaccore.qbdlx.QbdlxApiClient,
+        credentialStore: moe.rukamori.archivetune.flaccore.qbdlx.QbdlxCredentialStore,
+        rateLimiter: moe.rukamori.archivetune.flaccore.ratelimit.AggregatorRateLimiter,
+        config: moe.rukamori.archivetune.flaccore.FlacConfig
+    ): moe.rukamori.archivetune.flaccore.qbdlx.QbdlxQobuzSource {
+        return moe.rukamori.archivetune.flaccore.qbdlx.QbdlxQobuzSource(
+            apiClient = apiClient,
+            credentialStore = credentialStore,
+            rateLimiter = rateLimiter,
+            config = config
         )
     }
 
     @Singleton
     @Provides
-    fun provideQobuzApiClient(
-        @ApplicationContext context: Context
-    ): moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient {
-        return moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient(
-            httpClient = okhttp3.OkHttpClient.Builder()
-                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .build(),
-            appIdProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzAppIdKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_APP_ID },
-            appSecretProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzAppSecretKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_APP_SECRET },
-            userAuthTokenProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzUserAuthTokenKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_USER_AUTH_TOKEN }
+    fun provideArcodClient(config: moe.rukamori.archivetune.flaccore.FlacConfig): moe.rukamori.archivetune.flaccore.arcod.ArcodClient {
+        val sharedClient = okhttp3.OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+        return moe.rukamori.archivetune.flaccore.arcod.ArcodClient(
+            config = config,
+            sharedClient = sharedClient
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideQbdlxStreamResolver(source: moe.rukamori.archivetune.flaccore.qbdlx.QbdlxQobuzSource): moe.rukamori.archivetune.flaccore.streaming.QbdlxStreamResolver {
+        return moe.rukamori.archivetune.flaccore.streaming.QbdlxStreamResolver(source)
+    }
+
+    @Singleton
+    @Provides
+    fun provideArcodStreamResolver(client: moe.rukamori.archivetune.flaccore.arcod.ArcodClient): moe.rukamori.archivetune.flaccore.streaming.ArcodStreamResolver {
+        return moe.rukamori.archivetune.flaccore.streaming.ArcodStreamResolver(client)
+    }
+
+    @Singleton
+    @Provides
+    fun provideFlacStreamRegistry(
+        qbdlxResolver: moe.rukamori.archivetune.flaccore.streaming.QbdlxStreamResolver,
+        arcodResolver: moe.rukamori.archivetune.flaccore.streaming.ArcodStreamResolver
+    ): moe.rukamori.archivetune.flaccore.streaming.FlacStreamRegistry {
+        return moe.rukamori.archivetune.flaccore.streaming.FlacStreamRegistry(
+            qbdlx = { q, ql -> qbdlxResolver.resolve(q, ql) },
+            arcod = { q, ql -> arcodResolver.resolve(q, ql) }
         )
     }
 
     @Singleton
     @Provides
     fun provideLosslessStreamResolver(
-        registry: moe.rukamori.archivetune.playback.resolvers.StreamSourceRegistry
+        registry: moe.rukamori.archivetune.flaccore.streaming.FlacStreamRegistry
     ): moe.rukamori.archivetune.playback.resolvers.LosslessStreamResolver {
-        return registry
+        return moe.rukamori.archivetune.lossless.FlacCoreLosslessStreamResolver(registry)
     }
 }
 
