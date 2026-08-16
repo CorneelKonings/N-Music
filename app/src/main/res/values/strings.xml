@@ -1082,7 +1082,6 @@
     <string name="home_switch_to_yt">Open YouTube Music</string>
 
     <string name="spotify_integration">Spotify</string>
-    <string name="enable_spotify">Enable Spotify Integration</string>
     <string name="spotify_sync_likes">Sync Spotify Likes</string>
     <string name="hide_ytm_liked_songs">Hide YTM Liked Songs</string>
     <string name="lossless_integration">Lossless / FLAC</string>

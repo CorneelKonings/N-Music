@@ -134,7 +134,6 @@ import moe.rukamori.archivetune.constants.AccountChannelHandleKey
 import moe.rukamori.archivetune.constants.AccountEmailKey
 import moe.rukamori.archivetune.constants.AccountNameKey
 import moe.rukamori.archivetune.constants.DataSyncIdKey
-import moe.rukamori.archivetune.constants.EnableSpotifyKey
 import moe.rukamori.archivetune.constants.ForceSyncOnAccountSwitchKey
 import moe.rukamori.archivetune.constants.HideYtmLikedSongsKey
 import moe.rukamori.archivetune.constants.InnerTubeCookieKey
@@ -252,7 +251,6 @@ fun AccountSettings(
     val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
     val (showSpotifyPlaylists, onShowSpotifyPlaylistsChange) = rememberPreference(ShowSpotifyPlaylistsKey, true)
     val (useSpotifyHome, onUseSpotifyHomeChange) = rememberPreference(UseSpotifyHomeKey, false)
-    val (enableSpotify, onEnableSpotifyChange) = rememberPreference(EnableSpotifyKey, false)
     val (spotifySyncLikes, onSpotifySyncLikesChange) = rememberPreference(SpotifySyncLikesKey, false)
     val (hideYtmLikedSongs, onHideYtmLikedSongsChange) = rememberPreference(HideYtmLikedSongsKey, false)
     var showSpotifyOptionsDialog by remember { mutableStateOf(false) }
@@ -558,13 +556,6 @@ fun AccountSettings(
                     )
 
                     ExpressiveDivider()
-
-                    ExpressiveSwitchRow(
-                        icon = painterResource(R.drawable.spotify_icon),
-                        title = stringResource(R.string.enable_spotify),
-                        checked = enableSpotify,
-                        onCheckedChange = onEnableSpotifyChange,
-                    )
 
                     ExpressiveSwitchRow(
                         icon = painterResource(R.drawable.sync),
