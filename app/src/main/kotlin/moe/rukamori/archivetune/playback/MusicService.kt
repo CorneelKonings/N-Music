@@ -6823,19 +6823,23 @@ class MusicService :
                 } ?: resolvedDataSpec
             }
 
-        val isLosslessEnabled = runBlocking(Dispatchers.IO) { dataStore.get(EnableLosslessKey, false) }
-        if (isLosslessEnabled && !lowDataModeActive) {
-            val song = runBlocking(Dispatchers.IO) { database.song(mediaId).first() }
-            if (song != null) {
-                val losslessResult = runCatching {
-                    runBlocking(Dispatchers.IO) {
+        val losslessResult = if (!lowDataModeActive) {
+            runCatching {
+                runBlocking(Dispatchers.IO) {
+                    val isLosslessEnabled = dataStore.get(EnableLosslessKey, false)
+                    if (isLosslessEnabled) {
                         withTimeout(2500L) {
-                            losslessStreamResolver.resolve(song)
+                            val song = database.song(mediaId).first()
+                            song?.let { losslessStreamResolver.resolve(it) }
                         }
+                    } else {
+                        null
                     }
-                }.getOrNull()
+                }
+            }.getOrNull()
+        } else null
 
-                if (losslessResult != null && losslessResult.url.isNotBlank()) {
+        if (losslessResult != null && losslessResult.url.isNotBlank()) {
                     val headers = mutableMapOf<String, String>()
                     if (losslessResult.origin in listOf("squid", "kennyy", "arcod", "qobuz")) {
                         headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
@@ -6849,8 +6853,6 @@ class MusicService :
                     
                     return resolvedDataSpec
                 }
-            }
-        }
 
         val playbackData =
             runBlocking(Dispatchers.IO) {
