@@ -1,4 +1,6 @@
 [versions]
+kotlinxSerialization = "1.11.0"
+kotlinxCoroutines = "1.11.0"
 agp = "9.2.1"
 annotation = "1.10.0"
 json = "20250517"
@@ -51,6 +53,9 @@ foundationLayout = "1.11.4"
 animationCore = "1.11.4"
 
 [libraries]
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutinesGuava" }

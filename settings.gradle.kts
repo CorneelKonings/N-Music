@@ -58,6 +58,7 @@ include(":lastfm")
 include(":canvas")
 include(":shazamkit")
 include(":spotifycore")
+include(":flaccore")
 include(":moriextractor")
 include(":morideobfuscator")
 
