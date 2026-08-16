@@ -222,6 +222,7 @@ import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.models.PersistPlayerState
 import moe.rukamori.archivetune.models.PersistQueue
 import moe.rukamori.archivetune.models.toMediaMetadata
+import moe.rukamori.archivetune.models.toSong
 import moe.rukamori.archivetune.moriextractor.ArchiveTuneExtractorException
 import moe.rukamori.archivetune.moriextractor.StreamingExtractionManager
 import moe.rukamori.archivetune.playback.queues.EmptyQueue
@@ -6838,10 +6839,10 @@ class MusicService :
                         val source = dataStore.get(PlaybackSourceKey, PlaybackSource.YT_MUSIC.name).toEnum(PlaybackSource.YT_MUSIC)
                         if (source == PlaybackSource.FLAC) {
                             val quality = dataStore.get(FlacQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
-                            val result = withTimeout(10_000L) {
-                                val song = database.song(mediaId).first()
-                                song?.let { losslessStreamResolver.resolve(it, quality) }
+                            val song = database.song(mediaId).first() ?: withContext(Dispatchers.Main) {
+                                player.findNextMediaItemById(mediaId)?.metadata?.toSong()
                             }
+                            val result = song?.let { losslessStreamResolver.resolve(it, quality) }
                             if (result != null) {
                                 losslessUrlCache.put(mediaId, result)
                             } else {
@@ -6852,9 +6853,6 @@ class MusicService :
                             null
                         }
                     }
-                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                    losslessUrlCache.remove(mediaId)
-                    null
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

@@ -70,6 +70,26 @@ data class MediaMetadata(
         )
 }
 
+fun MediaMetadata.toSong() =
+    Song(
+        song = toSongEntity(),
+        artists = artists.map {
+            moe.rukamori.archivetune.db.entities.ArtistEntity(
+                id = it.id ?: moe.rukamori.archivetune.db.entities.ArtistEntity.generateArtistId(),
+                name = it.name,
+                thumbnailUrl = it.thumbnailUrl,
+            )
+        },
+        album = album?.let {
+            moe.rukamori.archivetune.db.entities.AlbumEntity(
+                id = it.id,
+                title = it.title,
+                songCount = 0,
+                duration = 0,
+            )
+        },
+    )
+
 fun Song.toMediaMetadata() =
     MediaMetadata(
         id = song.id,

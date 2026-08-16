@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import moe.rukamori.archivetune.constants.FlacQuality
 import moe.rukamori.archivetune.db.entities.Song
 import moe.rukamori.archivetune.db.entities.SongEntity
 import moe.rukamori.archivetune.playback.resolvers.LosslessStreamResolver
@@ -18,7 +19,7 @@ class LosslessStreamResolverTest {
     @Test
     fun `test lossless stream resolver fallback and headers`() = runBlocking {
         val resolver = object : LosslessStreamResolver {
-            override suspend fun resolve(song: Song): StreamUrl? {
+            override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
                 return StreamUrl(
                     url = "https://example.com/flac",
                     expiresAtMs = 0L,
@@ -37,7 +38,7 @@ class LosslessStreamResolverTest {
 
         val losslessResult = runCatching {
             withTimeout(2500L) {
-                resolver.resolve(song)
+                resolver.resolve(song, FlacQuality.HI_RES)
             }
         }.getOrNull()
 
@@ -61,7 +62,7 @@ class LosslessStreamResolverTest {
     @Test
     fun `test lossless stream resolver timeout fallback`() = runBlocking {
         val resolver = object : LosslessStreamResolver {
-            override suspend fun resolve(song: Song): StreamUrl? {
+            override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
                 delay(3000L)
                 return StreamUrl(
                     url = "https://example.com/flac",
@@ -81,7 +82,7 @@ class LosslessStreamResolverTest {
 
         val losslessResult = runCatching {
             withTimeout(2500L) {
-                resolver.resolve(song)
+                resolver.resolve(song, FlacQuality.HI_RES)
             }
         }.getOrNull()
 
