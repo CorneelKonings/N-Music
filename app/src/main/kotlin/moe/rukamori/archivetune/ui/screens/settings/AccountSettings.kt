@@ -134,11 +134,14 @@ import moe.rukamori.archivetune.constants.AccountChannelHandleKey
 import moe.rukamori.archivetune.constants.AccountEmailKey
 import moe.rukamori.archivetune.constants.AccountNameKey
 import moe.rukamori.archivetune.constants.DataSyncIdKey
+import moe.rukamori.archivetune.constants.EnableSpotifyKey
 import moe.rukamori.archivetune.constants.ForceSyncOnAccountSwitchKey
+import moe.rukamori.archivetune.constants.HideYtmLikedSongsKey
 import moe.rukamori.archivetune.constants.InnerTubeCookieKey
 import moe.rukamori.archivetune.constants.SavedAccountsKey
 import moe.rukamori.archivetune.constants.SelectedYtmPlaylistsKey
 import moe.rukamori.archivetune.constants.ShowSpotifyPlaylistsKey
+import moe.rukamori.archivetune.constants.SpotifySyncLikesKey
 import moe.rukamori.archivetune.constants.UseSpotifyHomeKey
 import moe.rukamori.archivetune.spotify.SpotifyAccountUiState
 import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
@@ -249,6 +252,9 @@ fun AccountSettings(
     val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
     val (showSpotifyPlaylists, onShowSpotifyPlaylistsChange) = rememberPreference(ShowSpotifyPlaylistsKey, true)
     val (useSpotifyHome, onUseSpotifyHomeChange) = rememberPreference(UseSpotifyHomeKey, false)
+    val (enableSpotify, onEnableSpotifyChange) = rememberPreference(EnableSpotifyKey, false)
+    val (spotifySyncLikes, onSpotifySyncLikesChange) = rememberPreference(SpotifySyncLikesKey, false)
+    val (hideYtmLikedSongs, onHideYtmLikedSongsChange) = rememberPreference(HideYtmLikedSongsKey, false)
     var showSpotifyOptionsDialog by remember { mutableStateOf(false) }
     var showSpotifyLogin by remember { mutableStateOf(false) }
 
@@ -550,6 +556,31 @@ fun AccountSettings(
                         selectedValue = useSpotifyHome,
                         onValueSelected = onUseSpotifyHomeChange,
                     )
+
+                    ExpressiveDivider()
+
+                    ExpressiveSwitchRow(
+                        icon = painterResource(R.drawable.spotify_icon),
+                        title = stringResource(R.string.enable_spotify),
+                        checked = enableSpotify,
+                        onCheckedChange = onEnableSpotifyChange,
+                    )
+
+                    ExpressiveSwitchRow(
+                        icon = painterResource(R.drawable.sync),
+                        title = stringResource(R.string.spotify_sync_likes),
+                        checked = spotifySyncLikes,
+                        onCheckedChange = onSpotifySyncLikesChange,
+                    )
+
+                    ExpressiveSwitchRow(
+                        icon = painterResource(R.drawable.visibility_off),
+                        title = stringResource(R.string.hide_ytm_liked_songs),
+                        checked = hideYtmLikedSongs,
+                        onCheckedChange = onHideYtmLikedSongsChange,
+                    )
+
+                    ExpressiveDivider()
 
                     ExpressiveActionRow(
                         icon = painterResource(R.drawable.integration),

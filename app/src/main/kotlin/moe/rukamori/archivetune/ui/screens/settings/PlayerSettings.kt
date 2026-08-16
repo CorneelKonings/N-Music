@@ -11,6 +11,8 @@ package moe.rukamori.archivetune.ui.screens.settings
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -30,6 +32,9 @@ import moe.rukamori.archivetune.constants.AutoStartOnBluetoothKey
 import moe.rukamori.archivetune.constants.CrossfadeDurationKey
 import moe.rukamori.archivetune.constants.CrossfadeEnabledKey
 import moe.rukamori.archivetune.constants.CrossfadeGaplessKey
+import moe.rukamori.archivetune.constants.DownloadLocationUriKey
+import moe.rukamori.archivetune.constants.EnableLosslessKey
+import moe.rukamori.archivetune.constants.MemoryCacheToggleKey
 import moe.rukamori.archivetune.constants.PauseOnDeviceMuteKey
 import moe.rukamori.archivetune.constants.SkipSilenceKey
 import moe.rukamori.archivetune.constants.WakelockKey
@@ -99,6 +104,17 @@ fun PlayerSettings(navController: NavController) {
             CrossfadeGaplessKey,
             defaultValue = true,
         )
+
+    val (enableLossless, onEnableLosslessChange) = rememberPreference(EnableLosslessKey, false)
+    val (memoryCacheToggle, onMemoryCacheToggleChange) = rememberPreference(MemoryCacheToggleKey, false)
+    val (downloadLocationUri, onDownloadLocationUriChange) = rememberPreference(DownloadLocationUriKey, "")
+
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+        onResult = { uri ->
+            uri?.let { onDownloadLocationUriChange(it.toString()) }
+        }
+    )
 
     YumaSettingsScaffold(
         title = { Text(stringResource(R.string.player_and_audio)) },
@@ -188,6 +204,32 @@ fun PlayerSettings(navController: NavController) {
                     checked = crossfadeGapless,
                     onCheckedChange = onCrossfadeGaplessChange,
                     isEnabled = crossfadeEnabled,
+                )
+            }
+        }
+
+        PreferenceGroup(title = stringResource(R.string.lossless_integration)) {
+            item {
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.enable_lossless)) },
+                    icon = { Icon(painterResource(R.drawable.album), null) },
+                    checked = enableLossless,
+                    onCheckedChange = onEnableLosslessChange,
+                )
+            }
+            item {
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.memory_cache_toggle)) },
+                    icon = { Icon(painterResource(R.drawable.cached), null) },
+                    checked = memoryCacheToggle,
+                    onCheckedChange = onMemoryCacheToggleChange,
+                )
+            }
+            item {
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.select_flac_download_folder)) },
+                    icon = { Icon(painterResource(R.drawable.snippet_folder), null) },
+                    onClick = { folderPickerLauncher.launch(null) },
                 )
             }
         }

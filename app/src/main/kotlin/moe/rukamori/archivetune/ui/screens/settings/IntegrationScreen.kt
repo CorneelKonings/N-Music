@@ -6,8 +6,6 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
@@ -29,14 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.constants.DownloadLocationUriKey
-import moe.rukamori.archivetune.constants.EnableLosslessKey
-import moe.rukamori.archivetune.constants.EnableSpotifyKey
-import moe.rukamori.archivetune.constants.HideYtmLikedSongsKey
 import moe.rukamori.archivetune.constants.ListenBrainzEnabledKey
 import moe.rukamori.archivetune.constants.ListenBrainzTokenKey
-import moe.rukamori.archivetune.constants.MemoryCacheToggleKey
-import moe.rukamori.archivetune.constants.SpotifySyncLikesKey
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.InfoLabel
 import moe.rukamori.archivetune.ui.component.PreferenceEntry
@@ -53,25 +45,10 @@ import androidx.navigation.compose.rememberNavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IntegrationScreen(navController: NavController) {
-    val (enableSpotify, onEnableSpotifyChange) = rememberPreference(EnableSpotifyKey, false)
-    val (spotifySyncLikes, onSpotifySyncLikesChange) = rememberPreference(SpotifySyncLikesKey, false)
-    val (hideYtmLikedSongs, onHideYtmLikedSongsChange) = rememberPreference(HideYtmLikedSongsKey, false)
-
-    val (enableLossless, onEnableLosslessChange) = rememberPreference(EnableLosslessKey, false)
-    val (memoryCacheToggle, onMemoryCacheToggleChange) = rememberPreference(MemoryCacheToggleKey, false)
-    val (downloadLocationUri, onDownloadLocationUriChange) = rememberPreference(DownloadLocationUriKey, "")
-
     val (listenBrainzEnabled, onListenBrainzEnabledChange) = rememberPreference(ListenBrainzEnabledKey, false)
     val (listenBrainzToken, onListenBrainzTokenChange) = rememberPreference(ListenBrainzTokenKey, "")
 
     var showListenBrainzTokenEditor = remember { mutableStateOf(false) }
-
-    val folderPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocumentTree(),
-        onResult = { uri ->
-            uri?.let { onDownloadLocationUriChange(it.toString()) }
-        }
-    )
 
     Scaffold(
         topBar = {
@@ -100,59 +77,6 @@ fun IntegrationScreen(navController: NavController) {
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = SettingsDimensions.ScreenBottomPadding),
         ) {
-            PreferenceGroup(title = stringResource(R.string.spotify_integration)) {
-                item {
-                    SwitchPreference(
-                        title = { Text(stringResource(R.string.enable_spotify)) },
-                        icon = { Icon(painterResource(R.drawable.spotify_icon), null) },
-                        checked = enableSpotify,
-                        onCheckedChange = onEnableSpotifyChange,
-                    )
-                }
-                item {
-                    SwitchPreference(
-                        title = { Text(stringResource(R.string.spotify_sync_likes)) },
-                        icon = { Icon(painterResource(R.drawable.sync), null) },
-                        checked = spotifySyncLikes,
-                        onCheckedChange = onSpotifySyncLikesChange,
-                    )
-                }
-                item {
-                    SwitchPreference(
-                        title = { Text(stringResource(R.string.hide_ytm_liked_songs)) },
-                        icon = { Icon(painterResource(R.drawable.visibility_off), null) },
-                        checked = hideYtmLikedSongs,
-                        onCheckedChange = onHideYtmLikedSongsChange,
-                    )
-                }
-            }
-
-            PreferenceGroup(title = stringResource(R.string.lossless_integration)) {
-                item {
-                    SwitchPreference(
-                        title = { Text(stringResource(R.string.enable_lossless)) },
-                        icon = { Icon(painterResource(R.drawable.album), null) },
-                        checked = enableLossless,
-                        onCheckedChange = onEnableLosslessChange,
-                    )
-                }
-                item {
-                    SwitchPreference(
-                        title = { Text(stringResource(R.string.memory_cache_toggle)) },
-                        icon = { Icon(painterResource(R.drawable.cached), null) },
-                        checked = memoryCacheToggle,
-                        onCheckedChange = onMemoryCacheToggleChange,
-                    )
-                }
-                item {
-                    PreferenceEntry(
-                        title = { Text(stringResource(R.string.select_flac_download_folder)) },
-                        icon = { Icon(painterResource(R.drawable.snippet_folder), null) },
-                        onClick = { folderPickerLauncher.launch(null) },
-                    )
-                }
-            }
-
             PreferenceGroup(title = stringResource(R.string.general)) {
                 item {
                     PreferenceEntry(
