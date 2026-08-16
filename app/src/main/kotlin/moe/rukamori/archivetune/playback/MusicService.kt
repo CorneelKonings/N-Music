@@ -141,6 +141,7 @@ import moe.rukamori.archivetune.constants.DiscordShowWhenPausedKey
 import moe.rukamori.archivetune.constants.DiscordTokenKey
 import moe.rukamori.archivetune.constants.EnableDiscordRPCKey
 import moe.rukamori.archivetune.constants.EnableLastFMScrobblingKey
+import moe.rukamori.archivetune.constants.EnableLosslessKey
 import moe.rukamori.archivetune.constants.EqualizerBandLevelsMbKey
 import moe.rukamori.archivetune.constants.EqualizerBassBoostEnabledKey
 import moe.rukamori.archivetune.constants.EqualizerBassBoostStrengthKey
@@ -290,6 +291,9 @@ class MusicService :
 
     @Inject
     lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
+
+    @Inject
+    lateinit var losslessStreamResolver: moe.rukamori.archivetune.playback.resolvers.LosslessStreamResolver
 
     @Inject
     internal lateinit var loadWidgetInsightsUseCase: LoadWidgetInsightsUseCase
@@ -5187,7 +5191,7 @@ class MusicService :
                 .flatMap { it.inetAddresses.toList().asSequence() }
                 .filterIsInstance<java.net.Inet4Address>()
                 .map { it.hostAddress }
-                .firstOrNull { it.isNotBlank() && it != "127.0.0.1" }
+                .firstOrNull { it?.isNotBlank() == true && it != "127.0.0.1" }
         }.getOrNull()
 
     private fun toggleLibrary() {
@@ -6818,6 +6822,35 @@ class MusicService :
                     resolvedDataSpec.subrange(0L, nonNullLength)
                 } ?: resolvedDataSpec
             }
+
+        val isLosslessEnabled = runBlocking(Dispatchers.IO) { dataStore.get(EnableLosslessKey, false) }
+        if (isLosslessEnabled && !lowDataModeActive) {
+            val song = runBlocking(Dispatchers.IO) { database.song(mediaId).first() }
+            if (song != null) {
+                val losslessResult = runCatching {
+                    runBlocking(Dispatchers.IO) {
+                        withTimeout(2500L) {
+                            losslessStreamResolver.resolve(song)
+                        }
+                    }
+                }.getOrNull()
+
+                if (losslessResult != null && losslessResult.url.isNotBlank()) {
+                    val headers = mutableMapOf<String, String>()
+                    if (losslessResult.origin in listOf("squid", "kennyy", "arcod", "qobuz")) {
+                        headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+                        headers["Referer"] = "https://music.youtube.com/"
+                    }
+                    
+                    val resolvedDataSpec = dataSpec.buildUpon()
+                        .setUri(losslessResult.url.toUri())
+                        .setHttpRequestHeaders(headers)
+                        .build()
+                    
+                    return resolvedDataSpec
+                }
+            }
+        }
 
         val playbackData =
             runBlocking(Dispatchers.IO) {

@@ -194,6 +194,12 @@ object AppModule {
     fun provideUpdateRepository(
         impl: UpdateRepositoryImpl
     ): UpdateRepository = impl
+
+    @Singleton
+    @Provides
+    fun provideLosslessStreamResolver(): moe.rukamori.archivetune.playback.resolvers.LosslessStreamResolver {
+        return moe.rukamori.archivetune.playback.resolvers.QobuzStreamResolver()
+    }
 }
 
 
