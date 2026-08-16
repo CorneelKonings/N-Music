@@ -15,6 +15,7 @@ Each record captures the context, decision, rationale, and consequences of a key
 - **[ADR-006](#adr-006-glass--translucency-effects-restricted-to-overlays)** — Glass & Translucency Effects Restricted to Overlays
 - **[ADR-007](#adr-007-pure-kotlin-domain-layer)** — Pure Kotlin Domain Layer (Zero Android Framework Imports)
 - **[ADR-008](#adr-008-multi-module-clean-architecture)** — Multi-Module Clean Architecture
+- **[ADR-009](#adr-009-lossless-flac-streaming-playback)** — Lossless FLAC Streaming Playback
 
 ---
 
@@ -103,3 +104,19 @@ Each record captures the context, decision, rationale, and consequences of a key
 - **Consequences:**
   - *Positive:* Parallel Gradle builds, strict feature isolation, modular provider system.
   - *Negative:* Requires managing build logic across multiple module definitions.
+
+---
+
+## ADR-009: Lossless FLAC Streaming Playback
+
+- **Status:** Accepted
+- **Context:** Lossless (FLAC) playback relied on a fixed quality tier and silent fallback to YouTube whenever lossless resolution exceeded a 2.5s timeout. Qobuz API clients were configured at DI time with placeholder token values, so direct lossless sources could not work out of the box.
+- **Decision:**
+  - Add `PlaybackSource` (`YT_MUSIC` / `FLAC`) and `FlacQuality` (CD / HI_RES / MAX) enums in `constants/`. The lossless resolver chain is invoked only when the selected source is `FLAC`; `EnableLosslessKey` mirrors `source == FLAC`.
+  - Hybrid token handling: Qobuz API clients receive `() -> String` token providers that read the current DataStore setting lazily at call time, falling back to `LosslessTokens` defaults when the setting is empty. No blocking DataStore read happens in the DI graph.
+  - Cache resolved stream URLs in `StreamUrlCache` (256 entries) inside `MusicService` and raise the lossless resolve timeout from 2500 ms to 10000 ms so the FLAC chain succeeds instead of silently falling back to YouTube.
+  - Player settings expose user-selectable source/quality and the lossless-only fields (memory, folder, tokens) are shown only when `FLAC` is active; the FLAC folder picker persists the granted URI permission via `takePersistableUriPermission`.
+  - FLAC downloads are enqueued as unique WorkManager jobs (`flac_download_<songId>`, `ExistingWorkPolicy.KEEP`); the URL is resolved inside `FlacDownloadWorker.doWork()` through `FlacDownloaderEntryPoint`, with HTTP headers/timeouts and `sanitizeFileName` applied via `SafDirectoryManager`.
+- **Consequences:**
+  - *Positive:* Lossless streaming works with public proxies (squid/kennyy) without filling in credentials; user-provided tokens take priority over built-in defaults; previously-cached URLs are reused without a new HTTP resolve until their expiry minus a safety margin.
+  - *Negative:* Direct Qobuz providers (qbdlx/arcod) still require real tokens to function.

@@ -10,7 +10,7 @@ It is the primary entry point for contributors and AI assistants working on the 
 
 YumaPlayer is a modular Android music player focused on maintainability, modularity, and a consistent user experience.
 
-The project combines YouTube Music streaming, local playback, synchronized lyrics, Spotify Canvas visualizers, Shazam track recognition, and multiple optional service integrations while keeping every subsystem isolated in dedicated modules.
+The project combines YouTube Music streaming, lossless FLAC streaming, local playback, synchronized lyrics, Spotify Canvas visualizers, Shazam track recognition, and multiple optional service integrations while keeping every subsystem isolated in dedicated modules.
 
 Originally evolved from ArchiveTune (with core dependencies traced back to Metrolist and SimpMusic), YumaPlayer has developed into an independent project with its own architecture, design system, and engineering standards.
 
