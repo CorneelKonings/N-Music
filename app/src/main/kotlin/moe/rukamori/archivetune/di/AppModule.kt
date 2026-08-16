@@ -198,7 +198,12 @@ object AppModule {
     @Singleton
     @Provides
     fun provideKennyyApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.KennyyApiClient {
-        return moe.rukamori.archivetune.playback.resolvers.qobuz.KennyyApiClient(okhttp3.OkHttpClient())
+        return moe.rukamori.archivetune.playback.resolvers.qobuz.KennyyApiClient(
+            okhttp3.OkHttpClient.Builder()
+                .connectTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
+        )
     }
 
     @Singleton
@@ -207,7 +212,10 @@ object AppModule {
         @ApplicationContext context: Context
     ): moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient {
         return moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient(
-            httpClient = okhttp3.OkHttpClient(),
+            httpClient = okhttp3.OkHttpClient.Builder()
+                .connectTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
+                .build(),
             captchaCookieProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.SquidCaptchaCookieKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.SQUID_CAPTCHA_COOKIE }
         )
     }
@@ -218,7 +226,10 @@ object AppModule {
         @ApplicationContext context: Context
     ): moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient {
         return moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient(
-            httpClient = okhttp3.OkHttpClient(),
+            httpClient = okhttp3.OkHttpClient.Builder()
+                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .build(),
             stashKeyProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.ArcodStashKeyKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.ARCOD_STASH_KEY },
             bearerTokenProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.ArcodBearerTokenKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.ARCOD_BEARER_TOKEN }
         )
@@ -230,7 +241,10 @@ object AppModule {
         @ApplicationContext context: Context
     ): moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient {
         return moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient(
-            httpClient = okhttp3.OkHttpClient(),
+            httpClient = okhttp3.OkHttpClient.Builder()
+                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .build(),
             appIdProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzAppIdKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_APP_ID },
             appSecretProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzAppSecretKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_APP_SECRET },
             userAuthTokenProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzUserAuthTokenKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_USER_AUTH_TOKEN }

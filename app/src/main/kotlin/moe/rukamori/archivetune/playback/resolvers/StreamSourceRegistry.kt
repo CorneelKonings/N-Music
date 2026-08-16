@@ -1,5 +1,7 @@
 package moe.rukamori.archivetune.playback.resolvers
 
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import moe.rukamori.archivetune.constants.FlacQuality
 import moe.rukamori.archivetune.db.entities.Song
 import javax.inject.Inject
@@ -14,21 +16,45 @@ class StreamSourceRegistry @Inject constructor(
 ) : LosslessStreamResolver {
     
     override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
-        val kennyyResult = kennyyResolver.resolve(song, quality)
+        val kennyyResult = try {
+            withTimeout(4_000L) {
+                kennyyResolver.resolve(song, quality)
+            }
+        } catch (e: TimeoutCancellationException) {
+            null
+        }
         if (kennyyResult != null) {
             return kennyyResult
         }
         
-        val squidResult = squidResolver.resolve(song, quality)
+        val squidResult = try {
+            withTimeout(4_000L) {
+                squidResolver.resolve(song, quality)
+            }
+        } catch (e: TimeoutCancellationException) {
+            null
+        }
         if (squidResult != null) {
             return squidResult
         }
         
-        val arcodResult = arcodResolver.resolve(song, quality)
+        val arcodResult = try {
+            withTimeout(35_000L) {
+                arcodResolver.resolve(song, quality)
+            }
+        } catch (e: TimeoutCancellationException) {
+            null
+        }
         if (arcodResult != null) {
             return arcodResult
         }
         
-        return qbdlxResolver.resolve(song, quality)
+        return try {
+            withTimeout(35_000L) {
+                qbdlxResolver.resolve(song, quality)
+            }
+        } catch (e: TimeoutCancellationException) {
+            null
+        }
     }
 }
