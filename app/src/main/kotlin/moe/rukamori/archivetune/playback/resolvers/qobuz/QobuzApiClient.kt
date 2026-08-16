@@ -47,14 +47,15 @@ data class QobuzFileUrl(
 
 class QobuzApiClient(
     private val httpClient: OkHttpClient,
-    private val appId: String,
-    private val appSecret: String,
-    private val userAuthToken: String
+    private val appIdProvider: () -> String,
+    private val appSecretProvider: () -> String,
+    private val userAuthTokenProvider: () -> String
 ) {
     private val baseUrl = "https://www.qobuz.com"
     private val json = Json { ignoreUnknownKeys = true; isLenient = true; coerceInputValues = true }
 
     suspend fun search(query: String, limit: Int = 10): List<QobuzTrack> = withContext(Dispatchers.IO) {
+        val appId = appIdProvider()
         val url = "$baseUrl/api.json/0.2/catalog/search".toHttpUrl().newBuilder()
             .addQueryParameter("query", query)
             .addQueryParameter("type", "tracks")
@@ -65,7 +66,7 @@ class QobuzApiClient(
         val req = Request.Builder()
             .url(url)
             .header("X-App-Id", appId)
-            .header("X-User-Auth-Token", userAuthToken)
+            .header("X-User-Auth-Token", userAuthTokenProvider())
             .get()
             .build()
             
@@ -77,8 +78,9 @@ class QobuzApiClient(
     }
 
     suspend fun getFileUrl(trackId: Long, formatId: Int = 27): QobuzFileUrl? = withContext(Dispatchers.IO) {
+        val appId = appIdProvider()
         val ts = System.currentTimeMillis() / 1000L
-        val sig = md5("trackgetFileUrl" + "format_id$formatId" + "intentstream" + "track_id$trackId" + ts + appSecret)
+        val sig = md5("trackgetFileUrl" + "format_id$formatId" + "intentstream" + "track_id$trackId" + ts + appSecretProvider())
         
         val url = "$baseUrl/api.json/0.2/track/getFileUrl".toHttpUrl().newBuilder()
             .addQueryParameter("track_id", trackId.toString())
@@ -92,7 +94,7 @@ class QobuzApiClient(
         val req = Request.Builder()
             .url(url)
             .header("X-App-Id", appId)
-            .header("X-User-Auth-Token", userAuthToken)
+            .header("X-User-Auth-Token", userAuthTokenProvider())
             .get()
             .build()
             

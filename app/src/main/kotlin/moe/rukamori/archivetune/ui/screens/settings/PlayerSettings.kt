@@ -109,6 +109,13 @@ fun PlayerSettings(navController: NavController) {
     val (memoryCacheToggle, onMemoryCacheToggleChange) = rememberPreference(MemoryCacheToggleKey, false)
     val (downloadLocationUri, onDownloadLocationUriChange) = rememberPreference(DownloadLocationUriKey, "")
 
+    val (squidCaptchaCookie, onSquidCaptchaCookieChange) = rememberPreference(moe.rukamori.archivetune.constants.SquidCaptchaCookieKey, "")
+    val (arcodStashKey, onArcodStashKeyChange) = rememberPreference(moe.rukamori.archivetune.constants.ArcodStashKeyKey, "")
+    val (arcodBearerToken, onArcodBearerTokenChange) = rememberPreference(moe.rukamori.archivetune.constants.ArcodBearerTokenKey, "")
+    val (qobuzAppId, onQobuzAppIdChange) = rememberPreference(moe.rukamori.archivetune.constants.QobuzAppIdKey, "")
+    val (qobuzAppSecret, onQobuzAppSecretChange) = rememberPreference(moe.rukamori.archivetune.constants.QobuzAppSecretKey, "")
+    val (qobuzUserAuthToken, onQobuzUserAuthTokenChange) = rememberPreference(moe.rukamori.archivetune.constants.QobuzUserAuthTokenKey, "")
+
     val folderPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree(),
         onResult = { uri ->
@@ -215,6 +222,54 @@ fun PlayerSettings(navController: NavController) {
                     icon = { Icon(painterResource(R.drawable.album), null) },
                     checked = enableLossless,
                     onCheckedChange = onEnableLosslessChange,
+                )
+            }
+            item {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.squid_captcha_cookie)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = squidCaptchaCookie,
+                    onValueChange = onSquidCaptchaCookieChange,
+                )
+            }
+            item {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.arcod_stash_key)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = arcodStashKey,
+                    onValueChange = onArcodStashKeyChange,
+                )
+            }
+            item {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.arcod_bearer_token)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = arcodBearerToken,
+                    onValueChange = onArcodBearerTokenChange,
+                )
+            }
+            item {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.qobuz_app_id)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = qobuzAppId,
+                    onValueChange = onQobuzAppIdChange,
+                )
+            }
+            item {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.qobuz_app_secret)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = qobuzAppSecret,
+                    onValueChange = onQobuzAppSecretChange,
+                )
+            }
+            item {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.qobuz_user_auth_token)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = qobuzUserAuthToken,
+                    onValueChange = onQobuzUserAuthTokenChange,
                 )
             }
             item {

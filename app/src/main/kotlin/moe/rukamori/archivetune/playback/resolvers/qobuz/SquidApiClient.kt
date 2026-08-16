@@ -9,7 +9,7 @@ import okhttp3.Request
 
 class SquidApiClient(
     private val httpClient: OkHttpClient,
-    private val captchaCookie: String
+    private val captchaCookieProvider: () -> String
 ) {
     private val baseUrl = "https://qobuz.squid.wtf/api"
     private val json = Json { ignoreUnknownKeys = true; isLenient = true; coerceInputValues = true }
@@ -23,7 +23,7 @@ class SquidApiClient(
         val req = Request.Builder()
             .url(url)
             .header("User-Agent", "Stash-Android/1.0")
-            .header("Cookie", "captcha_verified_at=$captchaCookie")
+            .header("Cookie", "captcha_verified_at=${captchaCookieProvider()}")
             .get()
             .build()
 
@@ -43,7 +43,7 @@ class SquidApiClient(
         val req = Request.Builder()
             .url(url)
             .header("User-Agent", "Stash-Android/1.0")
-            .header("Cookie", "captcha_verified_at=$captchaCookie")
+            .header("Cookie", "captcha_verified_at=${captchaCookieProvider()}")
             .get()
             .build()
 

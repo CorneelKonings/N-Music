@@ -203,31 +203,37 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideSquidApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient {
+    fun provideSquidApiClient(
+        @ApplicationContext context: Context
+    ): moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient {
         return moe.rukamori.archivetune.playback.resolvers.qobuz.SquidApiClient(
             httpClient = okhttp3.OkHttpClient(),
-            captchaCookie = "placeholder"
+            captchaCookieProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.SquidCaptchaCookieKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.SQUID_CAPTCHA_COOKIE }
         )
     }
 
     @Singleton
     @Provides
-    fun provideArcodApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient {
+    fun provideArcodApiClient(
+        @ApplicationContext context: Context
+    ): moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient {
         return moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient(
             httpClient = okhttp3.OkHttpClient(),
-            stashKey = "placeholder",
-            bearerToken = "placeholder"
+            stashKeyProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.ArcodStashKeyKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.ARCOD_STASH_KEY },
+            bearerTokenProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.ArcodBearerTokenKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.ARCOD_BEARER_TOKEN }
         )
     }
 
     @Singleton
     @Provides
-    fun provideQobuzApiClient(): moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient {
+    fun provideQobuzApiClient(
+        @ApplicationContext context: Context
+    ): moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient {
         return moe.rukamori.archivetune.playback.resolvers.qobuz.QobuzApiClient(
             httpClient = okhttp3.OkHttpClient(),
-            appId = "100000000",
-            appSecret = "placeholder",
-            userAuthToken = "placeholder"
+            appIdProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzAppIdKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_APP_ID },
+            appSecretProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzAppSecretKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_APP_SECRET },
+            userAuthTokenProvider = { context.dataStore.get(moe.rukamori.archivetune.constants.QobuzUserAuthTokenKey, "").takeIf { it.isNotEmpty() } ?: moe.rukamori.archivetune.lossless.LosslessTokens.QOBUZ_USER_AUTH_TOKEN }
         )
     }
 

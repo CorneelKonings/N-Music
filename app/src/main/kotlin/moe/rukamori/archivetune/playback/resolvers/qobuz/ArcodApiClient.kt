@@ -16,8 +16,8 @@ data class ArcodStreamResult(
 
 class ArcodApiClient(
     private val httpClient: OkHttpClient,
-    private val stashKey: String,
-    private val bearerToken: String
+    private val stashKeyProvider: () -> String,
+    private val bearerTokenProvider: () -> String
 ) {
     private val stashBaseUrl = "https://arcod.xyz/api/v2/stash"
     private val json = Json { ignoreUnknownKeys = true; isLenient = true; coerceInputValues = true }
@@ -34,8 +34,8 @@ class ArcodApiClient(
             .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
             .header("Origin", "https://arcod.xyz")
             .header("Referer", "https://arcod.xyz/")
-            .header("X-Stash-Key", stashKey)
-            .header("Authorization", "Bearer $bearerToken")
+            .header("X-Stash-Key", stashKeyProvider())
+            .header("Authorization", "Bearer ${bearerTokenProvider()}")
             .get()
             .build()
 
@@ -56,8 +56,8 @@ class ArcodApiClient(
             .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
             .header("Origin", "https://arcod.xyz")
             .header("Referer", "https://arcod.xyz/")
-            .header("X-Stash-Key", stashKey)
-            .header("Authorization", "Bearer $bearerToken")
+            .header("X-Stash-Key", stashKeyProvider())
+            .header("Authorization", "Bearer ${bearerTokenProvider()}")
             .get()
             .build()
 
