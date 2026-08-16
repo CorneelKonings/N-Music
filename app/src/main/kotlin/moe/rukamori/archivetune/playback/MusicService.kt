@@ -356,6 +356,7 @@ class MusicService :
         PlayerStreamClient.ANDROID_VR,
     )
     private val playbackUrlCache = ConcurrentHashMap<String, AuthScopedCacheValue>()
+    private val losslessUrlCache = moe.rukamori.archivetune.playback.resolvers.StreamUrlCache()
     private val extractorPlaybackUrlCache = ConcurrentHashMap<String, AuthScopedCacheValue>()
     private val remotePlaybackTrackingUrlCache = ConcurrentHashMap<String, String>()
     private val contentLengthCache = ConcurrentHashMap<String, Long>()
@@ -6828,20 +6829,39 @@ class MusicService :
             }
 
         val losslessResult = if (!lowDataModeActive) {
-            runCatching {
-                runBlocking(Dispatchers.IO) {
-                    val source = dataStore.get(PlaybackSourceKey, PlaybackSource.YT_MUSIC.name).toEnum(PlaybackSource.YT_MUSIC)
-                    if (source == PlaybackSource.FLAC) {
-                        val quality = dataStore.get(FlacQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
-                        withTimeout(2500L) {
-                            val song = database.song(mediaId).first()
-                            song?.let { losslessStreamResolver.resolve(it, quality) }
+            val cachedLossless = losslessUrlCache.get(mediaId)
+            if (cachedLossless != null) {
+                cachedLossless
+            } else {
+                try {
+                    runBlocking(Dispatchers.IO) {
+                        val source = dataStore.get(PlaybackSourceKey, PlaybackSource.YT_MUSIC.name).toEnum(PlaybackSource.YT_MUSIC)
+                        if (source == PlaybackSource.FLAC) {
+                            val quality = dataStore.get(FlacQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
+                            val result = withTimeout(10_000L) {
+                                val song = database.song(mediaId).first()
+                                song?.let { losslessStreamResolver.resolve(it, quality) }
+                            }
+                            if (result != null) {
+                                losslessUrlCache.put(mediaId, result)
+                            } else {
+                                losslessUrlCache.remove(mediaId)
+                            }
+                            result
+                        } else {
+                            null
                         }
-                    } else {
-                        null
                     }
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    losslessUrlCache.remove(mediaId)
+                    null
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    losslessUrlCache.remove(mediaId)
+                    null
                 }
-            }.getOrNull()
+            }
         } else null
 
         if (losslessResult != null && losslessResult.url.isNotBlank()) {
