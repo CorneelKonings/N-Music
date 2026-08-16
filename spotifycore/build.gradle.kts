@@ -9,6 +9,9 @@ kotlin {
         main {
             kotlin.srcDir("src")
         }
+        test {
+            kotlin.srcDir("test")
+        }
     }
 }
 
