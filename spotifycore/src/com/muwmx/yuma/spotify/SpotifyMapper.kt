@@ -16,12 +16,14 @@ import moe.rukamori.archivetune.spotify.models.SpotifyTrack
  */
 object SpotifyMapper {
     // Pre-compiled regex patterns for title normalization (avoids re-creation on each call)
-    private val FEAT_PATTERN = Regex("\\(feat\\..*?\\)")
-    private val FT_PATTERN = Regex("\\(ft\\..*?\\)")
+    private val FEAT_PATTERN = Regex("\\(feat\\..*?\\)", RegexOption.IGNORE_CASE)
+    private val FT_PATTERN = Regex("\\(ft\\..*?\\)", RegexOption.IGNORE_CASE)
     private val BRACKET_PATTERN = Regex("\\[.*?]")
     private val REMASTER_PATTERN = Regex("\\(.*?remaster.*?\\)", RegexOption.IGNORE_CASE)
     private val REMIX_PATTERN = Regex("\\(.*?remix.*?\\)", RegexOption.IGNORE_CASE)
-    private val NON_ALNUM_PATTERN = Regex("[^a-z0-9\\s]")
+    private val LIVE_PATTERN = Regex("\\(.*?live.*?\\)", RegexOption.IGNORE_CASE)
+    private val VERSION_PATTERN = Regex("\\(.*?version.*?\\)", RegexOption.IGNORE_CASE)
+    private val NON_ALNUM_PATTERN = Regex("[^a-zA-Z0-9\\s]")
     private val MULTI_SPACE_PATTERN = Regex("\\s+")
 
     private const val NORM_CACHE_MAX_SIZE = 256
@@ -67,6 +69,32 @@ object SpotifyMapper {
     )
 
     /**
+     * Cleans a track title by removing common tags (remaster, live, feat, etc.)
+     * and normalizing special characters.
+     */
+    fun cleanTrackTitle(title: String): String =
+        title
+            .replace(FEAT_PATTERN, "")
+            .replace(FT_PATTERN, "")
+            .replace(BRACKET_PATTERN, "")
+            .replace(REMASTER_PATTERN, "")
+            .replace(REMIX_PATTERN, "")
+            .replace(LIVE_PATTERN, "")
+            .replace(VERSION_PATTERN, "")
+            .replace(NON_ALNUM_PATTERN, "")
+            .replace(MULTI_SPACE_PATTERN, " ")
+            .trim()
+
+    /**
+     * Validates if a candidate duration is within the strict ±5 seconds tolerance.
+     */
+    fun isValidDuration(spotifyDurationMs: Int, candidateDurationSec: Int?): Boolean {
+        if (candidateDurationSec == null || spotifyDurationMs <= 0) return false
+        val diff = kotlin.math.abs(spotifyDurationMs / 1000 - candidateDurationSec)
+        return diff <= 5
+    }
+
+    /**
      * Builds a YouTube search query from a Spotify track.
      * The query is optimized for finding the matching song on YouTube Music.
      */
@@ -76,7 +104,7 @@ object SpotifyMapper {
                 .firstOrNull()
                 ?.name
                 .orEmpty()
-        val title = track.name
+        val title = cleanTrackTitle(track.name)
         return if (artist.isEmpty()) title else "$artist $title"
     }
 
@@ -227,16 +255,7 @@ object SpotifyMapper {
     }
 
     private fun normalizeTitle(title: String): String =
-        title
-            .lowercase()
-            .replace(FEAT_PATTERN, "")
-            .replace(FT_PATTERN, "")
-            .replace(BRACKET_PATTERN, "")
-            .replace(REMASTER_PATTERN, "")
-            .replace(REMIX_PATTERN, "")
-            .replace(NON_ALNUM_PATTERN, "")
-            .replace(MULTI_SPACE_PATTERN, " ")
-            .trim()
+        cleanTrackTitle(title).lowercase()
 
     /**
      * Dice coefficient using pre-computed bigram sets.

@@ -967,7 +967,10 @@ class SyncUtils
                 }
             }
 
-        suspend fun syncSpotifyLikedSongs(authoritative: Boolean = false) =
+        suspend fun syncSpotifyLikedSongs(
+            authoritative: Boolean = false,
+            onProgress: (completedSongs: Int, totalSongs: Int) -> Unit = { _, _ -> },
+        ) =
             playlistSyncMutex.withLock {
                 try {
                     val session = spotifyRepository.restoreSession()
@@ -992,16 +995,22 @@ class SyncUtils
                     val resolveSemaphore = Semaphore(4)
                     data class Resolved(val track: SpotifyTrack, val metadata: MediaMetadata)
 
+                    val completed = java.util.concurrent.atomic.AtomicInteger(0)
+                    val total = tracks.size
+                    onProgress(0, total)
+
                     val resolvedTracks = coroutineScope {
                         tracks.map { track ->
                             async {
                                 resolveSemaphore.withPermit {
                                     val metadata = SpotifyPlaybackResolver.resolveToMetadata(track)
-                                    if (metadata != null) {
+                                    val result = if (metadata != null) {
                                         Resolved(track, metadata)
                                     } else {
                                         null
                                     }
+                                    onProgress(completed.incrementAndGet(), total)
+                                    result
                                 }
                             }
                         }.awaitAll().filterNotNull()
