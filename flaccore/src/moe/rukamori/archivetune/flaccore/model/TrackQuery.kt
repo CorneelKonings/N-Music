@@ -64,6 +64,9 @@ data class AudioFormat(
  * Snapshot of a source's rate-limit state.
  */
 data class RateLimitState(
-    val limited: Boolean,
-    val retryAfterMs: Long? = null,
+    val tokensAvailable: Double,
+    val msUntilNextToken: Long,
+    val isCircuitBroken: Boolean,
+    val msUntilUnblock: Long,
+    val recentFailures: Int,
 )
