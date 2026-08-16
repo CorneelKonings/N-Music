@@ -23,7 +23,7 @@ object SpotifyMapper {
     private val REMIX_PATTERN = Regex("\\(.*?remix.*?\\)", RegexOption.IGNORE_CASE)
     private val LIVE_PATTERN = Regex("\\(.*?live.*?\\)", RegexOption.IGNORE_CASE)
     private val VERSION_PATTERN = Regex("\\(.*?version.*?\\)", RegexOption.IGNORE_CASE)
-    private val NON_ALNUM_PATTERN = Regex("[^a-zA-Z0-9\\s]")
+    private val NON_ALNUM_PATTERN = Regex("[^\\p{L}\\p{N}\\s]")
     private val MULTI_SPACE_PATTERN = Regex("\\s+")
 
     private const val NORM_CACHE_MAX_SIZE = 256
