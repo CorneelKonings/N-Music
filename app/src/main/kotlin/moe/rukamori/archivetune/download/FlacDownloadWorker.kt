@@ -43,7 +43,7 @@ class FlacDownloadWorker(
         val albumDir = safDirectoryManager.getOrCreateAlbumDirectory(treeUri, artist, album)
             ?: return@withContext Result.failure()
 
-        val fileName = "$title.flac"
+        val fileName = "${sanitizeFileName(title)}.flac"
         val existingFile = albumDir.findFile(fileName)
         if (existingFile != null && existingFile.exists()) {
             return@withContext Result.success()
@@ -56,6 +56,10 @@ class FlacDownloadWorker(
         try {
             val url = URL(urlString)
             connection = url.openConnection() as HttpURLConnection
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+            connection.setRequestProperty("Referer", "https://music.youtube.com/")
+            connection.connectTimeout = 10_000
+            connection.readTimeout = 30_000
             connection.connect()
 
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {

@@ -9,6 +9,20 @@ import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.constants.DownloadLocationUriKey
 import moe.rukamori.archivetune.utils.dataStore
 
+private val FORBIDDEN_FILE_NAME_CHARS = Regex("[\\\\/:*?\"<>|]")
+private val WHITESPACE_RUNS = Regex("\\s+")
+private const val MAX_FILE_NAME_LENGTH = 200
+private const val FALLBACK_FILE_NAME = "untitled"
+
+fun sanitizeFileName(name: String): String {
+    val sanitized = name
+        .replace(FORBIDDEN_FILE_NAME_CHARS, "_")
+        .trim()
+        .replace(WHITESPACE_RUNS, " ")
+    if (sanitized.isEmpty()) return FALLBACK_FILE_NAME
+    return if (sanitized.length > MAX_FILE_NAME_LENGTH) sanitized.take(MAX_FILE_NAME_LENGTH) else sanitized
+}
+
 class SafDirectoryManager(private val context: Context) {
     // Cache for created folder URIs during a download session (Constraint C2)
     private val folderCache = HashMap<String, Uri>()
@@ -24,8 +38,8 @@ class SafDirectoryManager(private val context: Context) {
     ): DocumentFile? = withContext(Dispatchers.IO) {
         val rootDir = getRootDirectory(baseTreeUri) ?: return@withContext null
 
-        val artistDir = getOrCreateDirectory(rootDir, artist) ?: return@withContext null
-        val albumDir = getOrCreateDirectory(artistDir, album)
+        val artistDir = getOrCreateDirectory(rootDir, sanitizeFileName(artist)) ?: return@withContext null
+        val albumDir = getOrCreateDirectory(artistDir, sanitizeFileName(album))
 
         albumDir
     }
