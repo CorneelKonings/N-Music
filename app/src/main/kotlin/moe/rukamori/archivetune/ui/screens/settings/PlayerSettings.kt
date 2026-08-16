@@ -164,7 +164,7 @@ fun PlayerSettings(navController: NavController) {
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                     )
                 } catch (e: SecurityException) {
-                    Toast.makeText(context, "Failed to persist folder permission", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.folder_persist_failed), Toast.LENGTH_SHORT).show()
                 }
             }
         }

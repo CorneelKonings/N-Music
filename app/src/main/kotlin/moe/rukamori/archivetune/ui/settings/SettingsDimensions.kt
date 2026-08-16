@@ -131,10 +131,10 @@ object SettingsDimensions {
     val BottomSheetTitleBottomPadding = 16.dp
     val BottomSheetListMaxHeight = 480.dp
     val BottomSheetListCornerRadius = 24.dp
-    val BottomSheetOptionPaddingH = 16.dp
+    val BottomSheetOptionPaddingH = 20.dp
     val BottomSheetOptionPaddingV = 14.dp
-    val BottomSheetOptionIconSize = 24.dp
-    val BottomSheetOptionIconSpacing = 16.dp
+    val BottomSheetOptionIconSize = 20.dp
+    val BottomSheetOptionIconSpacing = 12.dp
     val YumaTitleFontSize = 12.sp
     val YumaTitlePaddingStart = 4.dp
     val YumaTitlePaddingBottom = 8.dp
