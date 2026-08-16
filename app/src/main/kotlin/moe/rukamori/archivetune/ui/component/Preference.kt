@@ -534,10 +534,10 @@ private fun <T> PreferenceSelectionBottomSheet(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 20.dp)
+                .padding(horizontal = SettingsDimensions.BottomSheetHorizontalPadding)
+                .padding(bottom = SettingsDimensions.BottomSheetBottomPadding)
                 .navigationBarsPadding(),
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(SettingsDimensions.BottomSheetCornerRadius),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             border = BorderStroke(
                 width = 1.dp,
@@ -550,14 +550,14 @@ private fun <T> PreferenceSelectionBottomSheet(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(top = 16.dp, bottom = 24.dp),
+                        .padding(horizontal = SettingsDimensions.BottomSheetContentPaddingH)
+                        .padding(top = SettingsDimensions.BottomSheetContentPaddingTop, bottom = SettingsDimensions.BottomSheetContentPaddingBottom),
             ) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
-                        .padding(bottom = 12.dp)
-                        .size(width = 40.dp, height = 4.dp)
+                        .padding(bottom = SettingsDimensions.BottomSheetDragHandleBottomPadding)
+                        .size(width = SettingsDimensions.BottomSheetDragHandleWidth, height = SettingsDimensions.BottomSheetDragHandleHeight)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)),
                 )
@@ -569,13 +569,13 @@ private fun <T> PreferenceSelectionBottomSheet(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp),
+                                .padding(bottom = SettingsDimensions.BottomSheetTitleBottomPadding),
                     ) {
                         title()
                     }
                 }
 
-            val glassShape = RoundedCornerShape(24.dp)
+            val glassShape = RoundedCornerShape(SettingsDimensions.BottomSheetListCornerRadius)
             val colors = LocalYumaColors.current
 
             Box(
@@ -590,7 +590,7 @@ private fun <T> PreferenceSelectionBottomSheet(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 480.dp),
+                            .heightIn(max = SettingsDimensions.BottomSheetListMaxHeight),
                 ) {
                     itemsIndexed(
                         items = values,
@@ -637,7 +637,7 @@ private fun PreferenceSelectionOption(
                 .fillMaxWidth()
                 .background(containerColor)
                 .yumaClickable(pressedScale = 0.97f, onClick = onClick)
-                .padding(horizontal = 20.dp, vertical = 14.dp),
+                .padding(horizontal = SettingsDimensions.BottomSheetOptionPaddingH, vertical = SettingsDimensions.BottomSheetOptionPaddingV),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -668,12 +668,12 @@ private fun PreferenceSelectionOption(
             }
 
             if (selected) {
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(SettingsDimensions.BottomSheetOptionIconSpacing))
                 Icon(
                     painter = painterResource(R.drawable.check),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(SettingsDimensions.BottomSheetOptionIconSize),
                 )
             }
         }

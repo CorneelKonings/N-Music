@@ -141,7 +141,11 @@ import moe.rukamori.archivetune.constants.DiscordShowWhenPausedKey
 import moe.rukamori.archivetune.constants.DiscordTokenKey
 import moe.rukamori.archivetune.constants.EnableDiscordRPCKey
 import moe.rukamori.archivetune.constants.EnableLastFMScrobblingKey
-import moe.rukamori.archivetune.constants.EnableLosslessKey
+import moe.rukamori.archivetune.constants.FlacQuality
+import moe.rukamori.archivetune.constants.FlacQualityKey
+import moe.rukamori.archivetune.constants.PlaybackSource
+import moe.rukamori.archivetune.constants.PlaybackSourceKey
+import moe.rukamori.archivetune.extensions.toEnum
 import moe.rukamori.archivetune.constants.EqualizerBandLevelsMbKey
 import moe.rukamori.archivetune.constants.EqualizerBassBoostEnabledKey
 import moe.rukamori.archivetune.constants.EqualizerBassBoostStrengthKey
@@ -6826,11 +6830,12 @@ class MusicService :
         val losslessResult = if (!lowDataModeActive) {
             runCatching {
                 runBlocking(Dispatchers.IO) {
-                    val isLosslessEnabled = dataStore.get(EnableLosslessKey, false)
-                    if (isLosslessEnabled) {
+                    val source = dataStore.get(PlaybackSourceKey, PlaybackSource.YT_MUSIC.name).toEnum(PlaybackSource.YT_MUSIC)
+                    if (source == PlaybackSource.FLAC) {
+                        val quality = dataStore.get(FlacQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
                         withTimeout(2500L) {
                             val song = database.song(mediaId).first()
-                            song?.let { losslessStreamResolver.resolve(it) }
+                            song?.let { losslessStreamResolver.resolve(it, quality) }
                         }
                     } else {
                         null

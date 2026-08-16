@@ -1,5 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="playback_source">Source</string>
+    <string name="source_yt_music">YT Music</string>
+    <string name="source_flac">FLAC</string>
+    <string name="flac_quality_cd">CD</string>
+    <string name="flac_quality_hi_res">Hi-Res</string>
+    <string name="flac_quality_max">Max</string>
     <string name="home">Home</string>
     <string name="songs">Songs</string>
     <string name="artists">Artists</string>

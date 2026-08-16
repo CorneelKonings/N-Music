@@ -1,5 +1,6 @@
 package moe.rukamori.archivetune.playback.resolvers
 
+import moe.rukamori.archivetune.constants.FlacQuality
 import moe.rukamori.archivetune.db.entities.Song
 import moe.rukamori.archivetune.playback.resolvers.qobuz.ArcodApiClient
 import moe.rukamori.archivetune.playback.resolvers.qobuz.KennyyApiClient
@@ -20,19 +21,19 @@ data class StreamUrl(
 )
 
 interface LosslessStreamResolver {
-    suspend fun resolve(song: Song): StreamUrl?
+    suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl?
 }
 
 @Singleton
 class KennyyStreamResolver @Inject constructor(
     private val apiClient: KennyyApiClient
 ) : LosslessStreamResolver {
-    override suspend fun resolve(song: Song): StreamUrl? {
+    override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
         val query = "${song.artists.firstOrNull()?.name ?: ""} ${song.title}".trim()
         val searchResult = apiClient.search(query)
         val track = searchResult?.tracks?.items?.firstOrNull { it.streamable } ?: return null
         
-        val downloadResult = apiClient.getFileUrl(track.id, 27) // 27 = FLAC Hi-Res
+        val downloadResult = apiClient.getFileUrl(track.id, quality.streamQuality)
         val url = downloadResult?.url ?: return null
         
         val etspMs = parseEtspMs(url) ?: (System.currentTimeMillis() + 3600_000L)
@@ -59,12 +60,12 @@ class KennyyStreamResolver @Inject constructor(
 class QbdlxStreamResolver @Inject constructor(
     private val apiClient: QobuzApiClient
 ) : LosslessStreamResolver {
-    override suspend fun resolve(song: Song): StreamUrl? {
+    override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
         val query = "${song.artists.firstOrNull()?.name ?: ""} ${song.title}".trim()
         val searchResult = apiClient.search(query)
         val track = searchResult.firstOrNull { it.streamable } ?: return null
         
-        val downloadResult = apiClient.getFileUrl(track.id, 27) // 27 = FLAC Hi-Res
+        val downloadResult = apiClient.getFileUrl(track.id, quality.streamQuality)
         val url = downloadResult?.url ?: return null
         
         val etspMs = parseEtspMs(url) ?: (System.currentTimeMillis() + 3600_000L)
@@ -91,12 +92,12 @@ class QbdlxStreamResolver @Inject constructor(
 class SquidStreamResolver @Inject constructor(
     private val apiClient: SquidApiClient
 ) : LosslessStreamResolver {
-    override suspend fun resolve(song: Song): StreamUrl? {
+    override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
         val query = "${song.artists.firstOrNull()?.name ?: ""} ${song.title}".trim()
         val searchResult = apiClient.search(query)
         val track = searchResult?.tracks?.items?.firstOrNull { it.streamable } ?: return null
         
-        val downloadResult = apiClient.getFileUrl(track.id, 27) // 27 = FLAC Hi-Res
+        val downloadResult = apiClient.getFileUrl(track.id, quality.streamQuality)
         val url = downloadResult?.url ?: return null
         
         val etspMs = parseEtspMs(url) ?: (System.currentTimeMillis() + 3600_000L)
@@ -124,12 +125,12 @@ class SquidStreamResolver @Inject constructor(
 class ArcodStreamResolver @Inject constructor(
     private val apiClient: ArcodApiClient
 ) : LosslessStreamResolver {
-    override suspend fun resolve(song: Song): StreamUrl? {
+    override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
         val query = "${song.artists.firstOrNull()?.name ?: ""} ${song.title}".trim()
         val searchResult = apiClient.search(query)
         val track = searchResult?.tracks?.items?.firstOrNull { it.streamable } ?: return null
         
-        val streamResult = apiClient.streamUrl(track.id, 27) // 27 = FLAC Hi-Res
+        val streamResult = apiClient.streamUrl(track.id, quality.streamQuality)
         val url = streamResult?.url ?: return null
         
         val etspMs = streamResult.expiresInSec?.let { System.currentTimeMillis() + (it * 1000L) } 

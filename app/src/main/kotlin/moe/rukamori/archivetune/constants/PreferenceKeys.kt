@@ -239,6 +239,8 @@ enum class LastFmProvider {
     CUSTOM,
 }
 
+val PlaybackSourceKey = stringPreferencesKey("playbackSource")
+val FlacQualityKey = stringPreferencesKey("flacQuality")
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 
 val NetworkMeteredKey = booleanPreferencesKey("networkMetered")

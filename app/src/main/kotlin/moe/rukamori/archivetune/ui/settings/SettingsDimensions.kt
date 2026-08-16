@@ -118,7 +118,23 @@ object SettingsDimensions {
     val GlassStartColor = Color(0x1AFFFFFF)
     val GlassEndColor = Color(0x08FFFFFF)
 
-    // -- Yuma preference rows ----------------------------------------------
+    // -- Bottom Sheet ------------------------------------------------------
+    val BottomSheetHorizontalPadding = 16.dp
+    val BottomSheetBottomPadding = 20.dp
+    val BottomSheetCornerRadius = 28.dp
+    val BottomSheetContentPaddingH = 20.dp
+    val BottomSheetContentPaddingTop = 16.dp
+    val BottomSheetContentPaddingBottom = 24.dp
+    val BottomSheetDragHandleWidth = 40.dp
+    val BottomSheetDragHandleHeight = 4.dp
+    val BottomSheetDragHandleBottomPadding = 12.dp
+    val BottomSheetTitleBottomPadding = 16.dp
+    val BottomSheetListMaxHeight = 480.dp
+    val BottomSheetListCornerRadius = 24.dp
+    val BottomSheetOptionPaddingH = 16.dp
+    val BottomSheetOptionPaddingV = 14.dp
+    val BottomSheetOptionIconSize = 24.dp
+    val BottomSheetOptionIconSpacing = 16.dp
     val YumaTitleFontSize = 12.sp
     val YumaTitlePaddingStart = 4.dp
     val YumaTitlePaddingBottom = 8.dp
