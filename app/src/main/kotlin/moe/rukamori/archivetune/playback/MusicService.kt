@@ -6846,8 +6846,6 @@ class MusicService :
                 try {
                     runBlocking(Dispatchers.IO) {
                         val quality = dataStore.get(FlacQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
-
-                        // Безопасно получаем песню из БД без дэдлока через Main поток
                         val song = database.song(mediaId).firstOrNull()
 
                         if (song == null) {
@@ -6855,7 +6853,7 @@ class MusicService :
                         }
 
                         val result = song?.let {
-                            Timber.tag("FLAC_PLAYBACK").d("Resolving FLAC for: ${it.song.title} (mediaId: $mediaId)")
+                            Timber.tag("FLAC_PLAYBACK").d("Resolving FLAC for: ${it.song.title} (ISRC: ${it.song.isrc ?: "none"}, mediaId: $mediaId)")
                             losslessStreamResolver.resolve(it, quality)
                         }
 
@@ -6868,10 +6866,14 @@ class MusicService :
                         }
                         result
                     }
+                } catch (e: InterruptedException) {
+                    Timber.tag("FLAC_PLAYBACK").d("FLAC resolving interrupted by player skip")
+                    losslessUrlCache.remove(mediaId)
+                    null
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Throwable) {
-                    Timber.tag("FLAC_PLAYBACK").e(e, "FLAC resolve failed with exception")
+                    Timber.tag("FLAC_PLAYBACK").e(e, "FLAC resolve failed")
                     losslessUrlCache.remove(mediaId)
                     null
                 }
@@ -6888,7 +6890,6 @@ class MusicService :
                 headers["Referer"] = "https://music.youtube.com/"
             }
 
-            // Сохраняем базовый FLAC формат в БД (детали битности подтянутся плеером при воспроизведении)
             val flacFormat = FormatEntity(
                 id = mediaId,
                 itag = 999,
