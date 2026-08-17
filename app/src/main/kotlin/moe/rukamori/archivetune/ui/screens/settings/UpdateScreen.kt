@@ -1077,11 +1077,12 @@ private fun UpdateChannelPanel(
                                 onClick = onStableSelected,
                                 modifier = Modifier.weight(1f),
                             )
-ChannelSelectChip(
-                                 label = stringResource(R.string.channel_canary),
+                            ChannelSelectChip(
+                                 label = stringResource(R.string.channel_canary_soon),
                                  isSelected = isCanary,
                                 onClick = onCanarySelected,
                                 modifier = Modifier.weight(1f),
+                                enabled = false,
                             )
                         }
                     }
@@ -1097,6 +1098,7 @@ private fun ChannelSelectChip(
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val containerColor =
         if (isSelected) {
@@ -1107,13 +1109,15 @@ private fun ChannelSelectChip(
     val contentColor =
         if (isSelected) {
             MaterialTheme.colorScheme.onPrimaryContainer
+        } else if (!enabled) {
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         }
 
     Box(
         modifier = modifier
-            .yumaClickable(pressedScale = SettingsAnimations.PressScale, onClick = onClick)
+            .yumaClickable(enabled = enabled, pressedScale = SettingsAnimations.PressScale, onClick = onClick)
             .clip(RoundedCornerShape(12.dp))
             .background(containerColor)
             .padding(horizontal = 12.dp, vertical = 8.dp),

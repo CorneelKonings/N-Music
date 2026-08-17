@@ -859,6 +859,7 @@
     <string name="update_channel_desc">Choose between tested releases and development snapshots.</string>
     <string name="channel_stable">Stable</string>
     <string name="channel_canary">Canary</string>
+    <string name="channel_canary_soon">Canary (soon)</string>
     <string name="channel_nightly">Nightly</string>
     <string name="channel_daily_nightly">Daily</string>
     <string name="recent_commits">Recent Commits</string>
