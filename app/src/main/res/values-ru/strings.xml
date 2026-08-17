@@ -331,8 +331,9 @@
     <string name="player_and_audio">Плеер и аудио</string>
     <string name="audio_quality">Качество аудио</string>
     <string name="audio_quality_auto">Авто</string>
-    <string name="audio_quality_high">Высокое</string>
-    <string name="audio_quality_low">Низкое</string>
+    <string name="audio_quality_highest">Максимальное (256 kbps)</string>
+    <string name="audio_quality_high">Высокое (128 kbps)</string>
+    <string name="audio_quality_low">Низкое (48 kbps)</string>
     <string name="queue">Очередь</string>
     <string name="persistent_queue">Сохранение очереди</string>
     <string name="persistent_queue_desc">Восстанавливать последнюю очередь при запуске</string>

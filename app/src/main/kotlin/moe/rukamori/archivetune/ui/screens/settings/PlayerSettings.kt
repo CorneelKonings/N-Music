@@ -361,7 +361,7 @@ fun PlayerSettings(navController: NavController) {
                                         AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
                                         AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
                                         AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
-                                        AudioQuality.HIGHEST -> stringResource(R.string.audio_quality_high)
+                                        AudioQuality.HIGHEST -> stringResource(R.string.audio_quality_highest)
                                     }
                                 },
                             )

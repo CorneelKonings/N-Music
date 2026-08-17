@@ -549,8 +549,9 @@
     <string name="settings_section_about">About &amp; System</string>
     <string name="audio_quality">Audio quality</string>
     <string name="audio_quality_auto">Auto</string>
-    <string name="audio_quality_high">High</string>
-    <string name="audio_quality_low">Low</string>
+    <string name="audio_quality_highest">Maximum (256 kbps)</string>
+    <string name="audio_quality_high">High (128 kbps)</string>
+    <string name="audio_quality_low">Low (48 kbps)</string>
     <string name="low_data_mode_title">Low Data Mode</string>
     <string name="low_data_mode_description">Reduces mobile data usage by using low-quality streams and disabling playback cache, canvas, and background lyrics preloading on metered networks</string>
     <string name="queue">Queue</string>
