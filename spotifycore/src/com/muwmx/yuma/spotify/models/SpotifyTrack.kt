@@ -10,6 +10,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class SpotifyExternalIds(
+    val isrc: String? = null,
+)
+
+@Serializable
 data class SpotifyTrack(
     val id: String = "",
     val name: String = "",
@@ -22,6 +27,7 @@ data class SpotifyTrack(
     @SerialName("track_number") val trackNumber: Int? = null,
     val uri: String? = null,
     val popularity: Int? = null,
+    @SerialName("external_ids") val externalIds: SpotifyExternalIds? = null,
 )
 
 @Serializable

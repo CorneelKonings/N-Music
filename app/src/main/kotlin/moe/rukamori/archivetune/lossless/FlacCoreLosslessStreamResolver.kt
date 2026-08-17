@@ -14,11 +14,12 @@ class FlacCoreLosslessStreamResolver @Inject constructor(
     private val registry: FlacStreamRegistry
 ) : LosslessStreamResolver {
     override suspend fun resolve(song: Song, quality: FlacQuality): StreamUrl? {
+        val artistName = song.artists.joinToString(", ") { it.name }.ifBlank { song.artists.firstOrNull()?.name.orEmpty() }
         val query = TrackQuery(
-            artist = song.artists.firstOrNull()?.name.orEmpty(),
+            artist = artistName,
             title = song.title,
             album = song.album?.title,
-            isrc = null,
+            isrc = song.song.isrc?.takeIf { it.isNotBlank() },
             durationMs = song.song.duration * 1000L,
             explicit = song.song.explicit
         )

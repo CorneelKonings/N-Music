@@ -26,6 +26,7 @@ data class MediaMetadata(
     val album: Album? = null,
     val setVideoId: String? = null,
     val spotifyTrackId: String? = null,
+    val isrc: String? = null,
     val explicit: Boolean = false,
     val liked: Boolean = false,
     val likedDate: LocalDateTime? = null,
@@ -63,6 +64,7 @@ data class MediaMetadata(
             thumbnailUrl = thumbnailUrl,
             albumId = album?.id,
             albumName = album?.title,
+            isrc = isrc,
             explicit = explicit,
             liked = liked,
             likedDate = likedDate,
@@ -116,6 +118,7 @@ fun Song.toMediaMetadata() =
                     title = song.albumName.orEmpty(),
                 )
             },
+        isrc = song.isrc,
     )
 
 fun SongItem.toMediaMetadata() =
