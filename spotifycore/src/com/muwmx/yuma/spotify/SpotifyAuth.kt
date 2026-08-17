@@ -6,7 +6,10 @@
 
 package moe.rukamori.archivetune.spotify
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -31,10 +34,11 @@ import kotlin.math.floor
 object SpotifyAuth {
     private const val TOKEN_URL = "https://open.spotify.com/api/token"
     private const val SERVER_TIME_URL = "https://open.spotify.com/api/server-time"
-    private const val NUANCE_GIST_URL =
-        "https://api.github.com/gists/22ed9c6ba463899e933427f7de1f0eef"
+    private const val NUANCE_URL =
+        "https://gist.githubusercontent.com/sonic-liberation/22ed9c6ba463899e933427f7de1f0eef/raw/nuances.json"
     private const val USER_AGENT =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    private const val NUANCE_CACHE_TTL_NANOS = 5L * 60L * 1_000_000_000L
 
     const val LOGIN_URL = "https://accounts.spotify.com/login?continue=https%3A%2F%2Fopen.spotify.com%2F"
 
@@ -50,15 +54,10 @@ object SpotifyAuth {
         val v: Int,
     )
 
-    @Serializable
-    private data class GistFile(
-        val content: String,
-    )
+    private data class CachedNuance(val nuance: Nuance, val timestampNanos: Long)
 
-    @Serializable
-    private data class GistFiles(
-        val files: Map<String, GistFile>,
-    )
+    private var cachedNuance: CachedNuance? = null
+    private val nuanceMutex = Mutex()
 
     @Serializable
     private data class ServerTimeResponse(
@@ -77,7 +76,7 @@ object SpotifyAuth {
         spDc: String,
         spKey: String = "",
     ): Result<SpotifyInternalToken> =
-        runCatching {
+        try {
             val nuance = fetchNuance()
             val serverTimeSec = fetchServerTime()
             val totp = generateTotp(nuance.s, serverTimeSec)
@@ -114,29 +113,48 @@ object SpotifyAuth {
                 )
             }
 
-            token
+            Result.success(token)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
         }
 
     private suspend fun fetchNuance(): Nuance =
-        withContext(Dispatchers.IO) {
+        nuanceMutex.withLock {
+            val now = System.nanoTime()
+            val cached = cachedNuance
+            if (cached != null && now - cached.timestampNanos < NUANCE_CACHE_TTL_NANOS) {
+                return cached.nuance
+            }
+
             val body =
-                try {
-                    httpGet(NUANCE_GIST_URL, emptyMap())
-                } catch (e: Exception) {
-                    throw Spotify.SpotifyException(
-                        503,
-                        "Failed to fetch TOTP secret from gist: ${e.message}",
-                    )
+                withContext(Dispatchers.IO) {
+                    try {
+                        httpGet(NUANCE_URL, emptyMap())
+                    } catch (e: Exception) {
+                        if (cached != null) {
+                            return@withContext null
+                        }
+                        throw Spotify.SpotifyException(
+                            503,
+                            "Failed to fetch TOTP secret from gist: ${e.message}",
+                        )
+                    }
                 }
-            val gist = json.decodeFromString<GistFiles>(body)
-            val nuancesJson =
-                gist.files.values
-                    .firstOrNull()
-                    ?.content
-                    ?: throw Spotify.SpotifyException(500, "Gist has no files")
-            val nuances = json.decodeFromString<List<Nuance>>(nuancesJson)
-            nuances.maxByOrNull { it.v }
-                ?: throw Spotify.SpotifyException(500, "No nuance data found in gist")
+
+            if (body == null) {
+                return cached!!.nuance
+            }
+
+            val nuances = json.decodeFromString<List<Nuance>>(body)
+            val validNuance = nuances
+                .filter { it.v > 0 && it.s.isValidBase32Secret() }
+                .maxByOrNull { it.v }
+                ?: throw Spotify.SpotifyException(500, "No valid nuance data found in gist")
+
+            cachedNuance = CachedNuance(validNuance, now)
+            validNuance
         }
 
     private suspend fun fetchServerTime(): Long =
@@ -188,6 +206,8 @@ object SpotifyAuth {
         val otp = code % 1_000_000
         return otp.toString().padStart(6, '0')
     }
+
+    private fun String.isValidBase32Secret(): Boolean = this.matches(Regex("^[A-Z2-7]+=*$"))
 
     private fun base32Decode(input: String): ByteArray {
         val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
