@@ -8,6 +8,7 @@
 
 package moe.rukamori.archivetune.ui.player
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -60,6 +61,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -75,10 +77,9 @@ import coil3.compose.AsyncImage
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.EnableHapticFeedbackKey
 import moe.rukamori.archivetune.db.entities.FormatEntity
-import moe.rukamori.archivetune.db.entities.containerLabel
-import moe.rukamori.archivetune.db.entities.formattedBitrate
+import moe.rukamori.archivetune.db.entities.codecLabel
 import moe.rukamori.archivetune.db.entities.formattedFileSize
-import moe.rukamori.archivetune.db.entities.formattedSampleRate
+import moe.rukamori.archivetune.db.entities.formattedQuality
 import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.ui.component.ActionPromptDialog
 import moe.rukamori.archivetune.ui.component.BottomSheetState
@@ -486,6 +487,7 @@ fun CodecInfoRow(
     fileSize: String,
     textColor: Color,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     Row(
         horizontalArrangement = Arrangement.Center,
@@ -493,6 +495,7 @@ fun CodecInfoRow(
         modifier =
             modifier
                 .fillMaxWidth()
+                .clickable(onClick = onClick)
                 .padding(start = 30.dp, end = 30.dp, top = 6.dp, bottom = 2.dp),
     ) {
         Text(
@@ -547,33 +550,15 @@ fun QueueCollapsedContentV2(
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (showCodecOnPlayer && currentFormat != null) {
-            val codec =
-                currentFormat.codecs
-                    .takeIf { it.isNotBlank() }
-                    ?: currentFormat.containerLabel()
-
-            val container = currentFormat.containerLabel()
-
-            val codecLabel =
-                if (container.isNotBlank() && !codec.equals(container, ignoreCase = true)) {
-                    "$codec ($container)"
-                } else {
-                    codec
-                }
-
-            val bitrate = currentFormat.formattedBitrate()
-
-            val extraText =
-                listOfNotNull(
-                    currentFormat.formattedSampleRate(),
-                    currentFormat.formattedFileSize().takeIf { it.isNotBlank() },
-                ).joinToString(separator = " • ")
-
+            val context = LocalContext.current
             CodecInfoRow(
-                codec = codecLabel,
-                bitrate = bitrate,
-                fileSize = extraText,
+                codec = currentFormat.codecLabel(),
+                bitrate = currentFormat.formattedQuality(),
+                fileSize = currentFormat.formattedFileSize(),
                 textColor = textBackgroundColor.copy(alpha = 0.7f),
+                onClick = {
+                    Toast.makeText(context, currentFormat.playbackUrl ?: "No URL", Toast.LENGTH_SHORT).show()
+                }
             )
         }
 
@@ -777,14 +762,15 @@ fun QueueCollapsedContentV3(
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (showCodecOnPlayer && currentFormat != null) {
-            val container = currentFormat.containerLabel()
-            val bitrate = currentFormat.formattedBitrate()
-
+            val context = LocalContext.current
             CodecInfoRow(
-                codec = container,
-                bitrate = bitrate,
-                fileSize = "",
+                codec = currentFormat.codecLabel(),
+                bitrate = currentFormat.formattedQuality(),
+                fileSize = currentFormat.formattedFileSize(),
                 textColor = textBackgroundColor.copy(alpha = 0.5f),
+                onClick = {
+                    Toast.makeText(context, currentFormat.playbackUrl ?: "No URL", Toast.LENGTH_SHORT).show()
+                }
             )
         }
 
@@ -925,15 +911,15 @@ fun QueueCollapsedContentV1(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         if (showCodecOnPlayer && currentFormat != null) {
-            val container = currentFormat.containerLabel()
-            val bitrate = currentFormat.formattedBitrate()
-            val fileSize = currentFormat.formattedFileSize()
-
+            val context = LocalContext.current
             CodecInfoRow(
-                codec = container,
-                bitrate = bitrate,
-                fileSize = fileSize,
+                codec = currentFormat.codecLabel(),
+                bitrate = currentFormat.formattedQuality(),
+                fileSize = currentFormat.formattedFileSize(),
                 textColor = textBackgroundColor.copy(alpha = 0.7f),
+                onClick = {
+                    Toast.makeText(context, currentFormat.playbackUrl ?: "No URL", Toast.LENGTH_SHORT).show()
+                }
             )
         }
 
@@ -1072,15 +1058,15 @@ fun QueueCollapsedContentV4(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         if (showCodecOnPlayer && currentFormat != null) {
-            val container = currentFormat.containerLabel()
-            val bitrate = currentFormat.formattedBitrate()
-            val fileSize = currentFormat.formattedFileSize()
-
+            val context = LocalContext.current
             CodecInfoRow(
-                codec = container,
-                bitrate = bitrate,
-                fileSize = fileSize,
+                codec = currentFormat.codecLabel(),
+                bitrate = currentFormat.formattedQuality(),
+                fileSize = currentFormat.formattedFileSize(),
                 textColor = textBackgroundColor.copy(alpha = 0.6f),
+                onClick = {
+                    Toast.makeText(context, currentFormat.playbackUrl ?: "No URL", Toast.LENGTH_SHORT).show()
+                }
             )
         }
 
@@ -1230,15 +1216,15 @@ fun QueueCollapsedContentV7(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         if (showCodecOnPlayer && currentFormat != null) {
-            val container = currentFormat.containerLabel()
-            val bitrate = currentFormat.formattedBitrate()
-            val fileSize = currentFormat.formattedFileSize()
-
+            val context = LocalContext.current
             CodecInfoRow(
-                codec = container,
-                bitrate = bitrate,
-                fileSize = fileSize,
+                codec = currentFormat.codecLabel(),
+                bitrate = currentFormat.formattedQuality(),
+                fileSize = currentFormat.formattedFileSize(),
                 textColor = textBackgroundColor.copy(alpha = 0.6f),
+                onClick = {
+                    Toast.makeText(context, currentFormat.playbackUrl ?: "No URL", Toast.LENGTH_SHORT).show()
+                }
             )
         }
 
@@ -1419,15 +1405,15 @@ fun QueueCollapsedContentV9(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (showCodecOnPlayer && currentFormat != null) {
-            val container = currentFormat.containerLabel()
-            val bitrate = currentFormat.formattedBitrate()
-            val fileSize = currentFormat.formattedFileSize()
-
+            val context = LocalContext.current
             CodecInfoRow(
-                codec = container,
-                bitrate = bitrate,
-                fileSize = fileSize,
+                codec = currentFormat.codecLabel(),
+                bitrate = currentFormat.formattedQuality(),
+                fileSize = currentFormat.formattedFileSize(),
                 textColor = textBackgroundColor.copy(alpha = 0.6f),
+                onClick = {
+                    Toast.makeText(context, currentFormat.playbackUrl ?: "No URL", Toast.LENGTH_SHORT).show()
+                }
             )
         }
 
