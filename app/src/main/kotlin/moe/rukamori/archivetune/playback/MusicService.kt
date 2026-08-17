@@ -108,6 +108,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -6839,51 +6840,78 @@ class MusicService :
         val losslessResult = if (!lowDataModeActive) {
             val cachedLossless = if (enableMemoryCache) losslessUrlCache.get(mediaId) else null
             if (cachedLossless != null) {
+                Timber.tag("FLAC_PLAYBACK").d("Using cached lossless URL for $mediaId")
                 cachedLossless
             } else {
                 try {
                     runBlocking(Dispatchers.IO) {
-                        val source = dataStore.get(PlaybackSourceKey, PlaybackSource.YT_MUSIC.name).toEnum(PlaybackSource.YT_MUSIC)
-                        if (source == PlaybackSource.FLAC) {
-                            val quality = dataStore.get(FlacQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
-                            val song = database.song(mediaId).first() ?: withContext(Dispatchers.Main) {
-                                player.findNextMediaItemById(mediaId)?.metadata?.toSong()
-                            }
-                            val result = song?.let { losslessStreamResolver.resolve(it, quality) }
-                            if (result != null) {
-                                if (enableMemoryCache) losslessUrlCache.put(mediaId, result)
-                            } else {
-                                losslessUrlCache.remove(mediaId)
-                            }
-                            result
-                        } else {
-                            null
+                        val quality = dataStore.get(FlacQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
+
+                        // Безопасно получаем песню из БД без дэдлока через Main поток
+                        val song = database.song(mediaId).firstOrNull()
+
+                        if (song == null) {
+                            Timber.tag("FLAC_PLAYBACK").w("Song $mediaId not found in DB for FLAC resolving")
                         }
+
+                        val result = song?.let {
+                            Timber.tag("FLAC_PLAYBACK").d("Resolving FLAC for: ${it.song.title} (mediaId: $mediaId)")
+                            losslessStreamResolver.resolve(it, quality)
+                        }
+
+                        if (result != null) {
+                            Timber.tag("FLAC_PLAYBACK").i("FLAC resolved successfully: origin=${result.origin}, url=${result.url}")
+                            if (enableMemoryCache) losslessUrlCache.put(mediaId, result)
+                        } else {
+                            Timber.tag("FLAC_PLAYBACK").w("FLAC resolver returned NULL for $mediaId")
+                            losslessUrlCache.remove(mediaId)
+                        }
+                        result
                     }
                 } catch (e: CancellationException) {
                     throw e
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
+                    Timber.tag("FLAC_PLAYBACK").e(e, "FLAC resolve failed with exception")
                     losslessUrlCache.remove(mediaId)
                     null
                 }
             }
-        } else null
+        } else {
+            Timber.tag("FLAC_PLAYBACK").d("Bypassed FLAC due to lowDataModeActive")
+            null
+        }
 
         if (losslessResult != null && losslessResult.url.isNotBlank()) {
-                    val headers = mutableMapOf<String, String>()
-                    if (losslessResult.origin in listOf("squid", "kennyy", "arcod", "qobuz", "qbdlx")) {
-                        headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-                        headers["Referer"] = "https://music.youtube.com/"
-                    }
-                    
-                    val resolvedDataSpec = dataSpec.buildUpon()
-                        .setKey(mediaId)
-                        .setUri(losslessResult.url.toUri())
-                        .setHttpRequestHeaders(headers)
-                        .build()
-                    
-                    return resolvedDataSpec
-                }
+            val headers = mutableMapOf<String, String>()
+            if (losslessResult.origin in listOf("squid", "kennyy", "arcod", "qobuz", "qbdlx")) {
+                headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+                headers["Referer"] = "https://music.youtube.com/"
+            }
+
+            // Сохраняем базовый FLAC формат в БД (детали битности подтянутся плеером при воспроизведении)
+            val flacFormat = FormatEntity(
+                id = mediaId,
+                itag = 999,
+                mimeType = "audio/flac",
+                codecs = "flac",
+                bitrate = 0,
+                sampleRate = 44100,
+                contentLength = 0L,
+                loudnessDb = null,
+                perceptualLoudnessDb = null,
+                playbackUrl = losslessResult.url,
+                bitsPerSample = null
+            )
+            database.query { upsert(flacFormat) }
+
+            val resolvedDataSpec = dataSpec.buildUpon()
+                .setKey("flac_$mediaId")
+                .setUri(losslessResult.url.toUri())
+                .setHttpRequestHeaders(headers)
+                .build()
+
+            return resolvedDataSpec
+        }
 
         val playbackData =
             runBlocking(Dispatchers.IO) {
