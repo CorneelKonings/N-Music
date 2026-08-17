@@ -42,6 +42,7 @@ class FlacDownloadWorker(
         val artist = inputData.getString("artist") ?: return@withContext Result.failure()
         val album = inputData.getString("album") ?: return@withContext Result.failure()
 
+        createNotificationChannel()
         setForeground(createForegroundInfo(title))
 
         val treeUriString = context.dataStore.getAsync(DownloadLocationUriKey, "")
@@ -104,7 +105,7 @@ class FlacDownloadWorker(
         } catch (e: Exception) {
             file.delete()
             showDownloadError(title)
-            Result.failure()
+            return@withContext Result.failure()
         } finally {
             inputStream?.close()
             connection?.disconnect()
@@ -112,7 +113,7 @@ class FlacDownloadWorker(
         }
     }
 
-    private fun showDownloadError(title: String) {
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.getSystemService(NotificationManager::class.java)?.createNotificationChannel(
                 NotificationChannel(
@@ -122,6 +123,10 @@ class FlacDownloadWorker(
                 ),
             )
         }
+    }
+
+    private fun showDownloadError(title: String) {
+        createNotificationChannel()
         val notification =
             NotificationCompat.Builder(context, "download")
                 .setContentTitle(context.getString(R.string.flac_download_failed))
@@ -139,7 +144,13 @@ class FlacDownloadWorker(
             .setOngoing(true)
             .build()
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        return if (Build.VERSION.SDK_INT >= 34) {
+            ForegroundInfo(
+                title.hashCode(),
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ForegroundInfo(
                 title.hashCode(),
                 notification,
