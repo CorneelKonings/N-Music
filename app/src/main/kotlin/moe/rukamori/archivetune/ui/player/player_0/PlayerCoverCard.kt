@@ -23,8 +23,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -82,7 +85,7 @@ fun PlayerCoverCard(
                 )
             } else if (currentTarget is String && currentTarget.isNotEmpty()) {
                 coil3.compose.AsyncImage(
-                    model = currentTarget,
+                    model = ImageRequest.Builder(LocalContext.current).data(currentTarget).crossfade(true).crossfade(400).build(),
                     contentDescription = "Album Art Large",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
