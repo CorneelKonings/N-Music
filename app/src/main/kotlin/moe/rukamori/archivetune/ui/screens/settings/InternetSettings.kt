@@ -438,6 +438,17 @@ fun InternetSettings(navController: NavController) {
                     )
                 }
             }
+
+            PreferenceGroup(title = stringResource(R.string.po_token_generation)) {
+                item {
+                    PreferenceEntry(
+                        title = { Text(stringResource(R.string.po_token_generation)) },
+                        description = stringResource(R.string.settings_po_token_subtitle),
+                        icon = { Icon(painterResource(R.drawable.token), null) },
+                        onClick = { navController.navigate("settings/po_token") },
+                    )
+                }
+            }
         }
     }
 

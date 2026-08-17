@@ -320,7 +320,7 @@ fun TextFieldDialog(
     autoFocus: Boolean = true,
     maxLines: Int = if (singleLine) 1 else 10,
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-    isInputValid: (String) -> Boolean = { it.isNotEmpty() },
+    isInputValid: (String) -> Boolean = { true },
     onDone: (String) -> Unit = {},
     // new multi-field support
     textFields: List<Pair<String, TextFieldValue>>? = null,

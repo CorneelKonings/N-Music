@@ -144,14 +144,6 @@ fun buildSettingsGroups(
                             accentColor = MaterialTheme.colorScheme.tertiary,
                             onClick = { navController.navigate("settings/internet") },
                         ),
-                        SettingsItem(
-                            key = "po_token",
-                            icon = painterResource(R.drawable.token),
-                            title = stringResource(R.string.po_token_generation),
-                            subtitle = stringResource(R.string.settings_po_token_subtitle),
-                            accentColor = MaterialTheme.colorScheme.secondary,
-                            onClick = { navController.navigate("settings/po_token") },
-                        ),
                     ),
             ),
         )

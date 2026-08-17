@@ -778,7 +778,7 @@ fun EditTextPreference(
     onValueChange: (String) -> Unit,
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-    isInputValid: (String) -> Boolean = { it.isNotEmpty() },
+    isInputValid: (String) -> Boolean = { true },
     isEnabled: Boolean = true,
 ) {
     var showDialog by remember {
