@@ -22,6 +22,7 @@ data class FormatEntity(
     val loudnessDb: Double?,
     val perceptualLoudnessDb: Double? = null,
     val playbackUrl: String?,
+    val bitsPerSample: Int? = null,
 )
 
 fun FormatEntity.containerLabel(): String = mimeType.substringAfter("/").substringBefore(";").uppercase()
@@ -51,3 +52,13 @@ fun FormatEntity.formattedSampleRate(): String? =
     }
 
 fun FormatEntity.formattedFileSize(): String = if (contentLength > 0) "${(contentLength / 1024.0 / 1024.0).roundToInt()} MB" else ""
+
+fun FormatEntity.formattedQuality(): String {
+    val sr = formattedSampleRate()
+    return when {
+        bitsPerSample != null && bitsPerSample > 0 && sr != null -> "$bitsPerSample-bit / $sr"
+        sr != null -> sr
+        bitrate > 0 -> formattedBitrate()
+        else -> "Unknown"
+    }
+}

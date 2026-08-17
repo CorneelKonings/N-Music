@@ -59,7 +59,7 @@ import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 
 private const val TAG = "MusicDatabase"
-private const val CURRENT_VERSION = 33
+private const val CURRENT_VERSION = 34
 
 class MusicDatabase(
     private val delegate: InternalDatabase,
@@ -169,6 +169,7 @@ abstract class InternalDatabase : RoomDatabase() {
         fun newInstance(context: Context): MusicDatabase {
             val universalMigrations =
                 (2 until CURRENT_VERSION)
+                    .filter { it != 33 }
                     .map { from -> UniversalMigration(context, from, CURRENT_VERSION) }
                     .toTypedArray()
 
@@ -177,6 +178,7 @@ abstract class InternalDatabase : RoomDatabase() {
                     .databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
                     .addMigrations(
                         MIGRATION_1_2,
+                        MIGRATION_33_34,
                         *universalMigrations,
                     ).addCallback(DatabaseCallback())
                     .fallbackToDestructiveMigration()
@@ -898,3 +900,10 @@ class Migration19To20 : AutoMigrationSpec {
 
 @DeleteColumn.Entries(DeleteColumn(tableName = "song", columnName = "artistName"))
 class Migration20To21 : AutoMigrationSpec
+
+private val MIGRATION_33_34 =
+    object : Migration(33, 34) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE format ADD COLUMN bitsPerSample INTEGER DEFAULT NULL")
+        }
+    }
