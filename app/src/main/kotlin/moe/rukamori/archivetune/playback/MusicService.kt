@@ -170,6 +170,7 @@ import moe.rukamori.archivetune.constants.MediaSessionConstants.CommandToggleLik
 import moe.rukamori.archivetune.constants.MediaSessionConstants.CommandToggleRepeatMode
 import moe.rukamori.archivetune.constants.MediaSessionConstants.CommandToggleShuffle
 import moe.rukamori.archivetune.constants.MediaSessionConstants.CommandToggleStartRadio
+import moe.rukamori.archivetune.constants.MemoryCacheToggleKey
 import moe.rukamori.archivetune.constants.PauseListenHistoryKey
 import moe.rukamori.archivetune.constants.PauseOnDeviceMuteKey
 import moe.rukamori.archivetune.constants.PermanentShuffleKey
@@ -249,6 +250,7 @@ import moe.rukamori.archivetune.utils.get
 import moe.rukamori.archivetune.utils.getAsync
 import moe.rukamori.archivetune.utils.isLocalMediaId
 import moe.rukamori.archivetune.utils.isLowDataModeActive
+import moe.rukamori.archivetune.utils.preference
 import moe.rukamori.archivetune.utils.reportException
 import moe.rukamori.archivetune.utils.retryWithoutPlaybackLoginContext
 import moe.rukamori.archivetune.widget.LoadWidgetInsightsUseCase
@@ -355,6 +357,11 @@ class MusicService :
         this,
         PlayerStreamClientKey,
         PlayerStreamClient.ANDROID_VR,
+    )
+    private val enableMemoryCache by preference(
+        this,
+        MemoryCacheToggleKey,
+        true,
     )
     private val playbackUrlCache = ConcurrentHashMap<String, AuthScopedCacheValue>()
     private val losslessUrlCache = moe.rukamori.archivetune.playback.resolvers.StreamUrlCache()
@@ -6830,7 +6837,7 @@ class MusicService :
             }
 
         val losslessResult = if (!lowDataModeActive) {
-            val cachedLossless = losslessUrlCache.get(mediaId)
+            val cachedLossless = if (enableMemoryCache) losslessUrlCache.get(mediaId) else null
             if (cachedLossless != null) {
                 cachedLossless
             } else {
@@ -6844,7 +6851,7 @@ class MusicService :
                             }
                             val result = song?.let { losslessStreamResolver.resolve(it, quality) }
                             if (result != null) {
-                                losslessUrlCache.put(mediaId, result)
+                                if (enableMemoryCache) losslessUrlCache.put(mediaId, result)
                             } else {
                                 losslessUrlCache.remove(mediaId)
                             }
