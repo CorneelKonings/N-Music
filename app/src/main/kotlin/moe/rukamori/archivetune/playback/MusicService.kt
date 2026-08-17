@@ -6877,6 +6877,7 @@ class MusicService :
                     }
                     
                     val resolvedDataSpec = dataSpec.buildUpon()
+                        .setKey(mediaId)
                         .setUri(losslessResult.url.toUri())
                         .setHttpRequestHeaders(headers)
                         .build()
