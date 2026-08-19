@@ -9,11 +9,25 @@
 package moe.rukamori.archivetune.ui.screens.playlist
 
 import androidx.activity.compose.BackHandler
+<<<<<<< HEAD
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+=======
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+>>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +37,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+<<<<<<< HEAD
+=======
+import androidx.compose.foundation.layout.offset
+>>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -37,9 +55,17 @@ import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+<<<<<<< HEAD
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+=======
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+>>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -117,7 +143,13 @@ import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.SortHeader
 import moe.rukamori.archivetune.ui.menu.SelectionSongMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
+<<<<<<< HEAD
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
+=======
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
+import moe.rukamori.archivetune.ui.theme.yumaClickable
+>>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadItem
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadProgressIndicator
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadState
@@ -812,6 +844,7 @@ fun AutoPlaylistScreen(
                         contentType = CONTENT_TYPE_HEADER,
                     ) {
                         val isSpotifySource by viewModel.isSpotifySource.collectAsStateWithLifecycle()
+<<<<<<< HEAD
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -828,6 +861,86 @@ fun AutoPlaylistScreen(
                                 onClick = { viewModel.setSpotifySource(true) },
                                 label = { Text("Spotify") }
                             )
+=======
+
+                        val indicatorOffset by animateFloatAsState(
+                            targetValue = if (isSpotifySource) 1f else 0f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            label = "SourceIndicatorOffset"
+                        )
+
+                        val colors = LocalYumaColors.current
+                        val barShape = RoundedCornerShape(16.dp)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .clip(barShape)
+                                .background(colors.glassBackground)
+                                .border(1.dp, colors.glassBorder, barShape),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp)
+                            ) {
+                                    val tabWidth = maxWidth / 2
+
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .size(width = tabWidth, height = 36.dp)
+                                            .offset(x = tabWidth * indicatorOffset)
+                                    ) {}
+
+                                    Row(modifier = Modifier.fillMaxWidth()) {
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(36.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .clickable { viewModel.setSpotifySource(false) },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.home_provider_youtube_music),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = if (!isSpotifySource) {
+                                                    MaterialTheme.colorScheme.onPrimary
+                                                } else {
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                                }
+                                            )
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(36.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .clickable { viewModel.setSpotifySource(true) },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.home_provider_spotify),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = if (isSpotifySource) {
+                                                    MaterialTheme.colorScheme.onPrimary
+                                                } else {
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+>>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
                         }
                     }
                 }

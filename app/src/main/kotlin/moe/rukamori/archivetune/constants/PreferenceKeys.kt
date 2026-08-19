@@ -386,6 +386,7 @@ val LastAlbumSyncKey = longPreferencesKey("last_album_sync")
 val LastArtistSyncKey = longPreferencesKey("last_artist_sync")
 val LastPlaylistSyncKey = longPreferencesKey("last_playlist_sync")
 val LastSpotifySyncKey = longPreferencesKey("lastSpotifySync")
+val LikedSongsSourceKey = booleanPreferencesKey("likedSongsSource")
 
 val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")

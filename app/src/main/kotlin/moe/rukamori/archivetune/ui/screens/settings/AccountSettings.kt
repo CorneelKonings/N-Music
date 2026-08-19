@@ -39,6 +39,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,6 +50,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -1771,54 +1773,80 @@ private fun ExpressiveSegmentedRow(
                 }
             }
             
-            SingleChoiceSegmentedButtonRow(
-                modifier = Modifier.fillMaxWidth(),
+            val indicatorOffset by animateFloatAsState(
+                targetValue = if (selectedValue) 1f else 0f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                ),
+                label = "SourceIndicatorOffset"
+            )
+
+            val barShape = RoundedCornerShape(16.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(barShape)
+                    .background(colors.glassBackground)
+                    .border(1.dp, colors.glassBorder, barShape),
+                contentAlignment = Alignment.CenterStart
             ) {
-                SegmentedButton(
-                    shape = RoundedCornerShape(
-                        topStart = SettingsDimensions.SegmentedCornerLarge,
-                        bottomStart = SettingsDimensions.SegmentedCornerLarge,
-                        topEnd = SettingsDimensions.SegmentedCornerSmall,
-                        bottomEnd = SettingsDimensions.SegmentedCornerSmall
-                    ),
-                    onClick = { onValueSelected(false) },
-                    selected = !selectedValue,
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        inactiveContainerColor = MaterialTheme.colorScheme.surface,
-                        inactiveContentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.home_provider_youtube_music),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                }
-                SegmentedButton(
-                    shape = RoundedCornerShape(
-                        topStart = SettingsDimensions.SegmentedCornerSmall,
-                        bottomStart = SettingsDimensions.SegmentedCornerSmall,
-                        topEnd = SettingsDimensions.SegmentedCornerLarge,
-                        bottomEnd = SettingsDimensions.SegmentedCornerLarge
-                    ),
-                    onClick = { onValueSelected(true) },
-                    selected = selectedValue,
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        inactiveContainerColor = MaterialTheme.colorScheme.surface,
-                        inactiveContentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_provider_spotify),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                    val tabWidth = maxWidth / 2
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(width = tabWidth, height = 36.dp)
+                            .offset(x = tabWidth * indicatorOffset)
+                    ) {}
+
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(36.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onValueSelected(false) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.home_provider_youtube_music),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (!selectedValue) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(36.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onValueSelected(true) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.home_provider_spotify),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (selectedValue) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
