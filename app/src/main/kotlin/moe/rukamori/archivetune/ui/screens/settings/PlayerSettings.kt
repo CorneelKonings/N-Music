@@ -4,9 +4,11 @@ package moe.rukamori.archivetune.ui.screens.settings
 
 import android.content.Intent
 import android.media.audiofx.AudioEffect
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.documentfile.provider.DocumentFile
 import moe.rukamori.archivetune.ui.screens.settings.SettingsSectionLabel
 import moe.rukamori.archivetune.ui.screens.settings.SettingsScreenBackground
 import androidx.compose.foundation.background
@@ -145,6 +147,20 @@ fun PlayerSettings(navController: NavController) {
     val (_, onEnableLosslessChange) = rememberPreference(EnableLosslessKey, false)
     val (memoryCacheToggle, onMemoryCacheToggleChange) = rememberPreference(MemoryCacheToggleKey, false)
     val (downloadLocationUri, onDownloadLocationUriChange) = rememberPreference(DownloadLocationUriKey, "")
+
+    val flacFolderPath = remember(downloadLocationUri) {
+        if (downloadLocationUri.isBlank()) {
+            null
+        } else {
+            runCatching {
+                val uri = Uri.parse(downloadLocationUri)
+                val docFile = DocumentFile.fromTreeUri(context, uri)
+                val name = docFile?.name?.takeIf { it.isNotBlank() }
+                val rawPath = uri.lastPathSegment?.substringAfterLast(":")?.takeIf { it.isNotBlank() }
+                name ?: rawPath ?: downloadLocationUri
+            }.getOrNull() ?: downloadLocationUri
+        }
+    }
 
     val (squidCaptchaCookie, onSquidCaptchaCookieChange) = rememberPreference(moe.rukamori.archivetune.constants.SquidCaptchaCookieKey, "")
     val (arcodStashKey, onArcodStashKeyChange) = rememberPreference(moe.rukamori.archivetune.constants.ArcodStashKeyKey, "")
@@ -297,6 +313,7 @@ fun PlayerSettings(navController: NavController) {
                         add {
                             PreferenceEntry(
                                 title = { Text(stringResource(R.string.select_flac_download_folder)) },
+                                description = flacFolderPath,
                                 icon = { Icon(painterResource(R.drawable.snippet_folder), null) },
                                 onClick = { folderPickerLauncher.launch(null) },
                             )
