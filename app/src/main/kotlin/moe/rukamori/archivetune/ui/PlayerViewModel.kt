@@ -210,7 +210,7 @@ class PlayerViewModel @Inject constructor(
                             } else {
                                 dbFormat.formattedBitrate()
                             }
-                            "${dbFormat.codecLabel()} • $quality"
+                            "${dbFormat.codecLabel()} | $quality"
                         } else {
                             ""
                         }
