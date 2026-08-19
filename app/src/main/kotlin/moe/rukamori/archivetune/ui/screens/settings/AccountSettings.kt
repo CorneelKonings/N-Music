@@ -552,24 +552,38 @@ fun AccountSettings(
                         title = stringResource(R.string.home_screen_provider),
                         subtitle = stringResource(R.string.home_screen_provider_desc),
                         selectedValue = useSpotifyHome,
-                        onValueSelected = onUseSpotifyHomeChange,
+                        onValueSelected = { isSpotify ->
+                            if (isSpotify && !spotifyState.isAuthenticated) {
+                                showSpotifyLogin = true
+                            } else {
+                                onUseSpotifyHomeChange(isSpotify)
+                            }
+                        },
                     )
 
-                    ExpressiveDivider()
+                    AnimatedVisibility(
+                        visible = spotifyState.isAuthenticated,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) + expandVertically(spring(stiffness = Spring.StiffnessLow)),
+                        exit = fadeOut() + shrinkVertically(),
+                    ) {
+                        Column {
+                            ExpressiveDivider()
 
-                    ExpressiveSwitchRow(
-                        icon = painterResource(R.drawable.sync),
-                        title = stringResource(R.string.spotify_sync_likes),
-                        checked = spotifySyncLikes,
-                        onCheckedChange = onSpotifySyncLikesChange,
-                    )
+                            ExpressiveSwitchRow(
+                                icon = painterResource(R.drawable.sync),
+                                title = stringResource(R.string.spotify_sync_likes),
+                                checked = spotifySyncLikes,
+                                onCheckedChange = onSpotifySyncLikesChange,
+                            )
 
-                    ExpressiveSwitchRow(
-                        icon = painterResource(R.drawable.visibility_off),
-                        title = stringResource(R.string.hide_ytm_liked_songs),
-                        checked = hideYtmLikedSongs,
-                        onCheckedChange = onHideYtmLikedSongsChange,
-                    )
+                            ExpressiveSwitchRow(
+                                icon = painterResource(R.drawable.visibility_off),
+                                title = stringResource(R.string.hide_ytm_liked_songs),
+                                checked = hideYtmLikedSongs,
+                                onCheckedChange = onHideYtmLikedSongsChange,
+                            )
+                        }
+                    }
 
                     ExpressiveDivider()
 
