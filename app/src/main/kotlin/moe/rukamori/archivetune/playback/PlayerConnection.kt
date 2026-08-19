@@ -110,9 +110,6 @@ class PlayerConnection(
         if (player.mediaItemCount > 0 && service.currentMediaMetadata.value == null) {
             service.currentMediaMetadata.value = player.currentMetadata
         }
-        
-        // Initialize audio format for already loaded tracks (e.g. after app restart)
-        onTracksChanged(player.currentTracks)
     }
 
     fun playQueue(queue: Queue) {
