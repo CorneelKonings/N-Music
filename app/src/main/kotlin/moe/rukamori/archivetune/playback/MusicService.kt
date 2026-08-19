@@ -6892,11 +6892,11 @@ class MusicService :
 
             val flacFormat = FormatEntity(
                 id = mediaId,
-                itag = 999,
+                itag = 0,
                 mimeType = "audio/flac",
                 codecs = losslessResult.codec ?: "flac",
                 bitrate = losslessResult.bitrateKbps ?: 0,
-                sampleRate = losslessResult.sampleRateHz ?: 44100,
+                sampleRate = losslessResult.sampleRateHz,
                 contentLength = 0L,
                 loudnessDb = null,
                 perceptualLoudnessDb = null,

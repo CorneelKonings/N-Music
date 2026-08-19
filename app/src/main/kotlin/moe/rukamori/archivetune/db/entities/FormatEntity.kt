@@ -48,7 +48,7 @@ fun FormatEntity.formattedBitrate(): String = if (bitrate > 0) "${bitrate / 1000
 
 fun FormatEntity.formattedSampleRate(): String? =
     sampleRate?.takeIf { it > 0 }?.let {
-        "${(it / 100.0).roundToInt() / 10.0} kHz"
+        "${(it / 100.0).roundToInt() / 10.0} кГц"
     }
 
 fun FormatEntity.formattedFileSize(): String = if (contentLength > 0) "${(contentLength / 1024.0 / 1024.0).roundToInt()} MB" else ""

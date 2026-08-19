@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.stateIn
 import moe.rukamori.archivetune.db.MusicDatabase
+import moe.rukamori.archivetune.db.entities.codecLabel
+import moe.rukamori.archivetune.db.entities.formattedQuality
 import moe.rukamori.archivetune.extensions.currentMetadata
 import moe.rukamori.archivetune.extensions.getCurrentQueueIndex
 import moe.rukamori.archivetune.extensions.getQueueWindows
@@ -234,21 +236,22 @@ class PlayerConnection(
         }
         
         if (foundMimeType != "UNKNOWN") {
-            if (foundBitrate > 0) {
-                val bitrateKbps = if (foundBitrate > 2000) foundBitrate / 1000 else foundBitrate
-                audioFormat.value = "$foundMimeType | $bitrateKbps kbps"
-            } else {
-                scope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                    val mediaId = mediaMetadata.value?.id
-                    if (mediaId != null) {
-                        val formatEntity = database.format(mediaId).firstOrNull()
-                        val dbBitrate = formatEntity?.bitrate ?: -1
-                        if (dbBitrate > 0) {
-                            val bitrateKbps = if (dbBitrate > 2000) dbBitrate / 1000 else dbBitrate
-                            audioFormat.value = "$foundMimeType | $bitrateKbps kbps"
-                        } else {
-                            audioFormat.value = foundMimeType
-                        }
+            scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                val mediaId = mediaMetadata.value?.id
+                val formatEntity = if (mediaId != null) database.format(mediaId).firstOrNull() else null
+                
+                val isLossless = foundMimeType.contains("FLAC", true) || foundMimeType.contains("ALAC", true)
+                if (isLossless && formatEntity != null) {
+                    audioFormat.value = "${formatEntity.codecLabel()} | ${formatEntity.formattedQuality()}"
+                } else {
+                    var bitrateToUse = foundBitrate
+                    if (bitrateToUse <= 0 && formatEntity != null) {
+                        bitrateToUse = formatEntity.bitrate
+                    }
+                    
+                    if (bitrateToUse > 0) {
+                        val bitrateKbps = if (bitrateToUse > 2000) bitrateToUse / 1000 else bitrateToUse
+                        audioFormat.value = "$foundMimeType | $bitrateKbps kbps"
                     } else {
                         audioFormat.value = foundMimeType
                     }
