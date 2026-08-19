@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
@@ -25,9 +26,13 @@ import moe.rukamori.archivetune.db.entities.SongEntity
 import moe.rukamori.archivetune.extensions.toEnum
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.getAsync
+import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
+import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.LocalDateTime
 
 class FlacDownloadWorker(
     private val context: Context,
@@ -46,9 +51,6 @@ class FlacDownloadWorker(
         setForeground(createForegroundInfo(title))
 
         val treeUriString = context.dataStore.getAsync(DownloadLocationUriKey, "")
-        if (treeUriString.isEmpty()) {
-            return@withContext Result.failure()
-        }
 
         val entryPoint =
             EntryPointAccessors.fromApplication(context.applicationContext, FlacDownloaderEntryPoint::class.java)
@@ -69,17 +71,45 @@ class FlacDownloadWorker(
             return@withContext Result.failure()
         }
 
-        val treeUri = Uri.parse(treeUriString)
-        val albumDir = safDirectoryManager.getOrCreateAlbumDirectory(treeUri, artist, album)
-            ?: return@withContext Result.failure()
-
         val fileName = "${sanitizeFileName(title)}.flac"
-        val existingFile = albumDir.findFile(fileName)
-        if (existingFile != null && existingFile.exists()) {
-            return@withContext Result.success()
+        var outputStream: OutputStream? = null
+        var deleteFile: () -> Unit = {}
+
+        if (treeUriString.isNotEmpty()) {
+            val treeUri = Uri.parse(treeUriString)
+            val albumDir = safDirectoryManager.getOrCreateAlbumDirectory(treeUri, artist, album)
+                ?: return@withContext Result.failure()
+
+            val existingFile = albumDir.findFile(fileName)
+            if (existingFile != null && existingFile.exists()) {
+                entryPoint.database().update(song.song.copy(dateDownload = LocalDateTime.now()))
+                return@withContext Result.success()
+            }
+
+            val file = albumDir.createFile("audio/flac", fileName) ?: return@withContext Result.failure()
+            deleteFile = { file.delete() }
+            outputStream = context.contentResolver.openOutputStream(file.uri)
+        } else {
+            val musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+            val yumaDir = File(musicDir, "YumaPlayer")
+            val artistDir = File(yumaDir, sanitizeFileName(artist))
+            val albumDir = File(artistDir, sanitizeFileName(album))
+            if (!albumDir.exists()) {
+                albumDir.mkdirs()
+            }
+            val file = File(albumDir, fileName)
+            if (file.exists()) {
+                entryPoint.database().update(song.song.copy(dateDownload = LocalDateTime.now()))
+                return@withContext Result.success()
+            }
+            file.createNewFile()
+            deleteFile = { file.delete() }
+            outputStream = FileOutputStream(file)
         }
 
-        val file = albumDir.createFile("audio/flac", fileName) ?: return@withContext Result.failure()
+        if (outputStream == null) {
+            return@withContext Result.failure()
+        }
 
         var connection: HttpURLConnection? = null
         var inputStream: InputStream? = null
@@ -93,17 +123,18 @@ class FlacDownloadWorker(
             connection.connect()
 
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                file.delete()
+                deleteFile()
                 return@withContext Result.failure()
             }
 
             inputStream = connection.inputStream
-            context.contentResolver.openOutputStream(file.uri)?.use { outputStream ->
-                inputStream.copyTo(outputStream)
+            outputStream.use { out ->
+                inputStream.copyTo(out)
             }
+            entryPoint.database().update(song.song.copy(dateDownload = LocalDateTime.now()))
             Result.success()
         } catch (e: Exception) {
-            file.delete()
+            deleteFile()
             showDownloadError(title)
             return@withContext Result.failure()
         } finally {

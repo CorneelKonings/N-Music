@@ -96,7 +96,7 @@ fun PlayerTransportControls(
             // Play / Pause
             Box(
                 modifier = Modifier
-                    .bounceClick(pressedScale = 0.92f) { onAction(PlayerAction.PlayPause) }
+                    .bounceClick(pressedScale = 0.92f) { if (!state.isLoading) onAction(PlayerAction.PlayPause) }
                     .size(CenterButtonSize)
                     .background(animatedAccentColor, CircleShape),
                 contentAlignment = Alignment.Center,

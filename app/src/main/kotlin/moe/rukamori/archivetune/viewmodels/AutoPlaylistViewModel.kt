@@ -39,6 +39,7 @@ import moe.rukamori.archivetune.utils.SyncUtils
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.get
 import moe.rukamori.archivetune.utils.reportException
+import java.time.ZoneOffset
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -93,13 +94,14 @@ class AutoPlaylistViewModel
                                     .flowOn(Dispatchers.IO)
                                     .map { songs ->
                                         songs.filter {
-                                            downloads[it.id]?.state == Download.STATE_COMPLETED
+                                            downloads[it.id]?.state == Download.STATE_COMPLETED || it.song.dateDownload != null
                                         }
                                     }.map { songs ->
                                         when (songSortType) {
                                             SongSortType.CREATE_DATE -> {
                                                 songs.sortedBy {
-                                                    downloads[it.id]?.updateTimeMs ?: 0L
+                                                    val updateTime = downloads[it.id]?.updateTimeMs ?: 0L
+                                                    if (updateTime == 0L) it.song.dateDownload?.toInstant(ZoneOffset.UTC)?.toEpochMilli() ?: 0L else updateTime
                                                 }
                                             }
 
