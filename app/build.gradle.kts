@@ -252,7 +252,6 @@ implementation(libs.animation.core)
     implementation("androidx.browser:browser:1.10.0")
 
     implementation(libs.compose.runtime)
-    implementation("androidx.compose.runtime:runtime-livedata:${libs.versions.compose.get()}")
     implementation(libs.compose.foundation)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.util)

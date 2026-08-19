@@ -10,6 +10,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.ContentMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -56,10 +57,14 @@ class CachePlaylistViewModel
 
                     val completeSongs =
                         songs.filter {
-                            val contentLength = it.format?.contentLength
-                            val isRegularCached = (contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)) || playerCache.getCachedBytes(it.song.id, 0, -1L) > 0
-                            val isFlacCached = (contentLength != null && playerCache.isCached("flac_${it.song.id}", 0, contentLength)) || playerCache.getCachedBytes("flac_${it.song.id}", 0, -1L) > 0
-                            isRegularCached || isFlacCached
+                            val id = it.song.id
+                            val flacId = "flac_$id"
+
+                            val ytLength = playerCache.getContentMetadata(id).get(ContentMetadata.KEY_CONTENT_LENGTH, -1L)
+                            val flacLength = playerCache.getContentMetadata(flacId).get(ContentMetadata.KEY_CONTENT_LENGTH, -1L)
+
+                            (ytLength > 0 && playerCache.isCached(id, 0, ytLength)) ||
+                                (flacLength > 0 && playerCache.isCached(flacId, 0, flacLength))
                         }
 
                     if (completeSongs.isNotEmpty()) {

@@ -41,7 +41,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.compose.runtime.getValue
@@ -220,10 +219,7 @@ fun SongMenu(
     var artistField by rememberSaveable(stateSaver = TextFieldValueSaver) {
         mutableStateOf(
             TextFieldValue(
-                song.artists
-                    .firstOrNull()
-                    ?.name
-                    .orEmpty(),
+                song.artists.mapNotNull { it.name.takeIf(String::isNotBlank) }.joinToString(", "),
             ),
         )
     }
@@ -852,8 +848,8 @@ fun SongMenu(
                                     color = MaterialTheme.colorScheme.outlineVariant,
                                 )
                                 val flacWorkInfos by WorkManager.getInstance(context)
-                                    .getWorkInfosForUniqueWorkLiveData("flac_download_${song.id}")
-                                    .observeAsState(emptyList())
+                                    .getWorkInfosForUniqueWorkFlow("flac_download_${song.id}")
+                                    .collectAsState(emptyList())
                                 val flacWorkState = flacWorkInfos.firstOrNull()?.state
 
                                 when (flacWorkState) {
@@ -865,6 +861,9 @@ fun SongMenu(
                                                     modifier = Modifier.size(24.dp),
                                                 )
                                             },
+                                            modifier = Modifier.clickable {
+                                                WorkManager.getInstance(context).cancelUniqueWork("flac_download_${song.id}")
+                                            },
                                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                         )
                                     }
@@ -875,6 +874,15 @@ fun SongMenu(
                                                 Icon(
                                                     painter = painterResource(R.drawable.offline),
                                                     contentDescription = null,
+                                                )
+                                            },
+                                            modifier = Modifier.clickable {
+                                                FlacDownloader.deleteFlac(
+                                                    context,
+                                                    song.id,
+                                                    song.song.title,
+                                                    song.artists.mapNotNull { it.name.takeIf(String::isNotBlank) }.joinToString(", "),
+                                                    song.song.albumName.orEmpty(),
                                                 )
                                             },
                                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -891,12 +899,11 @@ fun SongMenu(
                                             },
                                             modifier =
                                                 Modifier.clickable {
-                                                    Toast.makeText(context, context.getString(R.string.downloading), Toast.LENGTH_SHORT).show()
                                                     FlacDownloader.downloadFlac(
                                                         context,
                                                         song.id,
                                                         song.song.title,
-                                                        song.artists.firstOrNull()?.name.orEmpty(),
+                                                        song.artists.mapNotNull { it.name.takeIf(String::isNotBlank) }.joinToString(", "),
                                                         song.song.albumName.orEmpty(),
                                                     )
                                                 },
