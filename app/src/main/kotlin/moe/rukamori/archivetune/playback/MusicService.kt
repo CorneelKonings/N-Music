@@ -3479,10 +3479,17 @@ class MusicService :
             }
             if (initialStatus.items.isEmpty()) return@launch
             if (queue.preloadItem != null) {
-                val currentPos = player.currentPosition
-                val isPlaying = player.isPlaying
-                player.setMediaItems(initialStatus.items, initialStatus.mediaItemIndex, currentPos)
-                player.playWhenReady = isPlaying || playWhenReady
+                val before = initialStatus.items.subList(0, initialStatus.mediaItemIndex)
+                val after = initialStatus.items.subList(
+                    initialStatus.mediaItemIndex + 1,
+                    initialStatus.items.size,
+                )
+                if (before.isNotEmpty()) {
+                    player.addMediaItems(0, before)
+                }
+                if (after.isNotEmpty()) {
+                    player.addMediaItems(after)
+                }
                 if (player.shuffleModeEnabled) {
                     applyCurrentFirstShuffleOrder()
                 }
@@ -6844,10 +6851,11 @@ class MusicService :
 
                         if (song == null) {
                             Timber.tag("FLAC_PLAYBACK").w("Song $mediaId not found in DB for FLAC resolving, attempting to create transient song")
-                            val metadata = withContext(Dispatchers.Main) {
-                                player.currentMediaItem?.takeIf { it.mediaId == mediaId }?.metadata
-                                    ?: player.findNextMediaItemById(mediaId)?.metadata
-                            } ?: (dataSpec.customData as? moe.rukamori.archivetune.models.MediaMetadata)
+                            val metadata = (dataSpec.customData as? moe.rukamori.archivetune.models.MediaMetadata)
+                                ?: withContext(Dispatchers.Main) {
+                                    player.currentMediaItem?.takeIf { it.mediaId == mediaId }?.metadata
+                                        ?: player.findNextMediaItemById(mediaId)?.metadata
+                                }
 
                             if (metadata != null) {
                                 song = createTransientSongFromMedia(metadata)
