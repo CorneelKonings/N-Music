@@ -3479,16 +3479,10 @@ class MusicService :
             }
             if (initialStatus.items.isEmpty()) return@launch
             if (queue.preloadItem != null) {
-                player.addMediaItems(
-                    0,
-                    initialStatus.items.subList(0, initialStatus.mediaItemIndex),
-                )
-                player.addMediaItems(
-                    initialStatus.items.subList(
-                        initialStatus.mediaItemIndex + 1,
-                        initialStatus.items.size,
-                    ),
-                )
+                val currentPos = player.currentPosition
+                val isPlaying = player.isPlaying
+                player.setMediaItems(initialStatus.items, initialStatus.mediaItemIndex, currentPos)
+                player.playWhenReady = isPlaying || playWhenReady
                 if (player.shuffleModeEnabled) {
                     applyCurrentFirstShuffleOrder()
                 }
