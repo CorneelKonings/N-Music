@@ -39,7 +39,6 @@ import moe.rukamori.archivetune.utils.SyncUtils
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.get
 import moe.rukamori.archivetune.utils.reportException
-import java.time.ZoneOffset
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -66,58 +65,25 @@ class AutoPlaylistViewModel
                 AutoPlaylistSongSortType.PLAY_TIME -> SongSortType.PLAY_TIME
             }
 
-        private data class PlaylistConfig(
-            val sortDesc: Pair<AutoPlaylistSongSortType, Boolean>,
-            val hideExplicit: Boolean,
-            val hideVideo: Boolean,
-            val treeUriString: String
-        )
-
-        private fun isFlacDownloaded(
-            context: Context,
-            title: String,
-            artist: String,
-            album: String,
-            treeUriString: String
-        ): Boolean {
-            val fileName = "${moe.rukamori.archivetune.download.sanitizeFileName(title)}.flac"
-            if (treeUriString.isNotEmpty()) {
-                val treeUri = android.net.Uri.parse(treeUriString)
-                val rootDir = androidx.documentfile.provider.DocumentFile.fromTreeUri(context, treeUri) ?: return false
-                val artistDir = rootDir.findFile(moe.rukamori.archivetune.download.sanitizeFileName(artist)) ?: return false
-                val albumDir = artistDir.findFile(moe.rukamori.archivetune.download.sanitizeFileName(album)) ?: return false
-                val file = albumDir.findFile(fileName)
-                return file != null && file.exists()
-            } else {
-                val musicDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_MUSIC)
-                val yumaDir = java.io.File(musicDir, "YumaPlayer")
-                val artistDir = java.io.File(yumaDir, moe.rukamori.archivetune.download.sanitizeFileName(artist))
-                val albumDir = java.io.File(artistDir, moe.rukamori.archivetune.download.sanitizeFileName(album))
-                val file = java.io.File(albumDir, fileName)
-                return file.exists()
-            }
-        }
-
         @OptIn(ExperimentalCoroutinesApi::class)
         val likedSongs =
             context.dataStore.data
                 .map {
-                    PlaylistConfig(
+                    Triple(
                         it[AutoPlaylistSongSortTypeKey].toEnum(AutoPlaylistSongSortType.CREATE_DATE) to (
                             it[AutoPlaylistSongSortDescendingKey]
                                 ?: true
                         ),
                         it[HideExplicitKey] ?: false,
                         it[HideVideoKey] ?: false,
-                        it[moe.rukamori.archivetune.constants.DownloadLocationUriKey] ?: ""
                     )
                 }.distinctUntilChanged()
-                .flatMapLatest { config ->
-                    val (sortType, descending) = config.sortDesc
+                .flatMapLatest { (sortDesc, hideExplicit, hideVideo) ->
+                    val (sortType, descending) = sortDesc
                     val songSortType = sortType.toSongSortType()
                     when (playlist) {
                         "liked" -> {
-                            database.likedSongs(songSortType, descending, config.hideVideo).map { it.filterExplicit(config.hideExplicit) }
+                            database.likedSongs(songSortType, descending, hideVideo).map { it.filterExplicit(hideExplicit) }
                         }
 
                         "downloaded" -> {
@@ -127,14 +93,13 @@ class AutoPlaylistViewModel
                                     .flowOn(Dispatchers.IO)
                                     .map { songs ->
                                         songs.filter {
-                                            downloads[it.id]?.state == Download.STATE_COMPLETED || (it.song.dateDownload != null && isFlacDownloaded(context, it.song.title, it.artists.mapNotNull { artist -> artist.name.takeIf(String::isNotBlank) }.joinToString(", "), it.song.albumName.orEmpty(), config.treeUriString))
+                                            downloads[it.id]?.state == Download.STATE_COMPLETED
                                         }
                                     }.map { songs ->
                                         when (songSortType) {
                                             SongSortType.CREATE_DATE -> {
                                                 songs.sortedBy {
-                                                    val updateTime = downloads[it.id]?.updateTimeMs ?: 0L
-                                                    if (updateTime == 0L) it.song.dateDownload?.toInstant(ZoneOffset.UTC)?.toEpochMilli() ?: 0L else updateTime
+                                                    downloads[it.id]?.updateTimeMs ?: 0L
                                                 }
                                             }
 
@@ -151,7 +116,7 @@ class AutoPlaylistViewModel
                                             SongSortType.PLAY_TIME -> {
                                                 songs.sortedBy { it.song.totalPlayTime }
                                             }
-                                        }.reversed(descending).filterExplicit(config.hideExplicit)
+                                        }.reversed(descending).filterExplicit(hideExplicit)
                                     }
                             }
                         }
