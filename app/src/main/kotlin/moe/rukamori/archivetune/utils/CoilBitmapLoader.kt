@@ -23,7 +23,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.future
 import moe.rukamori.archivetune.utils.reportException
-import kotlin.math.roundToInt
 
 class CoilBitmapLoader(
     private val context: Context,
@@ -51,16 +50,13 @@ class CoilBitmapLoader(
 
     override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> =
         scope.future(Dispatchers.IO) {
-            val density = context.resources.displayMetrics.density
-            val maxIconSizePx = (density * 256f).roundToInt().coerceIn(256, 512)
-            
             try {
                 val request =
                     ImageRequest
                         .Builder(context)
                         .data(uri)
                         .allowHardware(false)
-                        .size(maxIconSizePx, maxIconSizePx)
+                        .size(1080, 1080)
                         .build()
 
                 val result = context.imageLoader.execute(request)
