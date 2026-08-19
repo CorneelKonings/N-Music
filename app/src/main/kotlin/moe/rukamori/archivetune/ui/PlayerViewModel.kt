@@ -47,6 +47,9 @@ import moe.rukamori.archivetune.lyrics.LyricsTranslator
 import moe.rukamori.archivetune.ai.AiLyricsTranslator
 import moe.rukamori.archivetune.ai.AiServiceConfig
 import moe.rukamori.archivetune.constants.*
+import moe.rukamori.archivetune.db.entities.codecLabel
+import moe.rukamori.archivetune.db.entities.formattedQuality
+import moe.rukamori.archivetune.db.entities.formattedBitrate
 import moe.rukamori.archivetune.extensions.toEnum
 import moe.rukamori.archivetune.utils.dataStore
 import androidx.datastore.preferences.core.edit
@@ -193,9 +196,28 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             connectionHolder.connection
                 .filterNotNull()
-                .flatMapLatest { it.audioFormat }
+                .flatMapLatest { connection ->
+                    kotlinx.coroutines.flow.combine(
+                        connection.currentFormat,
+                        connection.audioFormat
+                    ) { dbFormat, liveFormat ->
+                        if (!liveFormat.isNullOrBlank() && liveFormat != "UNKNOWN") {
+                            liveFormat
+                        } else if (dbFormat != null) {
+                            val isLossless = dbFormat.codecLabel() == "FLAC" || dbFormat.codecLabel() == "ALAC"
+                            val quality = if (isLossless) {
+                                dbFormat.formattedQuality()
+                            } else {
+                                dbFormat.formattedBitrate()
+                            }
+                            "${dbFormat.codecLabel()} • $quality"
+                        } else {
+                            ""
+                        }
+                    }
+                }
                 .collect { format ->
-                    _uiState.update { it.copy(codecInfo = format ?: "") }
+                    _uiState.update { it.copy(codecInfo = format) }
                 }
         }
 
