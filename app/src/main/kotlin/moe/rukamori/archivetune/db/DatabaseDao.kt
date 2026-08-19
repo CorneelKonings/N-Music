@@ -190,40 +190,41 @@ interface DatabaseDao {
     fun songsByPlayTimeAscNoVideo(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE liked ORDER BY rowId")
-    fun likedSongsByRowIdAsc(): Flow<List<Song>>
+    @Query("SELECT * FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY rowId")
+    fun likedSongsByRowIdAsc(excludeSpotify: Boolean = true): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE liked ORDER BY likedDate, rowId")
-    fun likedSongsByCreateDateAsc(): Flow<List<Song>>
+    @Query("SELECT * FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY likedDate, rowId")
+    fun likedSongsByCreateDateAsc(excludeSpotify: Boolean = true): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE liked ORDER BY title")
-    fun likedSongsByNameAsc(): Flow<List<Song>>
+    @Query("SELECT * FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY title")
+    fun likedSongsByNameAsc(excludeSpotify: Boolean = true): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE liked ORDER BY totalPlayTime")
-    fun likedSongsByPlayTimeAsc(): Flow<List<Song>>
+    @Query("SELECT * FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY totalPlayTime")
+    fun likedSongsByPlayTimeAsc(excludeSpotify: Boolean = true): Flow<List<Song>>
 
     fun likedSongs(
         sortType: SongSortType,
         descending: Boolean,
         filterVideo: Boolean = false,
+        excludeSpotify: Boolean = true,
     ) = when (sortType) {
         SongSortType.CREATE_DATE -> {
             if (filterVideo) {
-                likedSongsByCreateDateAscNoVideo()
+                likedSongsByCreateDateAscNoVideo(excludeSpotify)
             } else {
-                likedSongsByCreateDateAsc()
+                likedSongsByCreateDateAsc(excludeSpotify)
             }
         }
 
         SongSortType.NAME -> {
             (
                 if (filterVideo) {
-                    likedSongsByNameAscNoVideo()
+                    likedSongsByNameAscNoVideo(excludeSpotify)
                 } else {
-                    likedSongsByNameAsc()
+                    likedSongsByNameAsc(excludeSpotify)
                 }
             ).map { songs ->
                 val collator = Collator.getInstance(Locale.getDefault())
@@ -235,9 +236,9 @@ interface DatabaseDao {
         SongSortType.ARTIST -> {
             (
                 if (filterVideo) {
-                    likedSongsByRowIdAscNoVideo()
+                    likedSongsByRowIdAscNoVideo(excludeSpotify)
                 } else {
-                    likedSongsByRowIdAsc()
+                    likedSongsByRowIdAsc(excludeSpotify)
                 }
             ).map { songs ->
                 val collator = Collator.getInstance(Locale.getDefault())
@@ -251,7 +252,7 @@ interface DatabaseDao {
         }
 
         SongSortType.PLAY_TIME -> {
-            likedSongsByPlayTimeAsc()
+            likedSongsByPlayTimeAsc(excludeSpotify)
         }
     }.map { songs ->
         songs.filter { song -> song.artists.none { it.blockedAt != null } }.reversed(descending)
@@ -263,11 +264,11 @@ interface DatabaseDao {
         SELECT song.*
         FROM song
         LEFT JOIN set_video_id ON set_video_id.videoId = song.id
-        WHERE liked AND set_video_id.setVideoId IS NULL
+        WHERE liked AND set_video_id.setVideoId IS NULL AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
         ORDER BY song.rowid
         """,
     )
-    fun likedSongsByRowIdAscNoVideo(): Flow<List<Song>>
+    fun likedSongsByRowIdAscNoVideo(excludeSpotify: Boolean = true): Flow<List<Song>>
 
     @Transaction
     @Query(
@@ -275,11 +276,11 @@ interface DatabaseDao {
         SELECT song.*
         FROM song
         LEFT JOIN set_video_id ON set_video_id.videoId = song.id
-        WHERE liked AND set_video_id.setVideoId IS NULL
+        WHERE liked AND set_video_id.setVideoId IS NULL AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
         ORDER BY likedDate, song.rowid
         """,
     )
-    fun likedSongsByCreateDateAscNoVideo(): Flow<List<Song>>
+    fun likedSongsByCreateDateAscNoVideo(excludeSpotify: Boolean = true): Flow<List<Song>>
 
     @Transaction
     @Query(
@@ -287,11 +288,11 @@ interface DatabaseDao {
         SELECT song.*
         FROM song
         LEFT JOIN set_video_id ON set_video_id.videoId = song.id
-        WHERE liked AND set_video_id.setVideoId IS NULL
+        WHERE liked AND set_video_id.setVideoId IS NULL AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
         ORDER BY title
         """,
     )
-    fun likedSongsByNameAscNoVideo(): Flow<List<Song>>
+    fun likedSongsByNameAscNoVideo(excludeSpotify: Boolean = true): Flow<List<Song>>
 
     @Transaction
     @Query(
@@ -299,15 +300,15 @@ interface DatabaseDao {
         SELECT song.*
         FROM song
         LEFT JOIN set_video_id ON set_video_id.videoId = song.id
-        WHERE liked AND set_video_id.setVideoId IS NULL
+        WHERE liked AND set_video_id.setVideoId IS NULL AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
         ORDER BY totalPlayTime
         """,
     )
-    fun likedSongsByPlayTimeAscNoVideo(): Flow<List<Song>>
+    fun likedSongsByPlayTimeAscNoVideo(excludeSpotify: Boolean = true): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT COUNT(1) FROM song WHERE liked")
-    fun likedSongsCount(): Flow<Int>
+    @Query("SELECT COUNT(1) FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))")
+    fun likedSongsCount(excludeSpotify: Boolean = true): Flow<Int>
 
     @Transaction
     @Query("SELECT song.* FROM song JOIN song_album_map ON song.id = song_album_map.songId WHERE song_album_map.albumId = :albumId")
