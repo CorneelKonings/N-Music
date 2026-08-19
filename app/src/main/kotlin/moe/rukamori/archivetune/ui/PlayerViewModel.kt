@@ -217,7 +217,9 @@ class PlayerViewModel @Inject constructor(
                     }
                 }
                 .collect { format ->
-                    _uiState.update { it.copy(codecInfo = format) }
+                    if (format.isNotEmpty()) {
+                        _uiState.update { it.copy(codecInfo = format) }
+                    }
                 }
         }
 
