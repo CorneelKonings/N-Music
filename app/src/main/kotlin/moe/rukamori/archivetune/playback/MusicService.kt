@@ -6894,14 +6894,14 @@ class MusicService :
                 id = mediaId,
                 itag = 999,
                 mimeType = "audio/flac",
-                codecs = "flac",
-                bitrate = 0,
-                sampleRate = 44100,
+                codecs = losslessResult.codec ?: "flac",
+                bitrate = losslessResult.bitrateKbps ?: 0,
+                sampleRate = losslessResult.sampleRateHz ?: 44100,
                 contentLength = 0L,
                 loudnessDb = null,
                 perceptualLoudnessDb = null,
                 playbackUrl = losslessResult.url,
-                bitsPerSample = null
+                bitsPerSample = losslessResult.bitsPerSample
             )
             database.query { upsert(flacFormat) }
 

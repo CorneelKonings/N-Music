@@ -41,6 +41,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -848,27 +851,59 @@ fun SongMenu(
                                     modifier = Modifier.padding(start = 56.dp),
                                     color = MaterialTheme.colorScheme.outlineVariant,
                                 )
-                                ListItem(
-                                    headlineContent = { Text(text = stringResource(R.string.download_flac)) },
-                                    leadingContent = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.download),
-                                            contentDescription = null,
+                                val flacWorkInfos by WorkManager.getInstance(context)
+                                    .getWorkInfosForUniqueWorkLiveData("flac_download_${song.id}")
+                                    .observeAsState(emptyList())
+                                val flacWorkState = flacWorkInfos.firstOrNull()?.state
+
+                                when (flacWorkState) {
+                                    WorkInfo.State.RUNNING, WorkInfo.State.ENQUEUED -> {
+                                        ListItem(
+                                            headlineContent = { Text(text = stringResource(R.string.downloading)) },
+                                            leadingContent = {
+                                                CircularWavyProgressIndicator(
+                                                    modifier = Modifier.size(24.dp),
+                                                )
+                                            },
+                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                         )
-                                    },
-                                    modifier =
-                                        Modifier.clickable {
-                                            onDismiss()
-                                            FlacDownloader.downloadFlac(
-                                                context,
-                                                song.id,
-                                                song.song.title,
-                                                song.artists.firstOrNull()?.name.orEmpty(),
-                                                song.song.albumName.orEmpty(),
-                                            )
-                                        },
-                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                                )
+                                    }
+                                    WorkInfo.State.SUCCEEDED -> {
+                                        ListItem(
+                                            headlineContent = { Text(text = stringResource(R.string.remove_download)) },
+                                            leadingContent = {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.offline),
+                                                    contentDescription = null,
+                                                )
+                                            },
+                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        )
+                                    }
+                                    else -> {
+                                        ListItem(
+                                            headlineContent = { Text(text = stringResource(R.string.download_flac)) },
+                                            leadingContent = {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.download),
+                                                    contentDescription = null,
+                                                )
+                                            },
+                                            modifier =
+                                                Modifier.clickable {
+                                                    Toast.makeText(context, context.getString(R.string.downloading), Toast.LENGTH_SHORT).show()
+                                                    FlacDownloader.downloadFlac(
+                                                        context,
+                                                        song.id,
+                                                        song.song.title,
+                                                        song.artists.firstOrNull()?.name.orEmpty(),
+                                                        song.song.albumName.orEmpty(),
+                                                    )
+                                                },
+                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        )
+                                    }
+                                }
                             }
                             if (externalDownloaderEnabled) {
                                 HorizontalDivider(

@@ -43,8 +43,8 @@ class CachePlaylistViewModel
             viewModelScope.launch(Dispatchers.IO) {
                 while (true) {
                     val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                    val cachedIds = playerCache.keys.toSet()
-                    val downloadedIds = downloadCache.keys.toSet()
+                    val cachedIds = playerCache.keys.map { it.removePrefix("flac_") }.toSet()
+                    val downloadedIds = downloadCache.keys.map { it.removePrefix("flac_") }.toSet()
                     val pureCacheIds = cachedIds.subtract(downloadedIds)
 
                     val songs =
@@ -57,7 +57,9 @@ class CachePlaylistViewModel
                     val completeSongs =
                         songs.filter {
                             val contentLength = it.format?.contentLength
-                            contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)
+                            val isRegularCached = (contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)) || playerCache.getCachedBytes(it.song.id, 0, -1L) > 0
+                            val isFlacCached = (contentLength != null && playerCache.isCached("flac_${it.song.id}", 0, contentLength)) || playerCache.getCachedBytes("flac_${it.song.id}", 0, -1L) > 0
+                            isRegularCached || isFlacCached
                         }
 
                     if (completeSongs.isNotEmpty()) {
@@ -83,5 +85,6 @@ class CachePlaylistViewModel
 
         fun removeSongFromCache(songId: String) {
             playerCache.removeResource(songId)
+            playerCache.removeResource("flac_$songId")
         }
     }
