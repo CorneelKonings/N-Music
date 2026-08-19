@@ -73,7 +73,7 @@ internal fun UnifiedPlayerSheetLayers(
         // ==========================================
         val isFullPlayerVisible by remember {
             derivedStateOf {
-                expansionFractionProvider() >= 0.005f && lyricsFractionProvider() <= 0.995f
+                (state.isPlaying || expansionFractionProvider() >= 0.005f) && lyricsFractionProvider() <= 0.995f
             }
         }
 
@@ -82,8 +82,10 @@ internal fun UnifiedPlayerSheetLayers(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
+                        val expansionFraction = expansionFractionProvider()
                         val lyricsFraction = lyricsFractionProvider()
-                        alpha = fullPlayerVisualState.contentAlpha * (1f - lyricsFraction)
+                        val baseAlpha = if (expansionFraction < 0.005f) 0f else fullPlayerVisualState.contentAlpha
+                        alpha = baseAlpha * (1f - lyricsFraction)
                         translationY = fullPlayerVisualState.translationY - (200f * density * lyricsFraction)
                     }
             ) {

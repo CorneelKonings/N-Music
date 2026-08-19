@@ -1,7 +1,5 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
-import android.graphics.drawable.BitmapDrawable
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -13,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -30,6 +27,7 @@ import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
 import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 import coil3.compose.AsyncImage
+import coil3.request.crossfade
 
 val MiniPlayerHeight = 64.dp
 @Composable
@@ -49,8 +47,8 @@ internal fun MiniPlayerContentInternal(
     val rotation = remember { Animatable(0f) }
     val isMiniVisible = remember { derivedStateOf { expansionFractionProvider() < 0.99f } }
 
-    LaunchedEffect(state.isPlaying, isMiniVisible.value) {
-        if (state.isPlaying && isMiniVisible.value) {
+    LaunchedEffect(state.isPlaying) {
+        if (state.isPlaying) {
             while (true) {
                 rotation.animateTo(
                     targetValue = rotation.value + 360f,
@@ -87,27 +85,38 @@ internal fun MiniPlayerContentInternal(
             }
             .clip(CircleShape)
 
-        Crossfade(
-    targetState = state.coverUrl,
-    animationSpec = tween(500),
-    label = "MiniPlayerCoverCrossfade"
-) { url ->
-    if (url.isNotEmpty()) {
-        AsyncImage(
-            model = url,
-            contentDescription = "Mini Album Art",
-            modifier = albumArtModifier,
-            contentScale = ContentScale.Crop
-        )
-    } else {
-        Image(
-            painter = painterResource(id = state.placeholderResId),
-            contentDescription = "Mini Placeholder",
-            modifier = albumArtModifier,
-            contentScale = ContentScale.Crop
-        )
-    }
-}
+        val context = androidx.compose.ui.platform.LocalContext.current
+
+        Box(modifier = albumArtModifier) {
+            androidx.compose.animation.Crossfade(
+                targetState = state.coverUrl.takeIf { it.isNotEmpty() },
+                animationSpec = tween(500),
+                label = "MiniCoverCrossfade"
+            ) { targetUrl ->
+                if (targetUrl == null) {
+                    Image(
+                        painter = painterResource(id = state.placeholderResId),
+                        contentDescription = "Mini Album Art",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    val request = remember(targetUrl) {
+                        coil3.request.ImageRequest.Builder(context)
+                            .data(targetUrl)
+                            .crossfade(500)
+                            .build()
+                    }
+                    AsyncImage(
+                        model = request,
+                        contentDescription = "Mini Album Art",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        error = painterResource(id = state.placeholderResId)
+                    )
+                }
+            }
+        }
 
         // ==========================================
         // 2. ЦЕНТРАЛЬНАЯ ЧАСТЬ: Бегущий текст по канонам SRP

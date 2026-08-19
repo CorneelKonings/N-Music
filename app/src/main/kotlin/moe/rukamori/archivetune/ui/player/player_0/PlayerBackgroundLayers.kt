@@ -1,6 +1,5 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -28,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 
 @Composable
@@ -40,15 +40,6 @@ fun PlayerBackgroundLayers(
     val colorScheme = MaterialTheme.colorScheme
     val isLightTheme = colorScheme.surface.luminance() > 0.5f
     val standardVeilColor = if (isLightTheme) colorScheme.surface else Color.Black
-
-    val blurImageRequest = remember(state.coverUrl) {
-        if (state.coverUrl.isNotEmpty()) {
-            ImageRequest.Builder(context)
-                .data(state.coverUrl)
-                .size(64)
-                .build()
-        } else null
-    }
 
     val immersiveMaskBrush = remember {
         Brush.verticalGradient(
@@ -107,45 +98,58 @@ fun PlayerBackgroundLayers(
                 .background(gradientBrush)
         )
 
-        Crossfade(
-            targetState = state.coverUrl,
-            animationSpec = tween(durationMillis = 800),
-            label = "BackgroundCoverCrossfade"
-        ) { url ->
-            if (url.isNotEmpty()) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        model = blurImageRequest,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer { alpha = blurOverlayAlpha }
-                            .blur(56.dp),
-                        contentScale = ContentScale.Crop
-                    )
+        androidx.compose.animation.Crossfade(
+            targetState = state.coverUrl.takeIf { it.isNotEmpty() },
+            animationSpec = tween(500),
+            label = "BackgroundCrossfade"
+        ) { targetUrl ->
+            val blurImageRequest = remember(targetUrl) {
+                ImageRequest.Builder(context)
+                    .data(targetUrl)
+                    .size(64)
+                    .crossfade(500)
+                    .build()
+            }
 
-                    AsyncImage(
-                        model = url,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(0.75f)
-                            .align(Alignment.TopCenter)
-                            .graphicsLayer {
-                                alpha = immersiveTransitionAlpha
-                                compositingStrategy = CompositingStrategy.Offscreen
-                            }
-                            .drawWithContent {
-                                drawContent()
-                                drawRect(
-                                    brush = immersiveMaskBrush,
-                                    blendMode = BlendMode.DstIn
-                                )
-                            },
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.TopCenter
-                    )
-                }
+            val clearImageRequest = remember(targetUrl) {
+                ImageRequest.Builder(context)
+                    .data(targetUrl)
+                    .crossfade(500)
+                    .build()
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                AsyncImage(
+                    model = blurImageRequest,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = blurOverlayAlpha }
+                        .blur(56.dp),
+                    contentScale = ContentScale.Crop
+                )
+
+                AsyncImage(
+                    model = clearImageRequest,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(0.75f)
+                        .align(Alignment.TopCenter)
+                        .graphicsLayer {
+                            alpha = immersiveTransitionAlpha
+                            compositingStrategy = CompositingStrategy.Offscreen
+                        }
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                brush = immersiveMaskBrush,
+                                blendMode = BlendMode.DstIn
+                            )
+                        },
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.TopCenter
+                )
             }
         }
 

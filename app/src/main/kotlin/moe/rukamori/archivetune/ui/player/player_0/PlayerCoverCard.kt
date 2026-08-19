@@ -2,8 +2,6 @@ package moe.rukamori.archivetune.ui.player.player_0
 
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -70,32 +67,34 @@ fun PlayerCoverCard(
             .border(BorderStroke(1.dp, outlineColor), RoundedCornerShape(24.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Crossfade(
-            targetState = coverDrawable ?: coverUrl,
-            animationSpec = tween(durationMillis = 300),
-            label = "CoverArtCrossfade"
-        ) { currentTarget ->
-            val largeBitmap = (currentTarget as? BitmapDrawable)?.bitmap
-            if (largeBitmap != null) {
+        val context = LocalContext.current
+        val currentData = coverDrawable ?: coverUrl.takeIf { !it.isNullOrEmpty() }
+        
+        androidx.compose.animation.Crossfade(
+            targetState = currentData,
+            animationSpec = androidx.compose.animation.core.tween(500),
+            label = "CoverCrossfade"
+        ) { targetData ->
+            if (targetData == null) {
                 Image(
-                    bitmap = largeBitmap.asImageBitmap(),
-                    contentDescription = "Album Art Large",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else if (currentTarget is String && currentTarget.isNotEmpty()) {
-                coil3.compose.AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current).data(currentTarget).crossfade(true).crossfade(400).build(),
+                    painter = painterResource(id = placeholderResId),
                     contentDescription = "Album Art Large",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Image(
-                    painter = painterResource(id = placeholderResId),
-                    contentDescription = "Mascot Placeholder Art",
+                val request = androidx.compose.runtime.remember(targetData) {
+                    ImageRequest.Builder(context)
+                        .data(targetData)
+                        .crossfade(500)
+                        .build()
+                }
+                coil3.compose.AsyncImage(
+                    model = request,
+                    contentDescription = "Album Art Large",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(id = placeholderResId)
                 )
             }
         }
