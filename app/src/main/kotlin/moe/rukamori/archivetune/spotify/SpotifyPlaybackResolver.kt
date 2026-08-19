@@ -47,7 +47,6 @@ object SpotifyPlaybackResolver {
                 searchResult.items
                     .filterIsInstance<SongItem>()
                     .distinctBy { it.id }
-                    .filter { SpotifyMapper.isValidDuration(track.durationMs, it.duration) }
             if (candidates.isEmpty()) return@withContext null
 
             val precomputed =

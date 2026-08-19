@@ -6846,10 +6846,18 @@ class MusicService :
                 try {
                     runBlocking(Dispatchers.IO) {
                         val quality = dataStore.get(FlacStreamingQualityKey, FlacQuality.CD.name).toEnum(FlacQuality.CD)
-                        val song = database.song(mediaId).firstOrNull()
+                        var song = database.song(mediaId).firstOrNull()
 
                         if (song == null) {
-                            Timber.tag("FLAC_PLAYBACK").w("Song $mediaId not found in DB for FLAC resolving")
+                            Timber.tag("FLAC_PLAYBACK").w("Song $mediaId not found in DB for FLAC resolving, attempting to create transient song")
+                            val metadata = withContext(Dispatchers.Main) {
+                                player.currentMediaItem?.takeIf { it.mediaId == mediaId }?.metadata
+                                    ?: player.findNextMediaItemById(mediaId)?.metadata
+                            } ?: (dataSpec.customData as? moe.rukamori.archivetune.models.MediaMetadata)
+
+                            if (metadata != null) {
+                                song = createTransientSongFromMedia(metadata)
+                            }
                         }
 
                         val result = song?.let {
