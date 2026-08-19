@@ -37,6 +37,7 @@ import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -801,6 +802,32 @@ fun AutoPlaylistScreen(
                             }
 
                             Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
+                }
+
+                if (playlistId == "liked") {
+                    item(
+                        key = "sourceHeader",
+                        contentType = CONTENT_TYPE_HEADER,
+                    ) {
+                        val isSpotifySource by viewModel.isSpotifySource.collectAsStateWithLifecycle()
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = !isSpotifySource,
+                                onClick = { viewModel.setSpotifySource(false) },
+                                label = { Text("YouTube Music") }
+                            )
+                            FilterChip(
+                                selected = isSpotifySource,
+                                onClick = { viewModel.setSpotifySource(true) },
+                                label = { Text("Spotify") }
+                            )
                         }
                     }
                 }

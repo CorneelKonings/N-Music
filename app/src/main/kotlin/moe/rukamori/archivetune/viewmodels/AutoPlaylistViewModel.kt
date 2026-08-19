@@ -57,6 +57,11 @@ class AutoPlaylistViewModel
         private val _isRefreshing = MutableStateFlow(false)
         val isRefreshing = _isRefreshing.asStateFlow()
 
+        val isSpotifySource = MutableStateFlow(false)
+        fun setSpotifySource(isSpotify: Boolean) {
+            isSpotifySource.value = isSpotify
+        }
+
         private fun AutoPlaylistSongSortType.toSongSortType(): SongSortType =
             when (this) {
                 AutoPlaylistSongSortType.CREATE_DATE -> SongSortType.CREATE_DATE
@@ -67,23 +72,29 @@ class AutoPlaylistViewModel
 
         @OptIn(ExperimentalCoroutinesApi::class)
         val likedSongs =
-            context.dataStore.data
-                .map {
-                    Triple(
-                        it[AutoPlaylistSongSortTypeKey].toEnum(AutoPlaylistSongSortType.CREATE_DATE) to (
-                            it[AutoPlaylistSongSortDescendingKey]
-                                ?: true
-                        ),
-                        it[HideExplicitKey] ?: false,
-                        it[HideVideoKey] ?: false,
-                    )
-                }.distinctUntilChanged()
-                .flatMapLatest { (sortDesc, hideExplicit, hideVideo) ->
+            kotlinx.coroutines.flow.combine(
+                context.dataStore.data
+                    .map {
+                        Triple(
+                            it[AutoPlaylistSongSortTypeKey].toEnum(AutoPlaylistSongSortType.CREATE_DATE) to (
+                                it[AutoPlaylistSongSortDescendingKey]
+                                    ?: true
+                            ),
+                            it[HideExplicitKey] ?: false,
+                            it[HideVideoKey] ?: false,
+                        )
+                    }.distinctUntilChanged(),
+                isSpotifySource
+            ) { (sortDesc, hideExplicit, hideVideo), isSpotify ->
+                Triple(sortDesc, hideExplicit, hideVideo) to isSpotify
+            }
+                .flatMapLatest { (prefs, isSpotify) ->
+                    val (sortDesc, hideExplicit, hideVideo) = prefs
                     val (sortType, descending) = sortDesc
                     val songSortType = sortType.toSongSortType()
                     when (playlist) {
                         "liked" -> {
-                            database.likedSongs(songSortType, descending, hideVideo).map { it.filterExplicit(hideExplicit) }
+                            database.likedSongs(songSortType, descending, hideVideo, isSpotify).map { it.filterExplicit(hideExplicit) }
                         }
 
                         "downloaded" -> {

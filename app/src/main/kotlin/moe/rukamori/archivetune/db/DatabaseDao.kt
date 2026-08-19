@@ -190,41 +190,41 @@ interface DatabaseDao {
     fun songsByPlayTimeAscNoVideo(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY rowId")
-    fun likedSongsByRowIdAsc(excludeSpotify: Boolean = true): Flow<List<Song>>
+    @Query("SELECT * FROM song WHERE liked AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY rowId")
+    fun likedSongsByRowIdAsc(isSpotify: Boolean = false): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY likedDate, rowId")
-    fun likedSongsByCreateDateAsc(excludeSpotify: Boolean = true): Flow<List<Song>>
+    @Query("SELECT * FROM song WHERE liked AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY likedDate, rowId")
+    fun likedSongsByCreateDateAsc(isSpotify: Boolean = false): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY title")
-    fun likedSongsByNameAsc(excludeSpotify: Boolean = true): Flow<List<Song>>
+    @Query("SELECT * FROM song WHERE liked AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY title")
+    fun likedSongsByNameAsc(isSpotify: Boolean = false): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY totalPlayTime")
-    fun likedSongsByPlayTimeAsc(excludeSpotify: Boolean = true): Flow<List<Song>>
+    @Query("SELECT * FROM song WHERE liked AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id)) ORDER BY totalPlayTime")
+    fun likedSongsByPlayTimeAsc(isSpotify: Boolean = false): Flow<List<Song>>
 
     fun likedSongs(
         sortType: SongSortType,
         descending: Boolean,
         filterVideo: Boolean = false,
-        excludeSpotify: Boolean = true,
+        isSpotify: Boolean = false,
     ) = when (sortType) {
         SongSortType.CREATE_DATE -> {
             if (filterVideo) {
-                likedSongsByCreateDateAscNoVideo(excludeSpotify)
+                likedSongsByCreateDateAscNoVideo(isSpotify)
             } else {
-                likedSongsByCreateDateAsc(excludeSpotify)
+                likedSongsByCreateDateAsc(isSpotify)
             }
         }
 
         SongSortType.NAME -> {
             (
                 if (filterVideo) {
-                    likedSongsByNameAscNoVideo(excludeSpotify)
+                    likedSongsByNameAscNoVideo(isSpotify)
                 } else {
-                    likedSongsByNameAsc(excludeSpotify)
+                    likedSongsByNameAsc(isSpotify)
                 }
             ).map { songs ->
                 val collator = Collator.getInstance(Locale.getDefault())
@@ -236,9 +236,9 @@ interface DatabaseDao {
         SongSortType.ARTIST -> {
             (
                 if (filterVideo) {
-                    likedSongsByRowIdAscNoVideo(excludeSpotify)
+                    likedSongsByRowIdAscNoVideo(isSpotify)
                 } else {
-                    likedSongsByRowIdAsc(excludeSpotify)
+                    likedSongsByRowIdAsc(isSpotify)
                 }
             ).map { songs ->
                 val collator = Collator.getInstance(Locale.getDefault())
@@ -252,7 +252,7 @@ interface DatabaseDao {
         }
 
         SongSortType.PLAY_TIME -> {
-            likedSongsByPlayTimeAsc(excludeSpotify)
+            likedSongsByPlayTimeAsc(isSpotify)
         }
     }.map { songs ->
         songs.filter { song -> song.artists.none { it.blockedAt != null } }.reversed(descending)
@@ -264,11 +264,11 @@ interface DatabaseDao {
         SELECT song.*
         FROM song
         LEFT JOIN set_video_id ON set_video_id.videoId = song.id
-        WHERE liked AND set_video_id.setVideoId IS NULL AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
+        WHERE liked AND set_video_id.setVideoId IS NULL AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
         ORDER BY song.rowid
         """,
     )
-    fun likedSongsByRowIdAscNoVideo(excludeSpotify: Boolean = true): Flow<List<Song>>
+    fun likedSongsByRowIdAscNoVideo(isSpotify: Boolean = false): Flow<List<Song>>
 
     @Transaction
     @Query(
@@ -276,11 +276,11 @@ interface DatabaseDao {
         SELECT song.*
         FROM song
         LEFT JOIN set_video_id ON set_video_id.videoId = song.id
-        WHERE liked AND set_video_id.setVideoId IS NULL AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
+        WHERE liked AND set_video_id.setVideoId IS NULL AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
         ORDER BY likedDate, song.rowid
         """,
     )
-    fun likedSongsByCreateDateAscNoVideo(excludeSpotify: Boolean = true): Flow<List<Song>>
+    fun likedSongsByCreateDateAscNoVideo(isSpotify: Boolean = false): Flow<List<Song>>
 
     @Transaction
     @Query(
@@ -288,11 +288,11 @@ interface DatabaseDao {
         SELECT song.*
         FROM song
         LEFT JOIN set_video_id ON set_video_id.videoId = song.id
-        WHERE liked AND set_video_id.setVideoId IS NULL AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
+        WHERE liked AND set_video_id.setVideoId IS NULL AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
         ORDER BY title
         """,
     )
-    fun likedSongsByNameAscNoVideo(excludeSpotify: Boolean = true): Flow<List<Song>>
+    fun likedSongsByNameAscNoVideo(isSpotify: Boolean = false): Flow<List<Song>>
 
     @Transaction
     @Query(
@@ -300,15 +300,15 @@ interface DatabaseDao {
         SELECT song.*
         FROM song
         LEFT JOIN set_video_id ON set_video_id.videoId = song.id
-        WHERE liked AND set_video_id.setVideoId IS NULL AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
+        WHERE liked AND set_video_id.setVideoId IS NULL AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))
         ORDER BY totalPlayTime
         """,
     )
-    fun likedSongsByPlayTimeAscNoVideo(excludeSpotify: Boolean = true): Flow<List<Song>>
+    fun likedSongsByPlayTimeAscNoVideo(isSpotify: Boolean = false): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT COUNT(1) FROM song WHERE liked AND (:excludeSpotify = 0 OR NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))")
-    fun likedSongsCount(excludeSpotify: Boolean = true): Flow<Int>
+    @Query("SELECT COUNT(1) FROM song WHERE liked AND (:isSpotify = 1 AND EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id) OR :isSpotify = 0 AND NOT EXISTS (SELECT 1 FROM spotify_match WHERE youtubeId = song.id))")
+    fun likedSongsCount(isSpotify: Boolean = false): Flow<Int>
 
     @Transaction
     @Query("SELECT song.* FROM song JOIN song_album_map ON song.id = song_album_map.songId WHERE song_album_map.albumId = :albumId")
