@@ -7,10 +7,7 @@
 package moe.rukamori.archivetune.viewmodels
 
 import android.content.Context
-<<<<<<< HEAD
-=======
 import androidx.datastore.preferences.core.edit
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,10 +30,7 @@ import moe.rukamori.archivetune.constants.AutoPlaylistSongSortType
 import moe.rukamori.archivetune.constants.AutoPlaylistSongSortTypeKey
 import moe.rukamori.archivetune.constants.HideExplicitKey
 import moe.rukamori.archivetune.constants.HideVideoKey
-<<<<<<< HEAD
-=======
 import moe.rukamori.archivetune.constants.LikedSongsSourceKey
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import moe.rukamori.archivetune.constants.SongSortType
 import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.extensions.filterExplicit
@@ -54,11 +48,7 @@ import javax.inject.Inject
 class AutoPlaylistViewModel
     @Inject
     constructor(
-<<<<<<< HEAD
-        @ApplicationContext context: Context,
-=======
         @ApplicationContext private val context: Context,
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
         database: MusicDatabase,
         downloadUtil: DownloadUtil,
         savedStateHandle: SavedStateHandle,
@@ -69,17 +59,11 @@ class AutoPlaylistViewModel
         private val _isRefreshing = MutableStateFlow(false)
         val isRefreshing = _isRefreshing.asStateFlow()
 
-<<<<<<< HEAD
-        val isSpotifySource = MutableStateFlow(false)
-        fun setSpotifySource(isSpotify: Boolean) {
-            isSpotifySource.value = isSpotify
-=======
         val isSpotifySource = context.dataStore.data.map { it[LikedSongsSourceKey] ?: false }.stateIn(viewModelScope, SharingStarted.Lazily, false)
         fun setSpotifySource(isSpotify: Boolean) {
             viewModelScope.launch(Dispatchers.IO) {
                 context.dataStore.edit { it[LikedSongsSourceKey] = isSpotify }
             }
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
         }
 
         private fun AutoPlaylistSongSortType.toSongSortType(): SongSortType =

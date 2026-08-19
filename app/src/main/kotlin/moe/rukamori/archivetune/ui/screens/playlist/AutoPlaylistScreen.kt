@@ -9,13 +9,6 @@
 package moe.rukamori.archivetune.ui.screens.playlist
 
 import androidx.activity.compose.BackHandler
-<<<<<<< HEAD
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-=======
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -27,7 +20,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,10 +29,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-<<<<<<< HEAD
-=======
 import androidx.compose.foundation.layout.offset
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -55,17 +44,11 @@ import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-<<<<<<< HEAD
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-=======
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -143,13 +126,9 @@ import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.SortHeader
 import moe.rukamori.archivetune.ui.menu.SelectionSongMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
-<<<<<<< HEAD
-import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
-=======
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import moe.rukamori.archivetune.ui.theme.yumaClickable
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadItem
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadProgressIndicator
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadState
@@ -844,24 +823,6 @@ fun AutoPlaylistScreen(
                         contentType = CONTENT_TYPE_HEADER,
                     ) {
                         val isSpotifySource by viewModel.isSpotifySource.collectAsStateWithLifecycle()
-<<<<<<< HEAD
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            FilterChip(
-                                selected = !isSpotifySource,
-                                onClick = { viewModel.setSpotifySource(false) },
-                                label = { Text("YouTube Music") }
-                            )
-                            FilterChip(
-                                selected = isSpotifySource,
-                                onClick = { viewModel.setSpotifySource(true) },
-                                label = { Text("Spotify") }
-                            )
-=======
 
                         val indicatorOffset by animateFloatAsState(
                             targetValue = if (isSpotifySource) 1f else 0f,
@@ -940,7 +901,6 @@ fun AutoPlaylistScreen(
                                         }
                                     }
                                 }
->>>>>>> d237bab (fix(spotify): isolate spotify likes from youtube liked songs with unified screen toggle (custom animated pill, rounded corners))
                         }
                     }
                 }
