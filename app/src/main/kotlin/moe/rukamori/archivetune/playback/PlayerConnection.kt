@@ -110,6 +110,9 @@ class PlayerConnection(
         if (player.mediaItemCount > 0 && service.currentMediaMetadata.value == null) {
             service.currentMediaMetadata.value = player.currentMetadata
         }
+        
+        // Initialize audio format for already loaded tracks (e.g. after app restart)
+        onTracksChanged(player.currentTracks)
     }
 
     fun playQueue(queue: Queue) {
@@ -256,7 +259,7 @@ class PlayerConnection(
                     } else if (isLossless && formatEntity == null) {
                         if (foundSampleRate > 0) {
                             val khz = (foundSampleRate / 100.0).roundToInt() / 10.0
-                            audioFormat.value = "$foundMimeType | $khz кГц"
+                            audioFormat.value = "$foundMimeType | $khz kHz"
                         } else {
                             audioFormat.value = foundMimeType
                         }

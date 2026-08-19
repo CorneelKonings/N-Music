@@ -32,7 +32,7 @@ fun FormatEntity.codecLabel(): String {
     val rawMime = mimeType.substringAfter("/").substringBefore(";").uppercase()
 
     return when {
-        rawCodec.contains("FLAC") || rawCodec.contains("ALAC") -> "Lossless"
+        rawCodec.contains("FLAC") || rawCodec.contains("ALAC") -> "FLAC"
         rawCodec.contains("OPUS") -> "OPUS"
         rawCodec.contains("AAC") || rawCodec.contains("MP4A") -> "AAC"
         rawCodec.contains("VORBIS") -> "VORBIS"
@@ -48,7 +48,7 @@ fun FormatEntity.formattedBitrate(): String = if (bitrate > 0) "${bitrate / 1000
 
 fun FormatEntity.formattedSampleRate(): String? =
     sampleRate?.takeIf { it > 0 }?.let {
-        "${(it / 100.0).roundToInt() / 10.0} кГц"
+        "${(it / 100.0).roundToInt() / 10.0} kHz"
     }
 
 fun FormatEntity.formattedFileSize(): String = if (contentLength > 0) "${(contentLength / 1024.0 / 1024.0).roundToInt()} MB" else ""
