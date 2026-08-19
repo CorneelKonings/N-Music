@@ -62,8 +62,9 @@ import moe.rukamori.archivetune.constants.CrossfadeEnabledKey
 import moe.rukamori.archivetune.constants.CrossfadeGaplessKey
 import moe.rukamori.archivetune.constants.DownloadLocationUriKey
 import moe.rukamori.archivetune.constants.EnableLosslessKey
+import moe.rukamori.archivetune.constants.FlacDownloadQualityKey
 import moe.rukamori.archivetune.constants.FlacQuality
-import moe.rukamori.archivetune.constants.FlacQualityKey
+import moe.rukamori.archivetune.constants.FlacStreamingQualityKey
 import moe.rukamori.archivetune.constants.MemoryCacheToggleKey
 import moe.rukamori.archivetune.constants.PauseOnDeviceMuteKey
 import moe.rukamori.archivetune.constants.PlaybackSource
@@ -98,8 +99,12 @@ fun PlayerSettings(navController: NavController) {
         PlaybackSourceKey,
         defaultValue = PlaybackSource.YT_MUSIC,
     )
-    val (flacQuality, onFlacQualityChange) = rememberEnumPreference(
-        FlacQualityKey,
+    val (flacStreamingQuality, onFlacStreamingQualityChange) = rememberEnumPreference(
+        FlacStreamingQualityKey,
+        defaultValue = FlacQuality.CD,
+    )
+    val (flacDownloadQuality, onFlacDownloadQualityChange) = rememberEnumPreference(
+        FlacDownloadQualityKey,
         defaultValue = FlacQuality.HI_RES,
     )
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
@@ -289,10 +294,25 @@ fun PlayerSettings(navController: NavController) {
                     if (playbackSource == PlaybackSource.FLAC) {
                         add {
                             EnumListPreference(
-                                title = { Text(stringResource(R.string.audio_quality)) },
+                                title = { Text(stringResource(R.string.flac_streaming_quality)) },
                                 icon = { Icon(painterResource(R.drawable.graphic_eq), null) },
-                                selectedValue = flacQuality,
-                                onValueSelected = onFlacQualityChange,
+                                selectedValue = flacStreamingQuality,
+                                onValueSelected = onFlacStreamingQualityChange,
+                                valueText = { quality ->
+                                    when (quality) {
+                                        FlacQuality.CD -> stringResource(R.string.flac_quality_cd)
+                                        FlacQuality.HI_RES -> stringResource(R.string.flac_quality_hi_res)
+                                        FlacQuality.MAX -> stringResource(R.string.flac_quality_max)
+                                    }
+                                },
+                            )
+                        }
+                        add {
+                            EnumListPreference(
+                                title = { Text(stringResource(R.string.flac_download_quality)) },
+                                icon = { Icon(painterResource(R.drawable.graphic_eq), null) },
+                                selectedValue = flacDownloadQuality,
+                                onValueSelected = onFlacDownloadQualityChange,
                                 valueText = { quality ->
                                     when (quality) {
                                         FlacQuality.CD -> stringResource(R.string.flac_quality_cd)

@@ -3,9 +3,11 @@
     <string name="playback_source">Источник</string>
     <string name="source_yt_music">YT Music</string>
     <string name="source_flac">FLAC</string>
-    <string name="flac_quality_cd">CD</string>
-    <string name="flac_quality_hi_res">Hi-Res</string>
-    <string name="flac_quality_max">Max</string>
+<string name="flac_quality_cd">CD (16-bit/44.1 kHz)</string>
+    <string name="flac_quality_hi_res">Hi-Res (24-bit/96 kHz)</string>
+    <string name="flac_quality_max">Max (24-bit/192 kHz)</string>
+    <string name="flac_streaming_quality">Качество FLAC (стриминг)</string>
+    <string name="flac_download_quality">Качество FLAC (скачивание)</string>
     <string name="folder_persist_failed">Не удалось сохранить доступ к папке</string>
     <string name="home">Главная</string>
     <string name="songs">Песни</string>

@@ -38,6 +38,7 @@ import moe.rukamori.archivetune.playback.MusicService.MusicBinder
 import moe.rukamori.archivetune.playback.queues.Queue
 import moe.rukamori.archivetune.utils.reportException
 import jakarta.inject.Inject
+import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -219,6 +220,7 @@ class PlayerConnection(
     override fun onTracksChanged(tracks: Tracks) {
         var codecInfo: String? = null
         var foundBitrate = -1
+        var foundSampleRate = -1
         var foundMimeType = "UNKNOWN"
         
         for (group in tracks.groups) {
@@ -231,29 +233,46 @@ class PlayerConnection(
                 if (bitrate <= 0) bitrate = format.averageBitrate
                 
                 foundBitrate = bitrate
+                foundSampleRate = format.sampleRate
                 break
             }
         }
-        
+
         if (foundMimeType != "UNKNOWN") {
-            scope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                val mediaId = mediaMetadata.value?.id
-                val formatEntity = if (mediaId != null) database.format(mediaId).firstOrNull() else null
-                
-                val isLossless = foundMimeType.contains("FLAC", true) || foundMimeType.contains("ALAC", true)
-                if (isLossless && formatEntity != null) {
-                    audioFormat.value = "${formatEntity.codecLabel()} | ${formatEntity.formattedQuality()}"
-                } else {
-                    var bitrateToUse = foundBitrate
-                    if (bitrateToUse <= 0 && formatEntity != null) {
-                        bitrateToUse = formatEntity.bitrate
-                    }
-                    
-                    if (bitrateToUse > 0) {
-                        val bitrateKbps = if (bitrateToUse > 2000) bitrateToUse / 1000 else bitrateToUse
-                        audioFormat.value = "$foundMimeType | $bitrateKbps kbps"
+            val isLossless = foundMimeType.contains("FLAC", true) || foundMimeType.contains("ALAC", true)
+
+            if (!isLossless && foundBitrate > 0) {
+                val bitrateKbps = if (foundBitrate > 2000) foundBitrate / 1000 else foundBitrate
+                audioFormat.value = "$foundMimeType | $bitrateKbps kbps"
+            } else {
+                scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    val mediaId = mediaMetadata.value?.id ?: return@launch
+                    val formatEntity = database.format(mediaId).firstOrNull()
+
+                    if (mediaMetadata.value?.id != mediaId) return@launch
+
+                    if (isLossless && formatEntity != null) {
+                        audioFormat.value = "${formatEntity.codecLabel()} | ${formatEntity.formattedQuality()}"
+                    } else if (isLossless && formatEntity == null) {
+                        if (foundSampleRate > 0) {
+                            val khz = (foundSampleRate / 100.0).roundToInt() / 10.0
+                            audioFormat.value = "$foundMimeType | $khz кГц"
+                        } else {
+                            audioFormat.value = foundMimeType
+                        }
                     } else {
-                        audioFormat.value = foundMimeType
+                        val finalBitrate = when {
+                            foundBitrate > 0 -> foundBitrate
+                            formatEntity != null && formatEntity.bitrate > 0 -> formatEntity.bitrate
+                            else -> -1
+                        }
+
+                        audioFormat.value = if (finalBitrate > 0) {
+                            val bitrateKbps = if (finalBitrate > 2000) finalBitrate / 1000 else finalBitrate
+                            "$foundMimeType | $bitrateKbps kbps"
+                        } else {
+                            foundMimeType
+                        }
                     }
                 }
             }

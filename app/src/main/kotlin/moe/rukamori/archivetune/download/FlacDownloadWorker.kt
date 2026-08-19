@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.DownloadLocationUriKey
 import moe.rukamori.archivetune.constants.FlacQuality
-import moe.rukamori.archivetune.constants.FlacQualityKey
+import moe.rukamori.archivetune.constants.FlacDownloadQualityKey
 import moe.rukamori.archivetune.db.entities.ArtistEntity
 import moe.rukamori.archivetune.db.entities.Song
 import moe.rukamori.archivetune.db.entities.SongEntity
@@ -63,7 +63,7 @@ class FlacDownloadWorker(
                 )
 
         val quality =
-            context.dataStore.getAsync(FlacQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
+            context.dataStore.getAsync(FlacDownloadQualityKey, FlacQuality.HI_RES.name).toEnum(FlacQuality.HI_RES)
 
         val streamUrl = entryPoint.losslessStreamResolver().resolve(song, quality)
         if (streamUrl == null) {
