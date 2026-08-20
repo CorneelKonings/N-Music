@@ -153,9 +153,10 @@ import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.utils.hasYouTubeLoginCookie
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.InfoLabel
+import moe.rukamori.archivetune.ui.component.LocalPreferenceGroupPosition
 import moe.rukamori.archivetune.ui.component.PreferenceEntry
 import moe.rukamori.archivetune.ui.component.PreferenceGroup
-import moe.rukamori.archivetune.ui.component.SegmentedPreference
+import moe.rukamori.archivetune.ui.component.PreferenceGroupPosition
 import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.component.TextFieldDialog
 import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
@@ -1739,16 +1740,36 @@ private fun ExpressiveSegmentedRow(
     onValueSelected: (Boolean) -> Unit,
 ) {
     val colors = LocalYumaColors.current
+    val groupPosition = LocalPreferenceGroupPosition.current
+
+    val shape = when (groupPosition) {
+        null,
+        PreferenceGroupPosition.Single -> RoundedCornerShape(SettingsDimensions.SegmentedCornerLarge)
+        PreferenceGroupPosition.First -> RoundedCornerShape(
+            topStart = SettingsDimensions.SegmentedCornerLarge,
+            topEnd = SettingsDimensions.SegmentedCornerLarge,
+            bottomEnd = SettingsDimensions.SegmentedCornerSmall,
+            bottomStart = SettingsDimensions.SegmentedCornerSmall,
+        )
+        PreferenceGroupPosition.Middle -> RoundedCornerShape(SettingsDimensions.SegmentedCornerSmall)
+        PreferenceGroupPosition.Last -> RoundedCornerShape(
+            topStart = SettingsDimensions.SegmentedCornerSmall,
+            topEnd = SettingsDimensions.SegmentedCornerSmall,
+            bottomEnd = SettingsDimensions.SegmentedCornerLarge,
+            bottomStart = SettingsDimensions.SegmentedCornerLarge,
+        )
+    }
 
     Box(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .yumaGlassCard(
-                    shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius),
-                    backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
-                    borderColor = Color.Transparent,
+                    shape = shape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
                 )
+                .clip(shape)
                 .padding(
                     horizontal = SettingsDimensions.RowHorizontalPadding,
                     vertical = SettingsDimensions.RowVerticalPadding,
