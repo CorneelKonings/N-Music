@@ -298,6 +298,7 @@ fun AppearanceSettings(navController: NavController) {
                         description = stringResource(R.string.customize_theme_colors),
                         icon = { Icon(painterResource(R.drawable.format_paint), null, modifier = Modifier.size(24.dp)) },
                         onClick = { navController.navigate("settings/appearance/palette_picker") },
+                        showChevron = true,
                     )
                 }
 

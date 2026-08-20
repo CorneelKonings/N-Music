@@ -153,6 +153,9 @@ import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.utils.hasYouTubeLoginCookie
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.InfoLabel
+import moe.rukamori.archivetune.ui.component.PreferenceEntry
+import moe.rukamori.archivetune.ui.component.PreferenceGroup
+import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.component.TextFieldDialog
 import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
 import moe.rukamori.archivetune.ui.screens.buildLoginRoute
@@ -487,149 +490,161 @@ fun AccountSettings(
                             ),
                     exit = fadeOut() + shrinkVertically(),
                 ) {
-                    ExpressiveSectionCard(title = generalLabel) {
-                        ExpressiveSwitchRow(
-                            icon = painterResource(R.drawable.add_circle),
-                            title = stringResource(R.string.more_content),
-                            subtitle = stringResource(R.string.use_login_for_browse_desc),
-                            checked = useLoginForBrowse,
-                            onCheckedChange = onUseLoginForBrowseChange,
-                        )
+                    PreferenceGroup(title = generalLabel) {
+                        item {
+                            SwitchPreference(
+                                icon = { Icon(painterResource(R.drawable.add_circle), null) },
+                                title = { Text(stringResource(R.string.more_content)) },
+                                description = stringResource(R.string.use_login_for_browse_desc),
+                                checked = useLoginForBrowse,
+                                onCheckedChange = onUseLoginForBrowseChange,
+                            )
+                        }
 
-                        ExpressiveDivider()
+                        item {
+                            SwitchPreference(
+                                icon = { Icon(painterResource(R.drawable.cached), null) },
+                                title = { Text(stringResource(R.string.yt_sync)) },
+                                checked = ytmSync,
+                                onCheckedChange = onYtmSyncChange,
+                            )
+                        }
 
-                        ExpressiveSwitchRow(
-                            icon = painterResource(R.drawable.cached),
-                            title = stringResource(R.string.yt_sync),
-                            checked = ytmSync,
-                            onCheckedChange = onYtmSyncChange,
-                        )
-
-                        ExpressiveDivider()
-
-                        ExpressiveSwitchRow(
-                            icon = painterResource(R.drawable.sync),
-                            title = stringResource(R.string.force_sync_on_switch_account),
-                            subtitle = stringResource(R.string.force_sync_on_switch_account_desc),
-                            checked = forceSyncOnAccountSwitch,
-                            onCheckedChange = onForceSyncOnAccountSwitchChange,
-                        )
+                        item {
+                            SwitchPreference(
+                                icon = { Icon(painterResource(R.drawable.sync), null) },
+                                title = { Text(stringResource(R.string.force_sync_on_switch_account)) },
+                                description = stringResource(R.string.force_sync_on_switch_account_desc),
+                                checked = forceSyncOnAccountSwitch,
+                                onCheckedChange = onForceSyncOnAccountSwitchChange,
+                            )
+                        }
                     }
                 }
             }
 
             item {
-                ExpressiveSectionCard(title = integrationLabel) {
-                    ExpressiveActionRow(
-                        icon = painterResource(R.drawable.spotify_icon),
-                        title = if (spotifyState.isAuthenticated) {
-                            if (spotifyState.accountName.isNotBlank()) {
-                                stringResource(R.string.spotify_connected_as, spotifyState.accountName)
+                PreferenceGroup(title = integrationLabel) {
+                    item {
+                        PreferenceEntry(
+                            icon = { Icon(painterResource(R.drawable.spotify_icon), null) },
+                            title = {
+                                Text(
+                                    if (spotifyState.isAuthenticated) {
+                                        if (spotifyState.accountName.isNotBlank()) {
+                                            stringResource(R.string.spotify_connected_as, spotifyState.accountName)
+                                        } else {
+                                            stringResource(R.string.spotify_account)
+                                        }
+                                    } else {
+                                        stringResource(R.string.spotify_connect)
+                                    }
+                                )
+                            },
+                            description = if (spotifyState.isAuthenticated) {
+                                if (spotifyState.playlistCount > 0) {
+                                    stringResource(R.string.spotify_available_count, spotifyState.playlistCount)
+                                } else {
+                                    stringResource(R.string.spotify_no_sources)
+                                }
                             } else {
-                                stringResource(R.string.spotify_account)
-                            }
-                        } else {
-                            stringResource(R.string.spotify_connect)
-                        },
-                        subtitle = if (spotifyState.isAuthenticated) {
-                            if (spotifyState.playlistCount > 0) {
-                                stringResource(R.string.spotify_available_count, spotifyState.playlistCount)
-                            } else {
-                                stringResource(R.string.spotify_no_sources)
-                            }
-                        } else {
-                            stringResource(R.string.spotify_not_connected)
-                        },
-                        onClick = {
-                            if (spotifyState.isAuthenticated) {
-                                showSpotifyOptionsDialog = true
-                            } else {
-                                showSpotifyLogin = true
-                            }
-                        },
-                    )
+                                stringResource(R.string.spotify_not_connected)
+                            },
+                            onClick = {
+                                if (spotifyState.isAuthenticated) {
+                                    showSpotifyOptionsDialog = true
+                                } else {
+                                    showSpotifyLogin = true
+                                }
+                            },
+                        )
+                    }
 
-                    ExpressiveSegmentedRow(
-                        icon = painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon),
-                        title = stringResource(R.string.home_screen_provider),
-                        subtitle = stringResource(R.string.home_screen_provider_desc),
-                        selectedValue = useSpotifyHome,
-                        onValueSelected = { isSpotify ->
-                            if (isSpotify && !spotifyState.isAuthenticated) {
-                                showSpotifyLogin = true
-                            } else {
-                                onUseSpotifyHomeChange(isSpotify)
-                            }
-                        },
-                    )
+                    item {
+                        SwitchPreference(
+                            icon = { Icon(painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon), null) },
+                            title = { Text(stringResource(R.string.home_screen_provider)) },
+                            description = stringResource(R.string.home_screen_provider_desc),
+                            checked = useSpotifyHome,
+                            onCheckedChange = { isSpotify ->
+                                if (isSpotify && !spotifyState.isAuthenticated) {
+                                    showSpotifyLogin = true
+                                } else {
+                                    onUseSpotifyHomeChange(isSpotify)
+                                }
+                            },
+                        )
+                    }
 
-                    AnimatedVisibility(
-                        visible = spotifyState.isAuthenticated,
-                        enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) + expandVertically(spring(stiffness = Spring.StiffnessLow)),
-                        exit = fadeOut() + shrinkVertically(),
-                    ) {
-                        Column {
-                            ExpressiveDivider()
-
-                            ExpressiveSwitchRow(
-                                icon = painterResource(R.drawable.sync),
-                                title = stringResource(R.string.spotify_sync_likes),
+                    if (spotifyState.isAuthenticated) {
+                        item {
+                            SwitchPreference(
+                                icon = { Icon(painterResource(R.drawable.sync), null) },
+                                title = { Text(stringResource(R.string.spotify_sync_likes)) },
                                 checked = spotifySyncLikes,
                                 onCheckedChange = onSpotifySyncLikesChange,
                             )
+                        }
 
-                            ExpressiveSwitchRow(
-                                icon = painterResource(R.drawable.visibility_off),
-                                title = stringResource(R.string.hide_ytm_liked_songs),
+                        item {
+                            SwitchPreference(
+                                icon = { Icon(painterResource(R.drawable.visibility_off), null) },
+                                title = { Text(stringResource(R.string.hide_ytm_liked_songs)) },
                                 checked = hideYtmLikedSongs,
                                 onCheckedChange = onHideYtmLikedSongsChange,
                             )
                         }
                     }
 
-                    ExpressiveDivider()
+                    item {
+                        PreferenceEntry(
+                            icon = { Icon(painterResource(R.drawable.integration), null) },
+                            title = { Text(integrationLabel) },
+                            description = stringResource(R.string.account_integrations_summary),
+                            onClick = { navController.navigate("settings/integration") },
+                            showChevron = true,
+                        )
+                    }
 
-                    ExpressiveActionRow(
-                        icon = painterResource(R.drawable.integration),
-                        title = integrationLabel,
-                        subtitle = stringResource(R.string.account_integrations_summary),
-                        onClick = { navController.navigate("settings/integration") },
-                    )
-
-                    ExpressiveActionRow(
-                        icon = painterResource(R.drawable.fire),
-                        title = stringResource(R.string.music_together),
-                        onClick = { navController.navigate("settings/music_together") },
-                    )
+                    item {
+                        PreferenceEntry(
+                            icon = { Icon(painterResource(R.drawable.fire), null) },
+                            title = { Text(stringResource(R.string.music_together)) },
+                            onClick = { navController.navigate("settings/music_together") },
+                            showChevron = true,
+                        )
+                    }
                 }
             }
 
             item {
-                ExpressiveSectionCard(title = miscLabel) {
-                    ExpressiveActionRow(
-                        icon = painterResource(R.drawable.visibility_off),
-                        title = stringResource(R.string.hidden_playlists),
-                        subtitle = stringResource(R.string.hidden_playlists_description),
-                        onClick = { navController.navigate("settings/hidden_playlists") },
-                    )
+                PreferenceGroup(title = miscLabel) {
+                    item {
+                        PreferenceEntry(
+                            icon = { Icon(painterResource(R.drawable.visibility_off), null) },
+                            title = { Text(stringResource(R.string.hidden_playlists)) },
+                            description = stringResource(R.string.hidden_playlists_description),
+                            onClick = { navController.navigate("settings/hidden_playlists") },
+                            showChevron = true,
+                        )
+                    }
 
-                    ExpressiveDivider()
-
-                    ExpressiveActionRow(
-                        icon = painterResource(R.drawable.token),
-                        title = tokenActionTitle,
-                        subtitle = tokenDescription,
-                        accent = if (isLoggedIn && showToken) MaterialTheme.colorScheme.tertiary else null,
-                        onClick = {
-                            if (!isLoggedIn) {
-                                showTokenEditor = true
-                            } else if (!showToken) {
-                                showToken = true
-                            } else {
-                                showTokenEditor = true
-                            }
-                        },
-                    )
+                    item {
+                        PreferenceEntry(
+                            icon = { Icon(painterResource(R.drawable.token), null) },
+                            title = { Text(tokenActionTitle) },
+                            description = tokenDescription,
+                            onClick = {
+                                if (!isLoggedIn) {
+                                    showTokenEditor = true
+                                } else if (!showToken) {
+                                    showToken = true
+                                } else {
+                                    showTokenEditor = true
+                                }
+                            },
+                        )
+                    }
                 }
             }
 

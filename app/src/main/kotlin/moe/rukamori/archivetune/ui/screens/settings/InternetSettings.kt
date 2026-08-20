@@ -446,6 +446,7 @@ fun InternetSettings(navController: NavController) {
                         description = stringResource(R.string.settings_po_token_subtitle),
                         icon = { Icon(painterResource(R.drawable.token), null) },
                         onClick = { navController.navigate("settings/po_token") },
+                        showChevron = true,
                     )
                 }
             }

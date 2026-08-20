@@ -186,6 +186,7 @@ fun ContentSettings(navController: NavController) {
                                 ),
                             )
                         },
+                        showChevron = true,
                     )
                 } else {
                     ListPreference(
