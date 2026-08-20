@@ -1007,14 +1007,16 @@ fun AutoPlaylistScreen(
                                                     val orderedSpotifyTracks = visibleSongs.mapNotNull { currentTracksMap[it.song.id] }
                                                     val currentTrack = currentTracksMap[songWrapper.item.song.id]
                                                     if (currentTrack != null) {
+                                                        val targetTracks = orderedSpotifyTracks.ifEmpty { listOf(currentTrack) }
+                                                        val trackIndex = targetTracks.indexOf(currentTrack).coerceAtLeast(0)
                                                         coroutineScope.launch(Dispatchers.IO) {
                                                             val preloadItem = SpotifyPlaybackResolver.resolveToMetadata(currentTrack)
                                                             withContext(Dispatchers.Main) {
                                                                 playerConnection.playQueue(
                                                                     SpotifyLikedSongsQueue(
                                                                         title = playlist,
-                                                                        initialTracks = orderedSpotifyTracks.ifEmpty { listOf(currentTrack) },
-                                                                        startIndex = index,
+                                                                        initialTracks = targetTracks,
+                                                                        startIndex = trackIndex,
                                                                         preloadItem = preloadItem
                                                                     )
                                                                 )
