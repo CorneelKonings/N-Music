@@ -85,6 +85,7 @@ fun IntegrationScreen(navController: NavController) {
                         onClick = {
                             navController.navigate("settings/discord")
                         },
+                        showChevron = true,
                     )
                 }
             }
@@ -97,6 +98,7 @@ fun IntegrationScreen(navController: NavController) {
                         onClick = {
                             navController.navigate("settings/lastfm")
                         },
+                        showChevron = true,
                     )
                 }
 

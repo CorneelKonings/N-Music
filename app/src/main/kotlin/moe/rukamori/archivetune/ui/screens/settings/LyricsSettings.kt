@@ -428,6 +428,7 @@ fun LyricsSettings(
                     icon = { Icon(painterResource(R.drawable.animation), null) },
                     onClick = { navController.navigate("settings/appearance/lyrics_animations") },
                     isEnabled = animationSettingsEnabled,
+                    showChevron = true,
                 )
             }
 
