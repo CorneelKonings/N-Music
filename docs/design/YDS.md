@@ -1,180 +1,168 @@
 # Yuma Design System (YDS)
 
-**Version:** 1.0
-**Status:** Stable Foundation
+**Version:** 2.1  
+**Status:** Stable Foundation  
+
+---
 
 ## 1. Philosophy
 
-Yuma is a design system centered around music as the primary content. Rather than defining the exact appearance of every screen, it establishes a consistent set of rules and constraints that guide interface design.
+Yuma is a design system centered around music as the primary content. It establishes a strict set of constraints and rules to produce a lightweight, deep, and aesthetically cohesive interface.
 
-The interface emphasizes the atmosphere of the currently playing track while remaining lightweight, calm, and unobtrusive. The focus is placed on large shapes, natural motion, open spacing, and readable typography rather than decorative effects.
+The interface avoids generic, monolithic Material 3 templates with flat, continuous lists. Yuma's visual identity is built on segmented glass geometry, accented matte icon badges, breathable whitespace, and tactile micro-interactions.
 
 ---
 
 ## 2. Visual Language & Character
 
-Yuma aims to create a sense of:
-
-* **Calmness:** the interface never distracts from listening to music.
-* **Depth:** layers are separated through subtle tonal differences and carefully applied glass surfaces.
-* **Breathing Space:** whitespace is treated as an active part of the composition.
-* **Softness:** sharp corners and aggressive visual elements are avoided.
-* **Physicality:** every interaction feels natural and responsive.
-
-Yuma avoids the feeling of:
-
-* **Visual Clutter:** only meaningful icons, controls, and details are shown.
-* **Tech Demos:** excessive blur, outdated glossy effects, and oversaturated gradients.
-* **Harsh Contrast:** smooth tonal transitions that remain comfortable in dark environments.
-* **Noise:** unnecessary borders, outlines, and dividers.
+* **Calmness:** The interface never overwhelms the user or distracts from the listening experience.
+* **Depth & Geometry:** Depth is established via subtle translucent surfaces (`glassBackground`) and a 1dp outline (`glassBorder`).
+* **Soft Geometry:** Composite corner radii (22dp on outer group corners, 5dp on inner joints) visually unify distinct rows into a cohesive group.
+* **Low Visual Noise:** Total elimination of divider lines (`Dividers`) in settings lists. Separation is achieved strictly through inter-row gaps (`SegmentGap = 1.5dp`) and structural padding. Dividers remain permissible within standard M3 dialogs and selection bottom sheets.
+* **Physicality:** Every interactive element delivers tactile press feedback via a spring-animated scale down to `0.96f`.
 
 ---
 
 ## 3. Design Principles
 
-1. **Large Elements:** Interactive components should feel substantial and comfortable to touch (recommended minimum height: **56–64dp**).
-2. **Soft Geometry:** Continuous corner shapes (Squircles / Material 3 Expressive Shapes) are used throughout the interface, maintaining a unified geometric language.
-3. **Color Driven:** The interface adapts to the color palette of the currently playing content rather than relying on a static theme.
-4. **Low Visual Noise:** Separation is achieved through spacing and tonal surfaces instead of borders and divider lines.
-5. **Comfortable Spacing:** Whitespace is considered an essential part of the composition.
-6. **Motion First:** Motion and subtle deformation provide mandatory feedback for every interaction.
-7. **Hierarchy Through Scale:** Visual hierarchy is established through size and scale rather than strong color contrast.
-8. **Surface Hierarchy:** Content resides on solid surfaces. Glassmorphism is reserved exclusively for temporary, floating, or overlay UI.
+1. **Hierarchy Through Scale:**
+   * **Preference Rows:** Fixed minimum height of **72dp**.
+   * **Primary Actions:** Recommended height of **56dp+**.
+   * **Standard Interactive Controls:** Minimum touch target of **48×48dp**.
+   * **Icon Badges:** Container size of **32dp / 46dp**.
+2. **Segmented Glass Structure:** Settings rows and integration cards are composed as independent segmented glass buttons, grouped into functional blocks separated by `SegmentGap`.
+3. **Surface Hierarchy (Strict Separation of Surfaces):**
+   * **Solid Surfaces:** Opaque tonal containers (`surface`, `surfaceContainer`) for main content surfaces where translucency is unnecessary.
+   * **Static Translucent Glass:** Translucent fill (`glassBackground`) + 1dp outline (`glassBorder`) **strictly without backdrop blur**. Applied to segmented settings lists and cards. Modal bottom sheets and selection dialogs utilize opaque solid surfaces (`surfaceContainerHigh`).
+   * **Backdrop Blur Glass:** Background blur + tonal overlay. Applied **exclusively** to floating overlays (Bottom Player Bar, floating FAB, modal backdrops).
+4. **Color Driven:** Dynamic Material 3 Expressive palette generation extracted from the current track's album art for accents, switch thumbs, and active indicators.
+5. **No Divider Lines:** Divider lines are omitted in preference lists. Group boundaries are defined solely by card geometry and borders.
 
 ---
 
-## 4. Component Philosophy
-* **Card:** Used to logically group settings, track details, or metadata. Keeps an opaque, tonal background for maximum contrast and readability.
-* **Button & Chip:** Represents explicit actions or tags (e.g., audio codec, bitrate). Uses subtle tonal fills (`surfaceContainerHigh`) with crisp typography.
-* **Overlay / Bottom Sheet:** Uses solid, high-contrast surface containers (`surfaceContainerLow` / `surfaceContainer`) with soft rounded corners. Placed over a dimmed backdrop blur (`BackdropBlur`) to create depth without sacrificing content legibility.
-* **Accent Color:** Reserved exclusively for active states, toggles, and primary actions. Avoids filling large background surfaces.
-* **Divider:** Not used. Layout spacing (16–24dp) and container boundaries provide natural separation.
+## 4. Foundations (Design Tokens)
 
----
+All dimensions, paddings, and radii must be referenced directly from design tokens (`SettingsDimensions` / `YumaSpacing` / `YumaRadius`). Arbitrary hardcoded values are prohibited.
 
-## 5. Foundations (Design Tokens)
 ### Spacing
-* Micro — 4dp
-* Small — 8dp
-* Medium — 16dp
-* Large — 24dp
-* Extra Large — 32dp
+* **`SegmentGap`:** `1.5dp` (inter-row gap within a segmented group)
+* **`Section`:** `12dp` (spacing between independent preference groups, `SectionSpacing`)
+* **`Medium`:** `16dp` (screen and card horizontal padding, `ScreenHorizontalPadding`)
+* **`Large`:** `24dp` (bottom screen padding, `ScreenBottomPadding`)
 
 ### Radius
-* Small — 12dp
-* Medium — 16dp (Buttons, Chips, List items)
-* Large — 24dp (Dialogs, Bottom Sheets, Media Cards)
-* Max — 32dp / Pill / Circle (FAB, Floating Player Bar, Switches, Icon Containers)
+* **`SegmentInner`:** `5dp` (inner joint corners between grouped rows)
+* **`Small`:** `12dp`
+* **`Medium`:** `16dp` (buttons, action chips)
+* **`SegmentOuter`:** `22dp` (outer corners of first/last group rows and cards)
+* **`SheetList`:** `24dp` (corner radius of inner sheet lists, `BottomSheetListCornerRadius`)
+* **`Sheet`:** `28dp` (modal bottom sheets, `BottomSheetCornerRadius`)
+* **`Max / Pill`:** `32dp` / `CircleShape` (FAB, toggle badges, circular indicators)
 
 ### Colors & Surfaces
-* **Primary, Secondary, Tertiary** — Dynamic M3 Expressive colors generated from the current artwork.
-* **Base Surfaces** — `surface`, `surfaceContainer`, `surfaceContainerHigh` (opaque tonal layers for sheets, cards, and dialogs).
-* **Backdrop Blur** — Applied strictly to the background layer behind floating overlays/dialogs. No inner glass borders or transparent text cards.
+* **`glassBackground`:** Static translucent matte fill for dark and light themes (no runtime blur shaders).
+* **`glassBorder`:** 1dp subtle translucent outline for crisp edge definition.
+* **`primaryContainer` / `primary`:** Dynamic accent color for active toggle pills, badges, and switch thumbs.
 
 ---
 
-## 6. Accessibility
+## 5. Settings & Preferences (Pattern: Glass Segmented Rows)
 
-* **Touch Targets:** Minimum interactive area is **48×48dp** (recommended **56dp+**).
-* **Dynamic Type:** Full support for system font scaling.
-* **Contrast:** Surface/text combinations should meet **WCAG AA** readability guidelines.
-* **Reduced Motion:** When the system's reduced motion setting is enabled, heavy animations and spring effects should be disabled.
+### 5.1 Preference Group Anatomy
+
+Each row within a group is an **independent glass card** (`Modifier.yumaGlassCard`), rather than an item inside a single shared container.
+
+
+┌─────────────────────────────────────────────────────────┐  ◄── Top Corners: 22dp (SegmentOuter)
+│  [Badge]  Title & Description                 [Control] │
+└─────────────────────────────────────────────────────────┘  ◄── Bottom Corners: 5dp (SegmentInner)
+▲
+Gap: 1.5dp (SegmentGap, No Divider)
+▼
+┌─────────────────────────────────────────────────────────┐  ◄── All Corners: 5dp (SegmentInner)
+│  [Badge]  Title & Description                 [Control] │
+└─────────────────────────────────────────────────────────┘  ◄── All Corners: 5dp (SegmentInner)
+▲
+Gap: 1.5dp (SegmentGap, No Divider)
+▼
+┌─────────────────────────────────────────────────────────┐  ◄── Top Corners: 5dp (SegmentInner)
+│  [Badge]  Title & Description                 [Chevron] │
+└─────────────────────────────────────────────────────────┘  ◄── Bottom Corners: 22dp (SegmentOuter)
+
+
+* **Corner Radii by Position (`PreferenceGroupPosition`):**
+  * **`Single`:** 22dp on all four corners.
+  * **`First`:** Top corners 22dp, bottom corners 5dp.
+  * **`Middle`:** All corners 5dp.
+  * **`Last`:** Top corners 5dp, bottom corners 22dp.
+* **Icon Badges:** `46dp` container (`SegmentedIconBoxSize`) with custom squircle/petal geometry and monochrome or accent fill.
+* **Typography:**
+  * Title: `titleMedium` Bold (W700), color `onSurface`.
+  * Description: `bodyMedium`, color `onSurfaceVariant`, single-line truncated with ellipsis.
+* **Navigation Items:** Display a trailing chevron `R.drawable.ic_arrow_right` with `RowChevronAlpha` opacity.
 
 ---
 
-## 7. Layout Rules
+### 5.2 Provider Chip (Segmented Toggle)
 
-* **Content Max Width:** Content width on tablets and TVs is limited (**840dp max**) and automatically centered.
-* **Screen Margins:** 16dp on phones, 24dp on tablets and foldables.
-* **Section Spacing:** Independent content blocks are separated by **24–32dp**.
-* **Insets & Safe Area:** System WindowInsets are respected, including floating UI elements such as the Bottom Player.
-
----
-
-## 8. Interaction Guidelines
-
-| State         | Visual Feedback                                                                        |
-| ------------- | -------------------------------------------------------------------------------------- |
-| Default       | Base appearance.                                                                       |
-| Pressed       | Scale down (0.96f–0.98f) with spring animation.                                        |
-| Hover / Focus | Elevated surface tone (`surfaceContainerHigh`) or subtle outline.                      |
-| Disabled      | 0.38f opacity and disabled interaction.                                                |
-| Loading       | Component keeps its size while content is replaced by a shimmer or progress indicator. |
-| Selected      | Background changes to an accent tone (`primaryContainer`).                             |
-| Dragged       | Scale increases (1.04f) with subtle elevation/shadow.                                  |
+Interactive music provider toggle (YouTube Music / Spotify):
+* Implemented as a `yumaGlassCard` segmented card.
+* Features a track with a sliding 36dp container (`primary`) that smoothly animates on provider change.
+* Active label renders in `onPrimary`, inactive in `onSurfaceVariant`.
 
 ---
 
-## 9. Components Architecture & Checklist
+### 5.3 Dropdowns & Selection Dialogs
 
-```
-Rules & Tokens (Foundations)
-            ↓
-Primitive Components
-(YumaSurface, YumaGlassSurface, YumaButton, YumaSlider)
-            ↓
+Dropdowns, context dialogs, and single-choice selectors follow **Material 3 structural patterns** (aligned with the main settings screen): grouped M3-styled buttons organized into clean blocks.
+
+Key differences from vanilla M3 (ArchiveTune):
+* Individual translucent fill + border per item instead of a single solid container.
+* Custom geometric icon containers (squircles / petals).
+* The chevron `R.drawable.ic_arrow_right` is reserved strictly for screen navigation rows.
+
+---
+
+## 6. Interaction Guidelines
+
+| State | Visual Feedback |
+| :--- | :--- |
+| **Default** | Translucent `glassBackground` fill + 1dp `glassBorder`. |
+| **Pressed** | Scale down to `0.96f` with `spring(stiffness = Spring.StiffnessMedium)`. |
+| **Active / Selected** | Active indicator filled with `primary`, text colored `onPrimary`. |
+| **Disabled** | Row opacity set to `0.5f`, touch handling blocked. |
+
+---
+
+## 7. Component Checklist
+
+
+
+Design Tokens (SettingsDimensions, YumaColors)
+↓
+Primitive Modifiers
+(Modifier.yumaGlassCard, Modifier.yumaClickable)
+↓
 Composite Components
-(YumaSettingTile, YumaMediaCard, YumaNowPlayingBar)
-            ↓
+(PreferenceGroup, PreferenceEntry, SwitchPreference, SegmentedPreference, ListPreference, EditTextPreference, SliderPreference, NumberPickerPreference)
+↓
 Screens
-(Player, Settings, Library, Lyrics)
-```
+(SettingsScreen, AccountSettings, AppearanceSettings, etc.)
 
-### Component Quality Checklist
-
-Every new Yuma component should:
-
-* Use Yuma design tokens (Spacing, Radius, Colors).
-* Support the required interaction states (Pressed, Disabled, Focus).
-* Follow the defined surface hierarchy (Surface vs Glass).
-* Support dynamic color generation.
-* Provide natural interaction feedback through motion.
-* Adapt correctly to tablets and large screens.
-* Meet accessibility requirements (touch targets, semantics, etc.).
 
 ---
 
-## 10. Do / Don't
+## 8. Do / Don't
+
 ### ✔ DO
-* Use solid tonal containers (`surfaceContainer`) inside dialogs and bottom sheets for maximum readability.
-* Apply backdrop blur to the background behind floating overlays to establish visual hierarchy.
-* Use uniform circular containers (`CircleShape`) for icon badges in settings.
-* Maintain clear layout spacing (16–24dp) instead of divider lines.
+* Use `Modifier.yumaGlassCard()` with `glassBackground` fill and 1dp `glassBorder` for all preference rows.
+* Use the `SegmentGap` token (1.5dp) to separate grouped rows instead of `HorizontalDivider`.
+* Apply segmented corner radii (22dp outer, 5dp inner) to unify items within a group.
+* Use custom squircle/petal badge shapes for icons.
+* Follow M3 conventions for dialogs and selection bottom sheets (opaque solid surfaces, permissible dividers).
 
 ### ✘ DON'T
-* Use semi-transparent glass cards with inner borders for dense text or technical details.
-* Mix more than two corner radius sizes within a single component group.
-* Create interactive controls smaller than 48×48dp.
-* Overuse dynamic accent colors on large surface containers.
-
----
-
-## 11. Governance
-
-Application screens should primarily be built using components from the **Yuma UI Kit**.
-
-Direct usage of Material 3 components is allowed only:
-
-* inside the implementation of Yuma UI Kit components; or
-* when an equivalent Yuma component has not yet been implemented.
-
----
-
-## 12. Implementation Strategy
-
-1. **Phase 1:** Finalize the YDS specification (`YDS.md`).
-2. **Phase 2:** Build the Yuma UI Kit by implementing primitive (Level 2) and composite (Level 3) components under `ui/component/yuma/`.
-3. **Phase 3:** Gradually migrate all screens (`:feature:*` / `ui/screens`) to the Yuma UI Kit.
-4. **Phase 4:** Perform visual QA, refine micro-interactions, and eliminate inconsistencies.
-
----
-
-## 13. Out of Scope
-
-YDS intentionally does **not** define:
-
-* Business logic or application use cases.
-* Navigation architecture or routing.
-* ViewModel structure or state management (`UiState` / `UiIntent`).
-* Data layer, repositories, caching, networking, or databases.
-* Feature-specific implementations related to audio functionality.
+* Wrap an entire preference group into a single opaque container without individual segmented rows.
+* Apply heavy runtime blur shaders (`BackdropBlur`) to list items or preference rows (blur is strictly reserved for floating overlays).
+* Introduce arbitrary corner radii or paddings outside the defined YDS tokens.
+* Use generic circular solid chips from default Material 3.
