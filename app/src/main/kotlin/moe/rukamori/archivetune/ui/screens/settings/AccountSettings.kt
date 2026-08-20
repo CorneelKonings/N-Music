@@ -73,17 +73,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.SplitButtonDefaults
-import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Surface
+
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -1556,180 +1550,6 @@ private fun UpdateBannerStrip(
     }
 }
 
-@Composable
-private fun ExpressiveSectionCard(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val colors = LocalYumaColors.current
-    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
-
-    Column {
-        Text(
-            text = title.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.textSecondary,
-            letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing * 1.2f,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .yumaGlassCard(
-                    shape = cardShape,
-                    backgroundColor = colors.glassBackground,
-                    borderColor = colors.glassBorder,
-                )
-                .padding(8.dp),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                content = content,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ExpressiveActionRow(
-    icon: Painter,
-    title: String,
-    subtitle: String? = null,
-    accent: Color? = null,
-    onClick: () -> Unit,
-) {
-    val colors = LocalYumaColors.current
-    val tint = accent ?: MaterialTheme.colorScheme.primary
-
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .yumaClickable(onClick = onClick)
-                .yumaGlassCard(
-                    shape = RoundedCornerShape(16.dp),
-                    backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
-                    borderColor = Color.Transparent,
-                )
-                .padding(
-                    horizontal = SettingsDimensions.RowHorizontalPadding,
-                    vertical = SettingsDimensions.RowVerticalPadding,
-                ),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            ExpressiveRowIcon(icon = icon, title = title, tint = tint)
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                AutoScrollingTextOnDemand(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                )
-                subtitle?.let {
-                    AutoScrollingTextOnDemand(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ),
-                    )
-                }
-            }
-
-            Icon(
-                painter = painterResource(R.drawable.ic_arrow_right),
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun ExpressiveSwitchRow(
-    icon: Painter,
-    title: String,
-    subtitle: String? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    val colors = LocalYumaColors.current
-
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .yumaClickable(onClick = { onCheckedChange(!checked) })
-                .yumaGlassCard(
-                    shape = RoundedCornerShape(16.dp),
-                    backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
-                    borderColor = Color.Transparent,
-                )
-                .padding(
-                    horizontal = SettingsDimensions.RowHorizontalPadding,
-                    vertical = SettingsDimensions.RowVerticalPadding,
-                ),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            ExpressiveRowIcon(
-                icon = icon,
-                title = title,
-                tint = MaterialTheme.colorScheme.primary,
-                emphasized = checked,
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                AutoScrollingTextOnDemand(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                )
-                subtitle?.let {
-                    AutoScrollingTextOnDemand(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ),
-                    )
-                }
-            }
-
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                colors =
-                    SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.40f),
-                    ),
-            )
-        }
-    }
-}
 
 @Composable
 private fun ExpressiveSegmentedRow(
@@ -1927,10 +1747,6 @@ private fun ExpressiveRowIcon(
     }
 }
 
-@Composable
-private fun ExpressiveDivider() {
-    Spacer(modifier = Modifier.height(0.dp))
-}
 
 @Composable
 private fun VersionStamp(modifier: Modifier = Modifier) {
