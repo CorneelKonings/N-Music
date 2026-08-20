@@ -562,16 +562,11 @@ fun AccountSettings(
                     }
 
                     item {
-                        SegmentedPreference(
-                            icon = { Icon(painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon), null) },
-                            title = { Text(stringResource(R.string.home_screen_provider)) },
-                            description = stringResource(R.string.home_screen_provider_desc),
+                        ExpressiveSegmentedRow(
+                            icon = painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon),
+                            title = stringResource(R.string.home_screen_provider),
+                            subtitle = stringResource(R.string.home_screen_provider_desc),
                             selectedValue = useSpotifyHome,
-                            values = listOf(false, true),
-                            valueText = { isSpotify ->
-                                if (isSpotify) stringResource(R.string.home_provider_spotify)
-                                else stringResource(R.string.home_provider_youtube_music)
-                            },
                             onValueSelected = { isSpotify ->
                                 if (isSpotify && !spotifyState.isAuthenticated) {
                                     showSpotifyLogin = true
