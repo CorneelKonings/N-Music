@@ -149,17 +149,20 @@ class AutoPlaylistViewModel
                                         )
                                     }
                                     when (songSortType) {
-                                        SongSortType.CREATE_DATE -> songs
+                                        SongSortType.CREATE_DATE, SongSortType.PLAY_TIME -> {
+                                            if (descending) songs else songs.asReversed()
+                                        }
                                         SongSortType.NAME -> {
                                             val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
-                                            songs.sortedWith(compareBy(collator) { it.song.title })
+                                            val sorted = songs.sortedWith(compareBy(collator) { it.song.title })
+                                            if (descending) sorted.asReversed() else sorted
                                         }
                                         SongSortType.ARTIST -> {
                                             val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
-                                            songs.sortedWith(compareBy(collator) { song -> song.artists.joinToString(", ") { artist -> artist.name } })
+                                            val sorted = songs.sortedWith(compareBy(collator) { song -> song.artists.joinToString(", ") { artist -> artist.name } })
+                                            if (descending) sorted.asReversed() else sorted
                                         }
-                                        SongSortType.PLAY_TIME -> songs
-                                    }.reversed(descending).filterExplicit(hideExplicit)
+                                    }.filterExplicit(hideExplicit)
                                 }
                             } else {
                                 database.likedSongs(songSortType, descending, hideVideo).map { it.filterExplicit(hideExplicit) }
