@@ -1032,9 +1032,7 @@ class SyncUtils
                             val dbSong = database.getSongByIdBlocking(resolved.metadata.id)
                             
                             if (dbSong == null) {
-                                database.insert(resolved.metadata) { it.copy(liked = true, likedDate = timestamp) }
-                            } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp) {
-                                database.update(dbSong.song.copy(liked = true, likedDate = timestamp))
+                                database.insert(resolved.metadata) { it.copy(liked = false, likedDate = null) }
                             }
 
                             database.insert(
