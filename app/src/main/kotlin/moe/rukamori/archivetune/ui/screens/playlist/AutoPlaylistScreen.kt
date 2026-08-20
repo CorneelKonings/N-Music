@@ -737,10 +737,12 @@ fun AutoPlaylistScreen(
                                     onCheckedChange = {
                                         val isSpotify = viewModel.isSpotifySource.value
                                         if (isSpotify && playlistType == PlaylistType.LIKE) {
+                                            val currentTracksMap = viewModel.spotifyTracks.value.associateBy { it.id }
+                                            val orderedTracks = songs.mapNotNull { currentTracksMap[it.song.id] }
                                             playerConnection.playQueue(
                                                 SpotifyLikedSongsQueue(
                                                     title = playlist,
-                                                    initialTracks = viewModel.spotifyTracks.value
+                                                    initialTracks = orderedTracks.ifEmpty { viewModel.spotifyTracks.value }
                                                 )
                                             )
                                         } else {
@@ -777,10 +779,12 @@ fun AutoPlaylistScreen(
                                     onCheckedChange = {
                                         val isSpotify = viewModel.isSpotifySource.value
                                         if (isSpotify && playlistType == PlaylistType.LIKE) {
+                                            val currentTracksMap = viewModel.spotifyTracks.value.associateBy { it.id }
+                                            val orderedTracks = songs.mapNotNull { currentTracksMap[it.song.id] }
                                             playerConnection.playQueue(
                                                 SpotifyLikedSongsQueue(
                                                     title = playlist,
-                                                    initialTracks = viewModel.spotifyTracks.value.shuffled()
+                                                    initialTracks = orderedTracks.shuffled().ifEmpty { viewModel.spotifyTracks.value.shuffled() }
                                                 )
                                             )
                                         } else {
@@ -999,21 +1003,31 @@ fun AutoPlaylistScreen(
                                                 val visibleSongs = filteredSongs.map { it.item }
                                                 val isSpotify = viewModel.isSpotifySource.value
                                                 if (isSpotify && playlistType == PlaylistType.LIKE) {
-                                                    val track = viewModel.spotifyTracks.value.find { it.id == songWrapper.item.song.id }
-                                                    if (track != null) {
+                                                    val currentTracksMap = viewModel.spotifyTracks.value.associateBy { it.id }
+                                                    val orderedSpotifyTracks = visibleSongs.mapNotNull { currentTracksMap[it.song.id] }
+                                                    val currentTrack = currentTracksMap[songWrapper.item.song.id]
+                                                    if (currentTrack != null) {
                                                         coroutineScope.launch(Dispatchers.IO) {
-                                                            val preloadItem = SpotifyPlaybackResolver.resolveToMetadata(track)
+                                                            val preloadItem = SpotifyPlaybackResolver.resolveToMetadata(currentTrack)
                                                             withContext(Dispatchers.Main) {
                                                                 playerConnection.playQueue(
                                                                     SpotifyLikedSongsQueue(
                                                                         title = playlist,
-                                                                        initialTracks = viewModel.spotifyTracks.value,
+                                                                        initialTracks = orderedSpotifyTracks.ifEmpty { listOf(currentTrack) },
                                                                         startIndex = index,
                                                                         preloadItem = preloadItem
                                                                     )
                                                                 )
                                                             }
                                                         }
+                                                    } else {
+                                                        playerConnection.playQueue(
+                                                            ListQueue(
+                                                                title = playlist,
+                                                                items = visibleSongs.map { it.toMediaItem() },
+                                                                startIndex = index,
+                                                            ),
+                                                        )
                                                     }
                                                 } else {
                                                     playerConnection.playQueue(
