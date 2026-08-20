@@ -46,12 +46,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
@@ -87,6 +86,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -106,7 +106,6 @@ import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
-import androidx.compose.ui.graphics.compositeOver
 import kotlin.math.roundToInt
 
 val LocalPreferenceInGroup = compositionLocalOf { false }
@@ -116,8 +115,6 @@ enum class PreferenceGroupPosition { Single, First, Middle, Last }
 val LocalPreferenceGroupPosition = compositionLocalOf<PreferenceGroupPosition?> { null }
 val LocalPreferenceItemIndex = compositionLocalOf { 0 }
 
-private val PreferenceGroupLargeCorner = SettingsDimensions.GroupCardCornerRadius
-private val PreferenceGroupSmallCorner = 4.dp
 private val PreferenceGroupHorizontalPadding = SettingsDimensions.ScreenHorizontalPadding
 private val PreferenceEntryMinHeight = 0.dp
 private val PreferenceEntryHorizontalPadding = SettingsDimensions.RowHorizontalPadding
@@ -138,8 +135,8 @@ private fun segmentedPreferenceItemShape(
     index: Int,
     count: Int,
 ): Shape {
-    val large = PreferenceGroupLargeCorner
-    val small = PreferenceGroupSmallCorner
+    val large = SettingsDimensions.SegmentedCornerLarge
+    val small = SettingsDimensions.SegmentedCornerSmall
     return when {
         count <= 1 -> {
             RoundedCornerShape(large)
@@ -203,102 +200,100 @@ fun PreferenceEntry(
         label = "prefScale",
     )
 
-    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
     val colors = LocalYumaColors.current
     val isInGroup = LocalPreferenceInGroup.current
+    val groupPosition = LocalPreferenceGroupPosition.current
 
-    val boxModifier = if (isInGroup) {
-        modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .then(
-                if (isEnabled && onClick != null) {
-                    Modifier.clickable(
+    val resolvedShape = shape ?: preferenceItemShapeForPosition(if (isInGroup) groupPosition else PreferenceGroupPosition.Single)
+
+    val boxModifier = modifier
+        .fillMaxWidth()
+        .graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
+        .yumaGlassCard(
+            shape = resolvedShape,
+            backgroundColor = colors.glassBackground,
+            borderColor = colors.glassBorder,
+        )
+        .clip(resolvedShape)
+        .then(
+            if (isEnabled && onClick != null) {
+                Modifier
+                    .focusable()
+                    .clickable(
                         interactionSource = interactionSource,
                         indication = null,
                         onClick = onClick
                     )
-                } else {
-                    Modifier
-                }
-            )
-            .alpha(if (isEnabled) 1f else 0.5f)
-            .padding(
-                horizontal = SettingsDimensions.RowHorizontalPadding,
-                vertical = SettingsDimensions.RowVerticalPadding
-            )
-    } else {
-        modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
+            } else {
+                Modifier
             }
-            .yumaGlassCard(
-                shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius),
-                backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
-                borderColor = Color.Transparent,
-            )
-            .then(
-                if (isEnabled && onClick != null) {
-                    Modifier.clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = onClick
-                    )
-                } else {
-                    Modifier
-                }
-            )
-            .alpha(if (isEnabled) 1f else 0.5f)
-            .padding(
-                horizontal = SettingsDimensions.RowHorizontalPadding,
-                vertical = SettingsDimensions.RowVerticalPadding
-            )
-    }
+        )
+        .alpha(if (isEnabled) 1f else 0.5f)
 
     Box(modifier = boxModifier) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = SettingsDimensions.SegmentedItemMinHeight)
+                .padding(
+                    horizontal = SettingsDimensions.SegmentedItemPaddingHorizontal,
+                    vertical = SettingsDimensions.SegmentedItemPaddingVertical
+                )
         ) {
             if (icon != null) {
                 val iconShape = rememberPreferenceIconShape()
-                val primaryColor = MaterialTheme.colorScheme.primary
-                val iconBgColor = primaryColor.copy(alpha = SettingsDimensions.RowIconBgAlpha).compositeOver(MaterialTheme.colorScheme.surfaceContainerHigh)
+                val effectiveAccent = MaterialTheme.colorScheme.primary
+                val iconContentCandidate = contentColorFor(effectiveAccent)
+                val iconContentColor =
+                    if (iconContentCandidate.isSpecified) {
+                        iconContentCandidate
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    }
+
                 Box(
                     modifier = Modifier
-                        .size(SettingsDimensions.RowIconSize)
-                        .background(
-                            color = iconBgColor,
-                            shape = iconShape,
-                        )
+                        .size(SettingsDimensions.SegmentedIconBoxSize)
                         .clip(iconShape)
-                        .align(Alignment.CenterVertically),
+                        .background(effectiveAccent),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary) {
-                        icon()
+                    CompositionLocalProvider(LocalContentColor provides iconContentColor) {
+                        Box(
+                            modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            icon()
+                        }
                     }
                 }
-                Spacer(Modifier.width(SettingsDimensions.RowIconSpacing))
+                Spacer(Modifier.width(SettingsDimensions.SegmentedIconSpacing))
             }
 
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.weight(1f),
             ) {
-                ProvideTextStyle(MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)) {
+                ProvideTextStyle(
+                    MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                ) {
                     title()
                 }
                 if (description != null) {
-                    Spacer(Modifier.height(SettingsDimensions.RowTextSpacing))
-                    AutoScrollingTextOnDemand(
+                    Spacer(Modifier.height(SettingsDimensions.SegmentedRowSpacing))
+                    Text(
                         text = description,
-                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 content?.invoke()
@@ -320,38 +315,6 @@ fun PreferenceEntry(
             }
         }
     }
-
-    /*
-    val inGroup = LocalPreferenceInGroup.current
-    val groupPosition = LocalPreferenceGroupPosition.current
-    val preferenceIconShape = rememberPreferenceIconShape()
-    val preferenceItemShape =
-        remember(groupPosition) {
-            preferenceItemShapeForPosition(groupPosition)
-        }
-    val resolvedShape = shape ?: preferenceItemShape
-
-    Card(
-        shape = resolvedShape,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = if (inGroup) 0.dp else 16.dp,
-                    vertical = if (inGroup) 0.dp else 3.dp,
-                ).graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                },
-    ) {
-        rowContent()
-    }
-    */
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1209,9 +1172,6 @@ fun PreferenceGroup(
 
     if (itemCount == 0) return
 
-    val colors = LocalYumaColors.current
-    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
-
     Column(modifier = modifier) {
         if (title != null) {
             PreferenceGroupTitle(
@@ -1219,40 +1179,26 @@ fun PreferenceGroup(
             )
         }
 
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = PreferenceGroupHorizontalPadding)
-                .yumaGlassCard(
-                    shape = cardShape,
-                    backgroundColor = colors.glassBackground,
-                    borderColor = colors.glassBorder,
-                )
-                .padding(vertical = SettingsDimensions.BadgePaddingV),
+                .padding(horizontal = PreferenceGroupHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap)
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                scope.items.forEachIndexed { index, itemContent ->
-                    val position =
-                        when {
-                            itemCount == 1 -> PreferenceGroupPosition.Single
-                            index == 0 -> PreferenceGroupPosition.First
-                            index == itemCount - 1 -> PreferenceGroupPosition.Last
-                            else -> PreferenceGroupPosition.Middle
-                        }
-                    CompositionLocalProvider(
-                        LocalPreferenceInGroup provides true,
-                        LocalPreferenceGroupPosition provides position,
-                        LocalPreferenceItemIndex provides index,
-                    ) {
-                        itemContent()
+            scope.items.forEachIndexed { index, itemContent ->
+                val position =
+                    when {
+                        itemCount == 1 -> PreferenceGroupPosition.Single
+                        index == 0 -> PreferenceGroupPosition.First
+                        index == itemCount - 1 -> PreferenceGroupPosition.Last
+                        else -> PreferenceGroupPosition.Middle
                     }
-                    if (index < itemCount - 1) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = SettingsDimensions.DividerStartIndent),
-                            thickness = SettingsDimensions.DividerThickness,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = SettingsDimensions.DividerAlpha),
-                        )
-                    }
+                CompositionLocalProvider(
+                    LocalPreferenceInGroup provides true,
+                    LocalPreferenceGroupPosition provides position,
+                    LocalPreferenceItemIndex provides index,
+                ) {
+                    itemContent()
                 }
             }
         }

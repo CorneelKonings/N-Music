@@ -155,6 +155,7 @@ import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.InfoLabel
 import moe.rukamori.archivetune.ui.component.PreferenceEntry
 import moe.rukamori.archivetune.ui.component.PreferenceGroup
+import moe.rukamori.archivetune.ui.component.SegmentedPreference
 import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.component.TextFieldDialog
 import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
@@ -417,9 +418,7 @@ fun AccountSettings(
                     ),
             contentPadding =
                 PaddingValues(
-                    start = 16.dp,
                     top = innerPadding.calculateTopPadding() + 4.dp,
-                    end = 16.dp,
                     bottom = SettingsDimensions.ScreenBottomPadding,
                 ),
             verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SectionSpacing),
@@ -429,6 +428,7 @@ fun AccountSettings(
                 val accountUiState by accountSettingsViewModel.uiState.collectAsStateWithLifecycle()
 
                 ProfileIdentityCard(
+                    modifier = Modifier.padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
                     isLoggedIn = isLoggedIn,
                     accountName = displayName,
                     accountEmail = accountEmail,
@@ -474,6 +474,7 @@ fun AccountSettings(
             if (hasUpdate) {
                 item {
                     UpdateBannerStrip(
+                        modifier = Modifier.padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
                         latestVersion = latestVersionName,
                         onClick = { uriHandler.openUri(Updater.getLatestDownloadUrl()) },
                     )
@@ -561,12 +562,17 @@ fun AccountSettings(
                     }
 
                     item {
-                        SwitchPreference(
+                        SegmentedPreference(
                             icon = { Icon(painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon), null) },
                             title = { Text(stringResource(R.string.home_screen_provider)) },
                             description = stringResource(R.string.home_screen_provider_desc),
-                            checked = useSpotifyHome,
-                            onCheckedChange = { isSpotify ->
+                            selectedValue = useSpotifyHome,
+                            values = listOf(false, true),
+                            valueText = { isSpotify ->
+                                if (isSpotify) stringResource(R.string.home_provider_spotify)
+                                else stringResource(R.string.home_provider_youtube_music)
+                            },
+                            onValueSelected = { isSpotify ->
                                 if (isSpotify && !spotifyState.isAuthenticated) {
                                     showSpotifyLogin = true
                                 } else {
@@ -649,7 +655,7 @@ fun AccountSettings(
             }
 
             item {
-                VersionStamp()
+                VersionStamp(modifier = Modifier.padding(horizontal = SettingsDimensions.ScreenHorizontalPadding))
             }
         }
     }
@@ -995,6 +1001,7 @@ fun AccountSettings(
 
 @Composable
 private fun ProfileIdentityCard(
+    modifier: Modifier = Modifier,
     isLoggedIn: Boolean,
     accountName: String,
     accountEmail: String,
@@ -1071,7 +1078,7 @@ private fun ProfileIdentityCard(
     )
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(cardShape)
             .drawWithCache {
@@ -1468,6 +1475,7 @@ private fun ProfileIdentityCard(
 
 @Composable
 private fun UpdateBannerStrip(
+    modifier: Modifier = Modifier,
     latestVersion: String,
     onClick: () -> Unit,
 ) {
@@ -1481,7 +1489,7 @@ private fun UpdateBannerStrip(
 
     Surface(
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
                 .graphicsLayer {
                     scaleX = scale
@@ -1909,10 +1917,10 @@ private fun ExpressiveDivider() {
 }
 
 @Composable
-private fun VersionStamp() {
+private fun VersionStamp(modifier: Modifier = Modifier) {
     Column(
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp, bottom = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
