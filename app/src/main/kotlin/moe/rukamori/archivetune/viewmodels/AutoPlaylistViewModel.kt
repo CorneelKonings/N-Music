@@ -47,6 +47,8 @@ import moe.rukamori.archivetune.db.entities.SongEntity
 import moe.rukamori.archivetune.db.entities.ArtistEntity
 import moe.rukamori.archivetune.db.entities.AlbumEntity
 import moe.rukamori.archivetune.spotify.models.SpotifyTrack
+import java.text.Collator
+import java.util.Locale
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -73,6 +75,7 @@ class AutoPlaylistViewModel
         }
 
         val isSpotifySource = context.dataStore.data.map { it[LikedSongsSourceKey] ?: false }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+        val spotifyTracks = spotifyLibraryRepository.likedSongs.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
         fun setSpotifySource(isSpotify: Boolean) {
             viewModelScope.launch(Dispatchers.IO) {
                 context.dataStore.edit { it[LikedSongsSourceKey] = isSpotify }
@@ -147,9 +150,15 @@ class AutoPlaylistViewModel
                                     }
                                     when (songSortType) {
                                         SongSortType.CREATE_DATE -> songs
-                                        SongSortType.NAME -> songs.sortedBy { it.song.title }
-                                        SongSortType.ARTIST -> songs.sortedBy { song -> song.artists.joinToString(separator = "") { artist -> artist.name } }
-                                        SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
+                                        SongSortType.NAME -> {
+                                            val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
+                                            songs.sortedWith(compareBy(collator) { it.song.title })
+                                        }
+                                        SongSortType.ARTIST -> {
+                                            val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
+                                            songs.sortedWith(compareBy(collator) { song -> song.artists.joinToString(", ") { artist -> artist.name } })
+                                        }
+                                        SongSortType.PLAY_TIME -> songs
                                     }.reversed(descending).filterExplicit(hideExplicit)
                                 }
                             } else {
@@ -175,13 +184,15 @@ class AutoPlaylistViewModel
                                             }
 
                                             SongSortType.NAME -> {
-                                                songs.sortedBy { it.song.title }
+                                                val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
+                                                songs.sortedWith(compareBy(collator) { it.song.title })
                                             }
 
                                             SongSortType.ARTIST -> {
-                                                songs.sortedBy { song ->
-                                                    song.artists.joinToString(separator = "") { artist -> artist.name }
-                                                }
+                                                val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
+                                                songs.sortedWith(compareBy(collator) { song ->
+                                                    song.artists.joinToString(", ") { artist -> artist.name }
+                                                })
                                             }
 
                                             SongSortType.PLAY_TIME -> {

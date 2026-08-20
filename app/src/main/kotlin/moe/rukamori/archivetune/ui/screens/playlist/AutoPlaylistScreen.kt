@@ -65,6 +65,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -104,6 +105,7 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.LocalDownloadUtil
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
@@ -117,6 +119,8 @@ import moe.rukamori.archivetune.constants.YtmSyncKey
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.extensions.togglePlayPause
 import moe.rukamori.archivetune.playback.queues.ListQueue
+import moe.rukamori.archivetune.spotify.SpotifyLikedSongsQueue
+import moe.rukamori.archivetune.spotify.SpotifyPlaybackResolver
 import moe.rukamori.archivetune.ui.component.DefaultDialog
 import moe.rukamori.archivetune.ui.component.DraggableScrollbar
 import moe.rukamori.archivetune.ui.component.EmptyPlaceholder
@@ -150,6 +154,7 @@ fun AutoPlaylistScreen(
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val focusManager = LocalFocusManager.current
@@ -730,12 +735,22 @@ fun AutoPlaylistScreen(
                                 ToggleButton(
                                     checked = false,
                                     onCheckedChange = {
-                                        playerConnection.playQueue(
-                                            ListQueue(
-                                                title = playlist,
-                                                items = songs.map { it.toMediaItem() },
-                                            ),
-                                        )
+                                        val isSpotify = viewModel.isSpotifySource.value
+                                        if (isSpotify && playlistType == PlaylistType.LIKE) {
+                                            playerConnection.playQueue(
+                                                SpotifyLikedSongsQueue(
+                                                    title = playlist,
+                                                    initialTracks = viewModel.spotifyTracks.value
+                                                )
+                                            )
+                                        } else {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = playlist,
+                                                    items = songs.map { it.toMediaItem() },
+                                                ),
+                                            )
+                                        }
                                     },
                                     modifier =
                                         Modifier
@@ -760,12 +775,22 @@ fun AutoPlaylistScreen(
                                 ToggleButton(
                                     checked = false,
                                     onCheckedChange = {
-                                        playerConnection.playQueue(
-                                            ListQueue(
-                                                title = playlist,
-                                                items = songs.shuffled().map { it.toMediaItem() },
-                                            ),
-                                        )
+                                        val isSpotify = viewModel.isSpotifySource.value
+                                        if (isSpotify && playlistType == PlaylistType.LIKE) {
+                                            playerConnection.playQueue(
+                                                SpotifyLikedSongsQueue(
+                                                    title = playlist,
+                                                    initialTracks = viewModel.spotifyTracks.value.shuffled()
+                                                )
+                                            )
+                                        } else {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = playlist,
+                                                    items = songs.shuffled().map { it.toMediaItem() },
+                                                ),
+                                            )
+                                        }
                                     },
                                     modifier =
                                         Modifier
@@ -972,13 +997,33 @@ fun AutoPlaylistScreen(
                                                 playerConnection.player.togglePlayPause()
                                             } else {
                                                 val visibleSongs = filteredSongs.map { it.item }
-                                                playerConnection.playQueue(
-                                                    ListQueue(
-                                                        title = playlist,
-                                                        items = visibleSongs.map { it.toMediaItem() },
-                                                        startIndex = index,
-                                                    ),
-                                                )
+                                                val isSpotify = viewModel.isSpotifySource.value
+                                                if (isSpotify && playlistType == PlaylistType.LIKE) {
+                                                    val track = viewModel.spotifyTracks.value.find { it.id == songWrapper.item.song.id }
+                                                    if (track != null) {
+                                                        coroutineScope.launch(Dispatchers.IO) {
+                                                            val preloadItem = SpotifyPlaybackResolver.resolveToMetadata(track)
+                                                            withContext(Dispatchers.Main) {
+                                                                playerConnection.playQueue(
+                                                                    SpotifyLikedSongsQueue(
+                                                                        title = playlist,
+                                                                        initialTracks = viewModel.spotifyTracks.value,
+                                                                        startIndex = index,
+                                                                        preloadItem = preloadItem
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = playlist,
+                                                            items = visibleSongs.map { it.toMediaItem() },
+                                                            startIndex = index,
+                                                        ),
+                                                    )
+                                                }
                                             }
                                         } else {
                                             songWrapper.isSelected = !songWrapper.isSelected
