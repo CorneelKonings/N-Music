@@ -603,26 +603,27 @@ fun SettingsSegmentedItem(
         label = "settingsSegmentScale",
     )
 
-    Card(
+    val colors = LocalYumaColors.current
+    Box(
         modifier =
             modifier
                 .fillMaxWidth()
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
-                }.clip(shape)
+                }
+                .yumaGlassCard(
+                    shape = shape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                )
+                .clip(shape)
                 .focusable()
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
                     onClick = item.onClick,
-                ),
-        shape = shape,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = SettingsDimensions.CardElevation),
+                )
     ) {
         Row(
             modifier =
@@ -714,6 +715,14 @@ fun SettingsSegmentedItem(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.width(SettingsDimensions.RowChevronSpacing))
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_right),
+                contentDescription = null,
+                modifier = Modifier.size(SettingsDimensions.ChevronSize),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = SettingsDimensions.RowChevronAlpha)
+            )
         }
     }
 }
@@ -856,6 +865,14 @@ fun SettingsFlatItem(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.width(SettingsDimensions.RowChevronSpacing))
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_right),
+                contentDescription = null,
+                modifier = Modifier.size(SettingsDimensions.ChevronSize),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = SettingsDimensions.RowChevronAlpha)
+            )
         }
     }
 }

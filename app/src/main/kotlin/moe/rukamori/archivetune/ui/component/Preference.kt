@@ -192,6 +192,7 @@ fun PreferenceEntry(
     trailingContent: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     isEnabled: Boolean = true,
+    showChevron: Boolean = false,
     shape: Shape? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -237,7 +238,7 @@ fun PreferenceEntry(
                 scaleY = scale
             }
             .yumaGlassCard(
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius),
                 backgroundColor = colors.glassBorder.copy(alpha = 0.10f),
                 borderColor = Color.Transparent,
             )
@@ -267,10 +268,10 @@ fun PreferenceEntry(
             if (icon != null) {
                 val iconShape = rememberPreferenceIconShape()
                 val primaryColor = MaterialTheme.colorScheme.primary
-                val iconBgColor = primaryColor.copy(alpha = 0.18f).compositeOver(MaterialTheme.colorScheme.surfaceContainerHigh)
+                val iconBgColor = primaryColor.copy(alpha = SettingsDimensions.RowIconBgAlpha).compositeOver(MaterialTheme.colorScheme.surfaceContainerHigh)
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(SettingsDimensions.RowIconSize)
                         .background(
                             color = iconBgColor,
                             shape = iconShape,
@@ -283,7 +284,7 @@ fun PreferenceEntry(
                         icon()
                     }
                 }
-                Spacer(Modifier.width(14.dp))
+                Spacer(Modifier.width(SettingsDimensions.RowIconSpacing))
             }
 
             Column(
@@ -294,7 +295,7 @@ fun PreferenceEntry(
                     title()
                 }
                 if (description != null) {
-                    Spacer(Modifier.height(2.dp))
+                    Spacer(Modifier.height(SettingsDimensions.RowTextSpacing))
                     AutoScrollingTextOnDemand(
                         text = description,
                         style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
@@ -304,10 +305,18 @@ fun PreferenceEntry(
             }
 
             if (trailingContent != null) {
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(SettingsDimensions.BadgePaddingH))
                 Box(modifier = Modifier.align(Alignment.CenterVertically)) {
                     trailingContent()
                 }
+            } else if (showChevron) {
+                Spacer(Modifier.width(SettingsDimensions.RowChevronSpacing))
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_right),
+                    contentDescription = null,
+                    modifier = Modifier.size(SettingsDimensions.ChevronSize),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = SettingsDimensions.RowChevronAlpha)
+                )
             }
         }
     }
@@ -1207,7 +1216,6 @@ fun PreferenceGroup(
         if (title != null) {
             PreferenceGroupTitle(
                 title = title,
-                modifier = Modifier.padding(horizontal = PreferenceGroupHorizontalPadding),
             )
         }
 
@@ -1220,7 +1228,7 @@ fun PreferenceGroup(
                     backgroundColor = colors.glassBackground,
                     borderColor = colors.glassBorder,
                 )
-                .padding(vertical = 4.dp),
+                .padding(vertical = SettingsDimensions.BadgePaddingV),
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 scope.items.forEachIndexed { index, itemContent ->
@@ -1242,7 +1250,7 @@ fun PreferenceGroup(
                         HorizontalDivider(
                             modifier = Modifier.padding(start = SettingsDimensions.DividerStartIndent),
                             thickness = SettingsDimensions.DividerThickness,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = SettingsDimensions.DividerAlpha),
                         )
                     }
                 }
@@ -1254,9 +1262,9 @@ fun PreferenceGroup(
 @Composable
 fun PreferenceGroupDivider(modifier: Modifier = Modifier) {
     HorizontalDivider(
-        modifier = modifier.padding(start = 60.dp),
-        thickness = 0.5.dp,
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+        modifier = modifier.padding(start = SettingsDimensions.DividerStartIndent),
+        thickness = SettingsDimensions.DividerThickness,
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = SettingsDimensions.DividerAlpha),
     )
 }
 
@@ -1271,6 +1279,9 @@ fun PreferenceGroupTitle(
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary,
         ),
-        modifier = modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+        modifier = modifier.padding(
+            horizontal = SettingsDimensions.SectionHeaderHorizontalPadding,
+            vertical = SettingsDimensions.SectionHeaderBottomPadding,
+        ),
     )
 }
