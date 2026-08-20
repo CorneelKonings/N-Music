@@ -7619,6 +7619,7 @@ class MusicService :
                 albumName = media.album?.title,
                 explicit = media.explicit,
                 isLocal = media.id.isLocalMediaId(),
+                isrc = media.isrc,
             )
 
         val artists =

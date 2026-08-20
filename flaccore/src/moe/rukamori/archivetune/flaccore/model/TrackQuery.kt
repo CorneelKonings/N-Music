@@ -23,23 +23,24 @@ data class TrackQuery(
     /**
      * The proxy search terms to try for this query, in priority order.
      *
-     * - When an [isrc] is present it is the precise index key — used alone.
-     * - Otherwise the FULL artist credit is tried first ("Tyler, The Creator Foo"),
+     * - When an [isrc] is present it leads as the precise index key, followed
+     *   by text-based fallbacks so a missing ISRC entry still resolves.
+     * - The FULL artist credit is tried first ("Tyler, The Creator Foo"),
      *   so single artists whose name contains a comma still match.
      * - Then, for multi-artist credits joined with commas (e.g.
-     *   "¥$, Kanye West, Ty Dolla $ign"), a fallback using only the PRIMARY artist
-     *   (text before the first comma → "¥$") is appended.
+     *   "¥$, Kanye West, Ty Dolla $ign"), a fallback using only the PRIMARY
+     *   artist (text before the first comma → "¥$") is appended.
+     * - Duplicates are removed while preserving priority order.
      */
-    fun searchTerms(): List<String> {
-        isrc?.takeIf { it.isNotBlank() }?.let { return listOf(it) }
+    fun searchTerms(): List<String> = buildList {
+        isrc?.takeIf { it.isNotBlank() }?.let(::add)
         val full = "$artist $title".trim()
+        add(full)
         val primary = artist.substringBefore(",").trim()
-        return if (primary.isNotEmpty() && !primary.equals(artist.trim(), ignoreCase = true)) {
-            listOf(full, "$primary $title".trim())
-        } else {
-            listOf(full)
+        if (primary.isNotEmpty() && !primary.equals(artist.trim(), ignoreCase = true)) {
+            add("$primary $title".trim())
         }
-    }
+    }.distinct()
 }
 
 /**
