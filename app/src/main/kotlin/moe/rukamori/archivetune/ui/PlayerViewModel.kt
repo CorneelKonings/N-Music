@@ -149,12 +149,18 @@ class PlayerViewModel @Inject constructor(
                     val title = metadata.title
                     val artist = metadata.artists.joinToString { it.name }
 
+                    val resolvedDuration = if (metadata.duration > 0) {
+                        metadata.duration * 1000L
+                    } else {
+                        audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET } ?: 0L
+                    }
+
                     _uiState.update { currentUi ->
                         currentUi.copy(
                             title = title,
                             artist = artist,
                             trackUrl = metadata.id,
-                            durationMs = metadata.duration * 1000L
+                            durationMs = resolvedDuration
                         )
                     }
 
@@ -167,7 +173,13 @@ class PlayerViewModel @Inject constructor(
                 .filterNotNull()
                 .flatMapLatest { it.playbackState }
                 .collect { playbackState ->
-                    _uiState.update { it.copy(isLoading = playbackState == Player.STATE_BUFFERING) }
+                    val realDuration = audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET }
+                    _uiState.update { current ->
+                        current.copy(
+                            isLoading = playbackState == Player.STATE_BUFFERING,
+                            durationMs = if (realDuration != null && current.durationMs <= 0L) realDuration else current.durationMs
+                        )
+                    }
                 }
         }
 
@@ -543,8 +555,18 @@ class PlayerViewModel @Inject constructor(
                     val player = audioPlayer
                     if (player != null && !isUserSeeking) {
                         val position = player.currentPosition
+                        val duration = player.duration
+                        val validDuration = if (duration > 0L && duration != androidx.media3.common.C.TIME_UNSET) duration else null
                         _uiState.update { current ->
-                            current.copy(progressMs = player.currentPosition)
+                            val resolvedDuration = if (validDuration != null && (current.durationMs <= 0L || current.durationMs != validDuration)) {
+                                validDuration
+                            } else {
+                                current.durationMs
+                            }
+                            current.copy(
+                                progressMs = position,
+                                durationMs = resolvedDuration
+                            )
                         }
                         updateLyricsProgress(position)
                     }
