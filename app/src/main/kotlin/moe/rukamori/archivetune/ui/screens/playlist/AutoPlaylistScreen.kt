@@ -941,22 +941,22 @@ fun AutoPlaylistScreen(
                 }
             }
 
-            if (playlistId == "liked" && isSpotifySource && !spotifyState.isAuthenticated) {
-                item(key = "spotify_login_fallback") {
-                    SpotifyLoginFallback(
-                        onLoginClick = { showSpotifyLogin = true },
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            } else if (songs.isEmpty()) {
+            if (songs.isEmpty()) {
                 item(
                     key = "empty",
                     contentType = CONTENT_TYPE_EMPTY,
                 ) {
-                    EmptyPlaceholder(
-                        icon = R.drawable.music_note,
-                        text = stringResource(R.string.playlist_is_empty),
-                    )
+                    if (playlistId == "liked" && isSpotifySource && !spotifyState.isAuthenticated) {
+                        SpotifyLoginFallback(
+                            onLoginClick = { showSpotifyLogin = true },
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    } else {
+                        EmptyPlaceholder(
+                            icon = R.drawable.music_note,
+                            text = stringResource(R.string.playlist_is_empty),
+                        )
+                    }
                 }
             } else {
                 // Sort Header
