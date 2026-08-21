@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
-import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
+import androidx.compose.foundation.basicMarquee
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 
@@ -88,7 +88,7 @@ fun PlayerMetadata(
                         }
                     }
             ) {
-                AutoScrollingTextOnDemand(
+                androidx.compose.material3.Text(
                     text = title,
                     style = TextStyle(
                         color = Color.White,
@@ -97,8 +97,8 @@ fun PlayerMetadata(
                         fontFamily = GoogleSans,
                         shadow = SoftTextShadow
                     ),
-                    gradientEdgeColor = gradientEdgeColor,
-                    expansionFractionProvider = expansionFractionProvider
+                    maxLines = 1,
+                    modifier = Modifier.basicMarquee()
                 )
             }
 
@@ -132,7 +132,7 @@ fun PlayerMetadata(
                         }
                     }
             ) {
-                AutoScrollingTextOnDemand(
+                androidx.compose.material3.Text(
                     text = artist,
                     style = TextStyle(
                         color = Color(0xF2FFFFFF),
@@ -140,8 +140,8 @@ fun PlayerMetadata(
                         fontFamily = GoogleSans,
                         shadow = SoftTextShadow
                     ),
-                    gradientEdgeColor = gradientEdgeColor,
-                    expansionFractionProvider = expansionFractionProvider
+                    maxLines = 1,
+                    modifier = Modifier.basicMarquee()
                 )
             }
         }

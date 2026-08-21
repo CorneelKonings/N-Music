@@ -24,7 +24,7 @@ import androidx.compose.ui.text.TextStyle
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.player.player_0.buttons.MiniPlayerButtons
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
-import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
+import androidx.compose.foundation.basicMarquee
 import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 import coil3.compose.AsyncImage
 import coil3.request.crossfade
@@ -128,7 +128,7 @@ internal fun MiniPlayerContentInternal(
             verticalArrangement = Arrangement.Center
         ) {
             // Название трека
-            AutoScrollingTextOnDemand(
+            androidx.compose.material3.Text(
                 text = state.title,
                 style = TextStyle(
                     color = Color.White,
@@ -136,20 +136,20 @@ internal fun MiniPlayerContentInternal(
                     fontWeight = FontWeight.Bold,
                     shadow = SoftTextShadow
                 ),
-                gradientEdgeColor = animatedBgColor, // Края растворяются ровно в текущий цвет мини-плеера
-                canScroll = expansionFractionProvider() < 0.01f // Бежит только когда большая шторка закрыта
+                maxLines = 1,
+                modifier = Modifier.basicMarquee()
             )
 
             // Исполнитель
-            AutoScrollingTextOnDemand(
+            androidx.compose.material3.Text(
                 text = state.artist,
                 style = TextStyle(
                     color = Color(0xE6FFFFFF),
                     fontSize = 12.sp,
                     shadow = SoftTextShadow
                 ),
-                gradientEdgeColor = animatedBgColor,
-                canScroll = expansionFractionProvider() < 0.01f
+                maxLines = 1,
+                modifier = Modifier.basicMarquee()
             )
         }
 

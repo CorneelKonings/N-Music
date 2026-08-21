@@ -20,7 +20,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
@@ -179,12 +178,14 @@ inline fun ListItem(
                     .padding(horizontal = 6.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            AutoScrollingTextOnDemand(
+            Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = titleColor,
                 ),
+                maxLines = 1,
+                modifier = Modifier.basicMarquee(),
             )
             if (subtitle != null) {
                 CompositionLocalProvider(LocalContentColor provides subtitleContentColor) {
@@ -225,9 +226,11 @@ fun ListItem(
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 }
-            AutoScrollingTextOnDemand(
+            Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(color = subtitleColor),
+                maxLines = 1,
+                modifier = Modifier.basicMarquee(),
             )
         }
     },
@@ -421,9 +424,11 @@ fun SongGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        AutoScrollingTextOnDemand(
+        Text(
             text = song.song.title,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1,
+            modifier = Modifier.basicMarquee(),
         )
     },
     subtitle = {
@@ -650,9 +655,11 @@ fun AlbumGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        AutoScrollingTextOnDemand(
+        Text(
             text = album.album.title,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1,
+            modifier = Modifier.basicMarquee(),
         )
     },
     subtitle = {
@@ -754,9 +761,11 @@ fun PlaylistGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        AutoScrollingTextOnDemand(
+        Text(
             text = playlist.playlist.name,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1,
+            modifier = Modifier.basicMarquee(),
         )
     },
     subtitle = {
@@ -1401,9 +1410,11 @@ fun YouTubeGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        AutoScrollingTextOnDemand(
+        Text(
             text = item.title,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1,
+            modifier = Modifier.basicMarquee(),
         )
     },
     subtitle = {

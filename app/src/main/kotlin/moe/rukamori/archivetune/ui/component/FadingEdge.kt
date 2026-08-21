@@ -72,15 +72,15 @@ fun Modifier.horizontalFadingEdge(
 /**
  * Применяет градиентное растворение краев для бегущей строки текста (basicMarquee).
  */
-fun Modifier.textFadingEdge(
-    length: Dp = 12.dp,
+fun Modifier.fadingEdges(
+    edgeWidth: Dp = 16.dp,
 ): Modifier = this
     .graphicsLayer {
         compositingStrategy = CompositingStrategy.Offscreen
     }
     .drawWithContent {
         drawContent()
-        val lengthPx = length.toPx()
+        val lengthPx = edgeWidth.toPx()
         if (lengthPx <= 0f || size.width <= lengthPx * 2) return@drawWithContent
 
         drawRect(
@@ -101,3 +101,8 @@ fun Modifier.textFadingEdge(
             blendMode = BlendMode.DstIn,
         )
     }
+
+/**
+ * Применяет градиентное растворение краев для бегущей строки текста (basicMarquee).
+ */
+fun Modifier.textFadingEdge(length: Dp = 12.dp): Modifier = fadingEdges(length)

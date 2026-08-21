@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.state.PlayerUiState
-import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
+import androidx.compose.foundation.basicMarquee
 import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 import coil3.compose.AsyncImage
 
@@ -144,7 +144,7 @@ fun LyricsHeader(
                     verticalArrangement = Arrangement.Center
                 ) {
                     // Название трека
-                    AutoScrollingTextOnDemand(
+                    androidx.compose.material3.Text(
                         text = state.title,
                         style = TextStyle(
                             color = Color.White,
@@ -152,20 +152,20 @@ fun LyricsHeader(
                             fontWeight = FontWeight.Bold,
                             shadow = SoftTextShadow
                         ),
-                        gradientEdgeColor = capsuleColor, // Бесшовно тухнет в цвет подложки плашки
-                        canScroll = animateProgressProvider() > 0.99f
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee()
                     )
 
                     // Исполнитель
-                    AutoScrollingTextOnDemand(
+                    androidx.compose.material3.Text(
                         text = state.artist,
                         style = TextStyle(
                             color = Color(0xD9FFFFFF),
                             fontSize = 12.sp,
                             shadow = SoftTextShadow
                         ),
-                        gradientEdgeColor = capsuleColor,
-                        canScroll = animateProgressProvider() > 0.99f
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee()
                     )
                 }
             }
