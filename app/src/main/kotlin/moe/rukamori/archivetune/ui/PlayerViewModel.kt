@@ -160,8 +160,7 @@ class PlayerViewModel @Inject constructor(
                             title = title,
                             artist = artist,
                             trackUrl = metadata.id,
-                            durationMs = resolvedDuration,
-                            coverUrl = metadata.thumbnailUrl ?: ""
+                            durationMs = resolvedDuration
                         )
                     }
 
@@ -761,7 +760,6 @@ class PlayerViewModel @Inject constructor(
             try {
                 val request = ImageRequest.Builder(application)
                     .data(url)
-                    .size(64)
                     .allowHardware(false) // Обязательно false для анализа пикселей
                     .build()
 
