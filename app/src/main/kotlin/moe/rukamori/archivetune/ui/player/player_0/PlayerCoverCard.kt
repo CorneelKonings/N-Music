@@ -50,6 +50,7 @@ fun PlayerCoverCard(
     placeholderResId: Int,
     isAlbumCoverGlowEnabled: Boolean = false,
     vibrantColor: Color = Color.Transparent,
+    gestureEnabled: Boolean = true,
     onNext: () -> Unit = {},
     onPrevious: () -> Unit = {}
 ) {
@@ -66,49 +67,69 @@ fun PlayerCoverCard(
     Box(
         modifier = modifier
             .graphicsLayer { translationX = offsetX.value }
-            .pointerInput(Unit) {
-                val snapThresholdPx = 100f * density.density
-                val maxTensionOffsetPx = 30f * density.density
-                var accumulatedDragX = 0f
-                
-                detectHorizontalDragGestures(
-                    onDragStart = {
-                        accumulatedDragX = 0f
-                        hasVibrated = false
-                    },
-                    onHorizontalDrag = { change, dragAmount ->
-                        change.consume()
-                        accumulatedDragX += dragAmount
+            .then(
+                if (gestureEnabled) {
+                    Modifier.pointerInput(Unit) {
+                        val snapThresholdPx = 100f * density.density
+                        val maxTensionOffsetPx = 30f * density.density
+                        val slideDistancePx = size.width.toFloat() + 100f * density.density
+                        var accumulatedDragX = 0f
                         
-                        val dragFraction = (abs(accumulatedDragX) / snapThresholdPx).coerceIn(0f, 1f)
-                        val tensionOffset = lerp(0f, maxTensionOffsetPx, dragFraction)
-                        
-                        scope.launch {
-                            offsetX.snapTo(tensionOffset * sign(accumulatedDragX))
-                        }
-                        
-                        if (abs(accumulatedDragX) > snapThresholdPx && !hasVibrated) {
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            hasVibrated = true
-                        }
-                    },
-                    onDragEnd = {
-                        if (abs(accumulatedDragX) > snapThresholdPx) {
-                            if (accumulatedDragX < 0) {
-                                onNext()
-                            } else {
-                                onPrevious()
+                        detectHorizontalDragGestures(
+                            onDragStart = {
+                                accumulatedDragX = 0f
+                                hasVibrated = false
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                accumulatedDragX += dragAmount
+                                
+                                val dragFraction = (abs(accumulatedDragX) / snapThresholdPx).coerceIn(0f, 1f)
+                                val tensionOffset = lerp(0f, maxTensionOffsetPx, dragFraction)
+                                
+                                scope.launch {
+                                    offsetX.snapTo(tensionOffset * sign(accumulatedDragX))
+                                }
+                                
+                                if (abs(accumulatedDragX) > snapThresholdPx && !hasVibrated) {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    hasVibrated = true
+                                }
+                            },
+                            onDragEnd = {
+                                if (abs(accumulatedDragX) > snapThresholdPx) {
+                                    val isNext = accumulatedDragX < 0
+                                    scope.launch {
+                                        val slideOutTarget = if (isNext) -slideDistancePx else slideDistancePx
+                                        offsetX.animateTo(
+                                            targetValue = slideOutTarget,
+                                            animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
+                                        )
+                                        
+                                        if (isNext) onNext() else onPrevious()
+                                        
+                                        offsetX.snapTo(if (isNext) slideDistancePx else -slideDistancePx)
+                                        
+                                        offsetX.animateTo(
+                                            targetValue = 0f,
+                                            animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
+                                        )
+                                    }
+                                } else {
+                                    scope.launch {
+                                        offsetX.animateTo(
+                                            targetValue = 0f,
+                                            animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
+                                        )
+                                    }
+                                }
                             }
-                        }
-                        scope.launch {
-                            offsetX.animateTo(
-                                targetValue = 0f,
-                                animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
-                            )
-                        }
+                        )
                     }
-                )
-            }
+                } else {
+                    Modifier
+                }
+            )
             .aspectRatio(1f, matchHeightConstraintsFirst = true)
             .then(
                 if (isAlbumCoverGlowEnabled) {

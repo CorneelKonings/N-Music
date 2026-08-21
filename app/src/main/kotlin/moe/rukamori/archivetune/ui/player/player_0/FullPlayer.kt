@@ -180,6 +180,7 @@ fun FullPlayer(
                         placeholderResId = state.placeholderResId,
                         isAlbumCoverGlowEnabled = state.isAlbumCoverGlowEnabled,
                         vibrantColor = animatedAccentColor,
+                        gestureEnabled = !state.isImmersiveEnabled && !state.isLyricsVisible,
                         onNext = { onAction(PlayerAction.Next) },
                         onPrevious = { onAction(PlayerAction.Previous) }
                     )

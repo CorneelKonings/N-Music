@@ -157,14 +157,6 @@ internal fun UnifiedPlayerSheetLayers(
     }
 }
 
-/**
- * Управляет размещением элемента на фазе Layout без удаления из дерева Composition.
- * Когда [shouldPlace] возвращает false:
- * - Элемент не размещается на экране (размер 0x0)
- * - 0 перехватов тач-событий (полная свобода для жестов других слоев)
- * - 0 отрисовок на GPU и 0 проблем с Accessibility/TalkBack
- * - Состояние дерева, Coil painter и кэш обложек сохраняются на 100% без мерцания
- */
 private fun Modifier.conditionalPlacement(shouldPlace: () -> Boolean): Modifier = this.layout { measurable, constraints ->
     val placeable = measurable.measure(constraints)
     if (shouldPlace()) {
