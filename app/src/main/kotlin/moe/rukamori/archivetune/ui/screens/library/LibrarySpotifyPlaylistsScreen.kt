@@ -44,6 +44,7 @@ import moe.rukamori.archivetune.spotify.SpotifyPlaylistQueue
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
 import moe.rukamori.archivetune.ui.component.SpotifyLibraryPlaylistListItem
 import moe.rukamori.archivetune.ui.component.SpotifyLikedSongsListCard
+import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginFallback
 import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
 
 @Composable
@@ -60,22 +61,30 @@ fun LibrarySpotifyPlaylistsScreen(
     val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
     var showSpotifyLogin by remember { mutableStateOf(false) }
 
+    val playerAwareBottomPadding =
+        LocalPlayerAwareWindowInsets.current
+            .only(WindowInsetsSides.Bottom)
+            .asPaddingValues()
+            .calculateBottomPadding() + 12.dp
+
     if (showSpotifyLogin) {
         SpotifyLoginSheet(
             onDismiss = { showSpotifyLogin = false },
             onCookiesCaptured = { spDc, spKey ->
                 spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
                 showSpotifyLogin = false
-                navController.navigate("spotify_liked_songs")
+                viewModel.refreshPlaylists()
             },
         )
     }
 
-    val playerAwareBottomPadding =
-        LocalPlayerAwareWindowInsets.current
-            .only(WindowInsetsSides.Bottom)
-            .asPaddingValues()
-            .calculateBottomPadding() + 12.dp
+    if (!spotifyState.isAuthenticated) {
+        SpotifyLoginFallback(
+            onLoginClick = { showSpotifyLogin = true },
+            modifier = Modifier.padding(bottom = playerAwareBottomPadding)
+        )
+        return
+    }
 
     ExpressivePullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -97,13 +106,7 @@ fun LibrarySpotifyPlaylistsScreen(
                 val likedSongsTotal by viewModel.likedSongsTotal.collectAsStateWithLifecycle()
                 SpotifyLikedSongsListCard(
                     likedSongsTotal = likedSongsTotal,
-                    onClick = {
-                        if (!spotifyState.isAuthenticated) {
-                            showSpotifyLogin = true
-                        } else {
-                            navController.navigate("spotify_liked_songs")
-                        }
-                    },
+                    onClick = { navController.navigate("spotify_liked_songs") },
                     onPlay = {
                         playerConnection?.let { conn ->
                             coroutineScope.launch {

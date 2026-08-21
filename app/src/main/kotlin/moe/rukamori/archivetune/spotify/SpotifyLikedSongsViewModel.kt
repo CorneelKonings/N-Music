@@ -44,17 +44,10 @@ class SpotifyLikedSongsViewModel
 
         init {
             viewModelScope.launch {
-                repository.likedSongsTotal.collect { total ->
-                    _total.value = total
-                }
-            }
-            viewModelScope.launch {
                 repository.likedSongs.collect { tracks ->
                     _tracks.value = tracks
-                    if (tracks.isNotEmpty()) {
-                        _total.value = maxOf(_total.value, tracks.size)
-                        _isLoading.value = false
-                    }
+                    _total.value = tracks.size
+                    if (tracks.isNotEmpty()) _isLoading.value = false
                 }
             }
             loadLikedSongs()
@@ -65,7 +58,6 @@ class SpotifyLikedSongsViewModel
                 _isLoading.value = true
                 _error.value = null
                 try {
-                    repository.refreshLikedSongsTotal()
                     repository.restoreCachedLikedSongs()
                     if (repository.likedSongs.value.isEmpty()) {
                         repository.refreshLikedSongs()

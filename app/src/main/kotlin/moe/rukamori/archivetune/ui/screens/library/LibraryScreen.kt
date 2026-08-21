@@ -83,7 +83,6 @@ import moe.rukamori.archivetune.constants.ShowTagsInLibraryKey
 import moe.rukamori.archivetune.db.entities.TagEntity
 import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
 import moe.rukamori.archivetune.ui.component.TagsManagementDialog
-import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 
@@ -100,7 +99,6 @@ fun LibraryScreen(
     val (showSpotifyPlaylists) = rememberPreference(ShowSpotifyPlaylistsKey, defaultValue = true)
     var showTagsManagementDialog by rememberSaveable { mutableStateOf(false) }
     val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
-    var showSpotifyLogin by remember { mutableStateOf(false) }
     val activeSelectedTagIds = if (showTagsInLibrary) selectedTagIds else emptySet()
     val libraryFilters =
         remember(showSpotifyPlaylists) {
@@ -136,22 +134,6 @@ fun LibraryScreen(
         ) { libraryFilters.size }
 
     val coroutineScope = rememberCoroutineScope()
-
-    if (showSpotifyLogin) {
-        SpotifyLoginSheet(
-            onDismiss = { showSpotifyLogin = false },
-            onCookiesCaptured = { spDc, spKey ->
-                spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
-                showSpotifyLogin = false
-                val spotifyPage = libraryFilters.indexOf(LibraryFilter.SPOTIFY)
-                if (spotifyPage >= 0) {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(spotifyPage)
-                    }
-                }
-            },
-        )
-    }
 
     val currentFilter = libraryFilters.getOrElse(pagerState.currentPage) { LibraryFilter.LIBRARY }
 
@@ -246,12 +228,8 @@ fun LibraryScreen(
                         iconRes = iconRes,
                         selected = currentFilter == filter,
                         onClick = {
-                            if (filter == LibraryFilter.SPOTIFY && !spotifyState.isAuthenticated) {
-                                showSpotifyLogin = true
-                            } else {
-                                coroutineScope.launch {
-                                    pagerState.animateScrollToPage(page)
-                                }
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(page)
                             }
                         },
                     )
