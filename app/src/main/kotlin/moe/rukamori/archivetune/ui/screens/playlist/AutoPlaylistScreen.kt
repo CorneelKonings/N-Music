@@ -130,8 +130,8 @@ import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.SortHeader
 import moe.rukamori.archivetune.ui.menu.SelectionSongMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
-import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginFallback
 import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
+import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginFallback
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import moe.rukamori.archivetune.ui.theme.yumaClickable
@@ -325,7 +325,6 @@ fun AutoPlaylistScreen(
                 spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
                 showSpotifyLogin = false
                 viewModel.setSpotifySource(true)
-                viewModel.refresh()
             },
         )
     }
@@ -564,11 +563,11 @@ fun AutoPlaylistScreen(
             if (songs.isNotEmpty() && !isSearching) {
                 // Hero Header Item
                 item(
-                        key = "header",
-                        contentType = CONTENT_TYPE_HEADER,
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                    key = "header",
+                    contentType = CONTENT_TYPE_HEADER,
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
@@ -852,7 +851,7 @@ fun AutoPlaylistScreen(
                             Spacer(modifier = Modifier.height(24.dp))
                         }
                     }
-            }
+                }
 
             if (playlistId == "liked") {
                 item(
@@ -921,11 +920,7 @@ fun AutoPlaylistScreen(
                                                 .height(36.dp)
                                                 .clip(RoundedCornerShape(12.dp))
                                                 .yumaClickable {
-                                                    if (spotifyState.isAuthenticated) {
-                                                        viewModel.setSpotifySource(true)
-                                                    } else {
-                                                        showSpotifyLogin = true
-                                                    }
+                                                    viewModel.setSpotifySource(true)
                                                 },
                                             contentAlignment = Alignment.Center
                                         ) {
@@ -944,26 +939,24 @@ fun AutoPlaylistScreen(
                                 }
                         }
                     }
-            }
+                }
 
-            if (songs.isEmpty()) {
-                if (isSpotifySource && !spotifyState.isAuthenticated) {
-                    item(key = "spotify_login_fallback") {
-                        SpotifyLoginFallback(
-                            onLoginClick = { showSpotifyLogin = true },
-                            modifier = Modifier.padding(top = 32.dp)
-                        )
-                    }
-                } else {
-                    item(
-                        key = "empty",
-                        contentType = CONTENT_TYPE_EMPTY,
-                    ) {
-                        EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty),
-                        )
-                    }
+            if (playlistId == "liked" && isSpotifySource && !spotifyState.isAuthenticated) {
+                item(key = "spotify_login_fallback") {
+                    SpotifyLoginFallback(
+                        onLoginClick = { showSpotifyLogin = true },
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            } else if (songs.isEmpty()) {
+                item(
+                    key = "empty",
+                    contentType = CONTENT_TYPE_EMPTY,
+                ) {
+                    EmptyPlaceholder(
+                        icon = R.drawable.music_note,
+                        text = stringResource(R.string.playlist_is_empty),
+                    )
                 }
             } else {
                 // Sort Header
