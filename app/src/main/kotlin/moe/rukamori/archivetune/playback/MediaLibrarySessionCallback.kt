@@ -62,6 +62,7 @@ import moe.rukamori.archivetune.playback.MusicService.Companion.PERSISTENT_QUEUE
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.get
 import moe.rukamori.archivetune.utils.isLocalMediaId
+import timber.log.Timber
 import java.io.ObjectInputStream
 import java.text.Collator
 import java.time.LocalDateTime
@@ -192,6 +193,7 @@ class MediaLibrarySessionCallback
             customCommand: SessionCommand,
             args: Bundle,
         ): ListenableFuture<SessionResult> {
+            Timber.tag("MediaNotification").d("onCustomCommand: action=${customCommand.customAction}")
             when (customCommand.customAction) {
                 MediaSessionConstants.ACTION_TOGGLE_LIKE -> {
                     toggleLike()

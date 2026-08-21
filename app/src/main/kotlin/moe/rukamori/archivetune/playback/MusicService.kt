@@ -1083,7 +1083,7 @@ class MusicService :
             }
         }
 
-        currentSong.debounce(300).collect(scope) { song ->
+        currentSong.collect(scope) { song ->
             updateNotification()
             requestDiscordSync(
                 reason =
@@ -3249,6 +3249,7 @@ class MusicService :
 
     private fun updateNotification() {
         try {
+            Timber.tag("MediaNotification").d("updateNotification: mediaId=${currentMediaMetadata.value?.id}, isLiked=${currentSong.value?.song?.liked}")
             val customLayout =
                 listOf(
                     CommandButton
@@ -3263,7 +3264,7 @@ class MusicService :
                             ),
                         ).setIconResId(if (currentSong.value?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border)
                         .setSessionCommand(CommandToggleLike)
-                        .setEnabled(currentSong.value != null)
+                        .setEnabled(currentMediaMetadata.value != null || player.currentMediaItem != null)
                         .build(),
                     CommandButton
                         .Builder()
@@ -3297,7 +3298,7 @@ class MusicService :
                         .setDisplayName(getString(R.string.start_radio))
                         .setIconResId(R.drawable.radio)
                         .setSessionCommand(CommandToggleStartRadio)
-                        .setEnabled(currentSong.value != null)
+                        .setEnabled(currentMediaMetadata.value != null || player.currentMediaItem != null)
                         .build(),
                 )
             mediaSession.setCustomLayout(customLayout)
@@ -5209,6 +5210,8 @@ class MusicService :
                 .firstOrNull { it?.isNotBlank() == true && it != "127.0.0.1" }
         }.getOrNull()
 
+    private val toggleLikeMutex = Mutex()
+
     private fun toggleLibrary() {
         database.query {
             currentSong.value?.let {
@@ -5218,15 +5221,30 @@ class MusicService :
     }
 
     fun toggleLike() {
-        database.query {
-            currentSong.value?.let {
-                val song = it.song.toggleLike()
-                update(song)
+        val mediaMetadata = currentMediaMetadata.value ?: player.currentMetadata ?: return
+        Timber.tag("MediaNotification").d("toggleLike() called for mediaId=${mediaMetadata.id}, title=${mediaMetadata.title}")
+        ioScope.launch {
+            try {
+                val song =
+                    toggleLikeMutex.withLock {
+                        database.withTransaction {
+                            val currentSongEntity =
+                                getSongById(mediaMetadata.id)
+                                    ?: run {
+                                        insert(mediaMetadata) {
+                                            it.copy(isLocal = mediaMetadata.id.isLocalMediaId())
+                                        }
+                                        getSongById(mediaMetadata.id)
+                                    }
+                                    ?: return@withTransaction null
+                            currentSongEntity.song.toggleLike().also(::update)
+                        }
+                    } ?: return@launch
+
+                Timber.tag("MediaNotification").d("toggleLike() successful: song=${song.id}, liked=${song.liked}")
                 syncUtils.likeSong(song)
 
-                // Check if auto-download on like is enabled and the song is now liked
                 if (!song.isLocal && dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
-                    // Trigger download for the liked song
                     val downloadRequest =
                         androidx.media3.exoplayer.offline.DownloadRequest
                             .Builder(song.id, song.id.toUri())
@@ -5240,6 +5258,9 @@ class MusicService :
                         false,
                     )
                 }
+            } catch (e: Exception) {
+                Timber.tag("MediaNotification").e(e, "toggleLike() failed for mediaId=${mediaMetadata.id}")
+                reportException(e)
             }
         }
     }
@@ -5917,6 +5938,7 @@ class MusicService :
 
         val timelineEmpty = player.currentTimeline.isEmpty || player.mediaItemCount == 0 || player.currentMediaItem == null
         currentMediaMetadata.value = if (timelineEmpty) null else (mediaItem?.metadata ?: player.currentMetadata)
+        updateNotification()
 
         widgetUpdater.update()
 
