@@ -83,7 +83,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import coil3.compose.AsyncImage
 import moe.rukamori.archivetune.ui.component.MarqueeText
-import moe.rukamori.archivetune.ui.component.fadingEdges
 import moe.rukamori.archivetune.ui.component.LocalPreferenceItemIndex
 import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors

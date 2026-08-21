@@ -56,23 +56,26 @@ fun MarqueeText(
             .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
             .drawWithContent {
                 drawContent()
-                drawRect(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color.Transparent, Color.Black),
-                        startX = 0f,
-                        endX = 16.dp.toPx()
-                    ),
-                    blendMode = BlendMode.DstIn
-                )
-                drawRect(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color.Black, Color.Transparent),
-                        startX = size.width - 24.dp.toPx(),
-                        endX = size.width
-                    ),
-                    blendMode = BlendMode.DstIn
-                )
-
+                val leftFadePx = 16.dp.toPx()
+                val rightFadePx = 24.dp.toPx()
+                if (size.width > leftFadePx + rightFadePx) {
+                    drawRect(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color.Transparent, Color.Black),
+                            startX = 0f,
+                            endX = leftFadePx
+                        ),
+                        blendMode = BlendMode.DstIn
+                    )
+                    drawRect(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color.Black, Color.Transparent),
+                            startX = size.width - rightFadePx,
+                            endX = size.width
+                        ),
+                        blendMode = BlendMode.DstIn
+                    )
+                }
             }
             .basicMarquee(
                 iterations = Int.MAX_VALUE,

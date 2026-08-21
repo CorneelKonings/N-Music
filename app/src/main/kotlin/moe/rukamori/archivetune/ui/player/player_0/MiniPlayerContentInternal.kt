@@ -21,7 +21,6 @@ import androidx.compose.ui.util.lerp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.text.TextStyle
-import moe.rukamori.archivetune.ui.component.fadingEdges
 import moe.rukamori.archivetune.ui.component.MarqueeText
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.player.player_0.buttons.MiniPlayerButtons
