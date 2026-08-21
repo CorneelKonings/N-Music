@@ -101,6 +101,7 @@ import moe.rukamori.archivetune.ui.component.EmptyPlaceholder
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.SpotifyTrackListItem
+import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberPreference
@@ -112,6 +113,7 @@ fun SpotifyLikedSongsScreen(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: SpotifyLikedSongsViewModel = hiltViewModel(),
+    spotifyAccountViewModel: SpotifyAccountViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
@@ -119,6 +121,17 @@ fun SpotifyLikedSongsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val total by viewModel.total.collectAsStateWithLifecycle()
+    val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
+
+    if (!spotifyState.isAuthenticated) {
+        SpotifyLoginSheet(
+            onDismiss = { navController.navigateUp() },
+            onCookiesCaptured = { spDc, spKey ->
+                spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
+                viewModel.refresh()
+            },
+        )
+    }
 
     val playerConnection = LocalPlayerConnection.current
     val coroutineScope = rememberCoroutineScope()
