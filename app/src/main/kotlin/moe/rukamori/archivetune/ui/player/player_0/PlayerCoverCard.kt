@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,8 +37,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.painter.Painter
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -149,12 +153,38 @@ fun PlayerCoverCard(
     ) {
         val context = LocalContext.current
         
+        var currentPainter by remember { mutableStateOf<Painter?>(null) }
+        
+        val request = remember(coverUrl) {
+            ImageRequest.Builder(context)
+                .data(coverUrl.takeIf { !it.isNullOrEmpty() })
+                .build()
+        }
+        
+        val painter = rememberAsyncImagePainter(model = request)
+        val state by painter.state.collectAsState()
+        
+        LaunchedEffect(state) {
+            when (state) {
+                is AsyncImagePainter.State.Success -> {
+                    currentPainter = state.painter
+                }
+                is AsyncImagePainter.State.Error,
+                is AsyncImagePainter.State.Empty -> {
+                    currentPainter = null
+                }
+                else -> {
+                    // Keep currentPainter during Loading
+                }
+            }
+        }
+        
         androidx.compose.animation.Crossfade(
-            targetState = coverUrl.takeIf { !it.isNullOrEmpty() },
+            targetState = currentPainter,
             animationSpec = tween(500),
             label = "CoverCrossfade"
-        ) { url ->
-            if (url == null) {
+        ) { targetPainter ->
+            if (targetPainter == null) {
                 androidx.compose.foundation.Image(
                     painter = painterResource(id = placeholderResId),
                     contentDescription = "Album Art Large",
@@ -162,19 +192,11 @@ fun PlayerCoverCard(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                val request = remember(url) {
-                    ImageRequest.Builder(context)
-                        .data(url)
-                        .crossfade(500)
-                        .build()
-                }
-                
-                coil3.compose.AsyncImage(
-                    model = request,
+                androidx.compose.foundation.Image(
+                    painter = targetPainter,
                     contentDescription = "Album Art Large",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    error = painterResource(id = placeholderResId)
+                    contentScale = ContentScale.Crop
                 )
             }
         }
