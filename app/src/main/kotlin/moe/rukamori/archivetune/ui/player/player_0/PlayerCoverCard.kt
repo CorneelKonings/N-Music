@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +55,7 @@ fun PlayerCoverCard(
     onNext: () -> Unit = {},
     onPrevious: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val shadowColor = MaterialTheme.colorScheme.scrim
     val surfaceColor: Color = MaterialTheme.colorScheme.surface
     val outlineColor: Color = MaterialTheme.colorScheme.outlineVariant
@@ -72,7 +74,7 @@ fun PlayerCoverCard(
                     Modifier.pointerInput(Unit) {
                         val snapThresholdPx = 100f * density.density
                         val maxTensionOffsetPx = 30f * density.density
-                        val slideDistancePx = size.width.toFloat() + 100f * density.density
+                        val screenWidthPx = context.resources.displayMetrics.widthPixels.toFloat()
                         var accumulatedDragX = 0f
                         
                         detectHorizontalDragGestures(
@@ -100,16 +102,16 @@ fun PlayerCoverCard(
                                 if (abs(accumulatedDragX) > snapThresholdPx) {
                                     val isNext = accumulatedDragX < 0
                                     scope.launch {
-                                        val slideOutTarget = if (isNext) -slideDistancePx else slideDistancePx
                                         offsetX.animateTo(
-                                            targetValue = slideOutTarget,
-                                            animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
+                                            targetValue = if (isNext) -screenWidthPx else screenWidthPx,
+                                            animationSpec = tween(durationMillis = 150)
                                         )
-                                        
-                                        if (isNext) onNext() else onPrevious()
-                                        
-                                        offsetX.snapTo(if (isNext) slideDistancePx else -slideDistancePx)
-                                        
+                                        if (isNext) {
+                                            onNext()
+                                        } else {
+                                            onPrevious()
+                                        }
+                                        offsetX.snapTo(if (isNext) screenWidthPx else -screenWidthPx)
                                         offsetX.animateTo(
                                             targetValue = 0f,
                                             animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
