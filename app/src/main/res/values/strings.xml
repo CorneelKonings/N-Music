@@ -172,6 +172,8 @@
     <string name="remove_download">Remove download</string>
     <string name="download_flac">Download FLAC</string>
     <string name="flac_download_failed">FLAC download failed</string>
+    <string name="flac_download_saved">Saved: %1$s</string>
+    <string name="flac_download_deleted">Deleted: %1$s</string>
     <string name="download_progress_percent">%1$d%%</string>
     <string name="import_playlist">Import playlist</string>
     <string name="import_failed">Import failed</string>

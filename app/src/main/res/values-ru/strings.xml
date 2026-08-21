@@ -74,6 +74,8 @@
     <string name="remove_download">Убрать из скачанных</string>
     <string name="download_flac">Скачать FLAC</string>
     <string name="flac_download_failed">Не удалось скачать FLAC</string>
+    <string name="flac_download_saved">Сохранено: %1$s</string>
+    <string name="flac_download_deleted">Удалено: %1$s</string>
     <string name="import_playlist">Импортировать плейлист</string>
     <string name="import_failed">Ошибка импорта</string>
     <string name="update_button">Обновить</string>

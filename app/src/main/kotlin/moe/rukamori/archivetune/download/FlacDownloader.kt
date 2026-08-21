@@ -2,6 +2,8 @@ package moe.rukamori.archivetune.download
 
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
+import android.widget.Toast
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -11,9 +13,11 @@ import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.constants.DownloadLocationUriKey
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.getAsync
+import java.io.File
 
 object FlacDownloader {
     fun downloadFlac(
@@ -58,6 +62,8 @@ object FlacDownloader {
 
         CoroutineScope(Dispatchers.IO).launch {
             val treeUriString = context.dataStore.getAsync(DownloadLocationUriKey, "")
+            var deleted = false
+            var targetPath = ""
             if (treeUriString.isNotEmpty()) {
                 val treeUri = Uri.parse(treeUriString)
                 val safDirectoryManager = SafDirectoryManager(context)
@@ -66,10 +72,26 @@ object FlacDownloader {
                     val fileName = "${sanitizeFileName(title)}.flac"
                     val existingFile = albumDir.findFile(fileName)
                     if (existingFile != null && existingFile.exists()) {
-                        existingFile.delete()
+                        targetPath = existingFile.uri.path ?: fileName
+                        deleted = existingFile.delete()
                     }
                 }
                 safDirectoryManager.clearCache()
+            } else {
+                val musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+                val yumaDir = File(musicDir, "YumaPlayer")
+                val artistDir = File(yumaDir, sanitizeFileName(artist))
+                val albumDir = File(artistDir, sanitizeFileName(album))
+                val file = File(albumDir, "${sanitizeFileName(title)}.flac")
+                if (file.exists()) {
+                    targetPath = file.absolutePath
+                    deleted = file.delete()
+                }
+            }
+            if (deleted) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, context.getString(moe.rukamori.archivetune.R.string.flac_download_deleted, targetPath), Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

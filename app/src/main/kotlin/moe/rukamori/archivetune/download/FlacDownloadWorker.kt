@@ -7,6 +7,7 @@ import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
@@ -74,6 +75,7 @@ class FlacDownloadWorker(
         val fileName = "${sanitizeFileName(title)}.flac"
         var outputStream: OutputStream? = null
         var deleteFile: () -> Unit = {}
+        var savedPath = ""
 
         if (treeUriString.isNotEmpty()) {
             val treeUri = Uri.parse(treeUriString)
@@ -89,6 +91,7 @@ class FlacDownloadWorker(
             val file = albumDir.createFile("audio/flac", fileName) ?: return@withContext Result.failure()
             deleteFile = { file.delete() }
             outputStream = context.contentResolver.openOutputStream(file.uri)
+            savedPath = file.uri.path ?: fileName
         } else {
             val musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
             val yumaDir = File(musicDir, "YumaPlayer")
@@ -105,6 +108,7 @@ class FlacDownloadWorker(
             file.createNewFile()
             deleteFile = { file.delete() }
             outputStream = FileOutputStream(file)
+            savedPath = file.absolutePath
         }
 
         if (outputStream == null) {
@@ -132,6 +136,9 @@ class FlacDownloadWorker(
                 inputStream.copyTo(out)
             }
             entryPoint.database().update(song.song.copy(dateDownload = LocalDateTime.now()))
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, context.getString(R.string.flac_download_saved, savedPath), Toast.LENGTH_SHORT).show()
+            }
             Result.success()
         } catch (e: Exception) {
             deleteFile()

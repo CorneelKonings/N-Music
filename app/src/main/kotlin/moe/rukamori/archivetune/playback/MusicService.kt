@@ -6862,9 +6862,17 @@ class MusicService :
 
         val losslessResult = if (!lowDataModeActive) {
             val cachedLossless = if (enableMemoryCache) losslessUrlCache.get(mediaId) else null
+            val isOffline = connectivityManager.activeNetwork == null
+            val hasLocalCache = runCatching {
+                playerCache.getCachedSpans(mediaId).isNotEmpty() || downloadCache.getCachedSpans(mediaId).isNotEmpty()
+            }.getOrDefault(false)
+
             if (cachedLossless != null) {
                 Timber.tag("FLAC_PLAYBACK").d("Using cached lossless URL for $mediaId")
                 cachedLossless
+            } else if (isOffline || hasLocalCache) {
+                Timber.tag("FLAC_PLAYBACK").d("Bypassed FLAC due to offline or local cache present")
+                null
             } else {
                 try {
                     runBlocking(Dispatchers.IO) {
