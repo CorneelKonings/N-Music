@@ -130,6 +130,7 @@ import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.SortHeader
 import moe.rukamori.archivetune.ui.menu.SelectionSongMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
+import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginFallback
 import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
@@ -169,6 +170,7 @@ fun AutoPlaylistScreen(
 
     val songs by viewModel.likedSongs.collectAsStateWithLifecycle()
     val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
+    val isSpotifySource by viewModel.isSpotifySource.collectAsStateWithLifecycle()
 
     var showSpotifyLogin by remember { mutableStateOf(false) }
     var isSearching by remember { mutableStateOf(false) }
@@ -323,6 +325,7 @@ fun AutoPlaylistScreen(
                 spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
                 showSpotifyLogin = false
                 viewModel.setSpotifySource(true)
+                viewModel.refresh()
             },
         )
     }
@@ -558,20 +561,9 @@ fun AutoPlaylistScreen(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
-            if (songs.isEmpty()) {
+            if (songs.isNotEmpty() && !isSearching) {
+                // Hero Header Item
                 item(
-                    key = "empty",
-                    contentType = CONTENT_TYPE_EMPTY,
-                ) {
-                    EmptyPlaceholder(
-                        icon = R.drawable.music_note,
-                        text = stringResource(R.string.playlist_is_empty),
-                    )
-                }
-            } else {
-                if (!isSearching) {
-                    // Hero Header Item
-                    item(
                         key = "header",
                         contentType = CONTENT_TYPE_HEADER,
                     ) {
@@ -860,16 +852,14 @@ fun AutoPlaylistScreen(
                             Spacer(modifier = Modifier.height(24.dp))
                         }
                     }
-                }
+            }
 
-                if (playlistId == "liked") {
-                    item(
-                        key = "sourceHeader",
-                        contentType = CONTENT_TYPE_HEADER,
-                    ) {
-                        val isSpotifySource by viewModel.isSpotifySource.collectAsStateWithLifecycle()
-
-                        val indicatorOffset by animateFloatAsState(
+            if (playlistId == "liked") {
+                item(
+                    key = "sourceHeader",
+                    contentType = CONTENT_TYPE_HEADER,
+                ) {
+                    val indicatorOffset by animateFloatAsState(
                             targetValue = if (isSpotifySource) 1f else 0f,
                             animationSpec = spring(
                                 dampingRatio = Spring.DampingRatioLowBouncy,
@@ -954,8 +944,28 @@ fun AutoPlaylistScreen(
                                 }
                         }
                     }
-                }
+            }
 
+            if (songs.isEmpty()) {
+                if (isSpotifySource && !spotifyState.isAuthenticated) {
+                    item(key = "spotify_login_fallback") {
+                        SpotifyLoginFallback(
+                            onLoginClick = { showSpotifyLogin = true },
+                            modifier = Modifier.padding(top = 32.dp)
+                        )
+                    }
+                } else {
+                    item(
+                        key = "empty",
+                        contentType = CONTENT_TYPE_EMPTY,
+                    ) {
+                        EmptyPlaceholder(
+                            icon = R.drawable.music_note,
+                            text = stringResource(R.string.playlist_is_empty),
+                        )
+                    }
+                }
+            } else {
                 // Sort Header
                 item(
                     key = "sortHeader",
