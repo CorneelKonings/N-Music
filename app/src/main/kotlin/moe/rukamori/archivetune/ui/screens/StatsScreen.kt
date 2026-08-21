@@ -517,7 +517,11 @@ fun StatsScreen(
                                 title = "${index + 1}. ${album.album.title}",
                                 subtitle =
                                     joinByBullet(
-                                        pluralStringResource(R.plurals.n_time, album.songCountListened!!, album.songCountListened),
+                                        pluralStringResource(
+                                            R.plurals.n_time,
+                                            album.songCountListened ?: 0,
+                                            album.songCountListened ?: 0,
+                                        ),
                                         makeTimeString(album.timeListened?.toLong()),
                                     ),
                                 thumbnailUrl = album.album.thumbnailUrl,

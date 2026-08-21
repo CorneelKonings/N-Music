@@ -90,7 +90,7 @@ class StatsViewModel
                             limit = -1,
                             toTimeStamp = toTimestamp(selection, t),
                         ).map { artists ->
-                            artists.filter { it.artist.blockedAt == null && it.artist.isYouTubeArtist }
+                            artists.filter { it.artist.blockedAt == null }
                         }
                 }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
