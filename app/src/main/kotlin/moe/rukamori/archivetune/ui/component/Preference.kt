@@ -18,7 +18,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.basicMarquee
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -287,12 +287,12 @@ fun PreferenceEntry(
                 }
                 if (description != null) {
                     Spacer(Modifier.height(SettingsDimensions.SegmentedRowSpacing))
-                    Text(
+                    MarqueeText(
                         text = description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
-                        modifier = Modifier.basicMarquee(),
+                        modifier = Modifier,
                     )
                 }
                 content?.invoke()
@@ -1219,13 +1219,13 @@ fun PreferenceGroupTitle(
     title: String,
     modifier: Modifier = Modifier,
 ) {
-    Text(
+    MarqueeText(
         text = title,
         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary),
         maxLines = 1,
         modifier = modifier.padding(
             horizontal = SettingsDimensions.SectionHeaderHorizontalPadding,
             vertical = SettingsDimensions.SectionHeaderBottomPadding,
-        ).basicMarquee(),
+        ),
     )
 }

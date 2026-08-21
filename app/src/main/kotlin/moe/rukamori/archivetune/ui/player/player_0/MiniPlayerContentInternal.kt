@@ -21,10 +21,12 @@ import androidx.compose.ui.util.lerp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.text.TextStyle
+import moe.rukamori.archivetune.ui.component.fadingEdges
+import moe.rukamori.archivetune.ui.component.MarqueeText
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.player.player_0.buttons.MiniPlayerButtons
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
-import androidx.compose.foundation.basicMarquee
+
 import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 import coil3.compose.AsyncImage
 import coil3.request.crossfade
@@ -128,7 +130,7 @@ internal fun MiniPlayerContentInternal(
             verticalArrangement = Arrangement.Center
         ) {
             // Название трека
-            androidx.compose.material3.Text(
+            MarqueeText(
                 text = state.title,
                 style = TextStyle(
                     color = Color.White,
@@ -137,11 +139,11 @@ internal fun MiniPlayerContentInternal(
                     shadow = SoftTextShadow
                 ),
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                modifier = Modifier
             )
 
             // Исполнитель
-            androidx.compose.material3.Text(
+            MarqueeText(
                 text = state.artist,
                 style = TextStyle(
                     color = Color(0xE6FFFFFF),
@@ -149,7 +151,7 @@ internal fun MiniPlayerContentInternal(
                     shadow = SoftTextShadow
                 ),
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                modifier = Modifier
             )
         }
 

@@ -19,7 +19,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
@@ -128,6 +128,7 @@ import moe.rukamori.archivetune.innertube.models.SongItem
 import moe.rukamori.archivetune.innertube.models.YTItem
 import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.playback.queues.LocalAlbumRadio
+import moe.rukamori.archivetune.ui.component.MarqueeText
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import moe.rukamori.archivetune.ui.theme.extractThemeColor
 import moe.rukamori.archivetune.ui.utils.resize
@@ -178,14 +179,14 @@ inline fun ListItem(
                     .padding(horizontal = 6.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Text(
+            MarqueeText(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = titleColor,
                 ),
                 maxLines = 1,
-                modifier = Modifier.basicMarquee(),
+                modifier = Modifier,
             )
             if (subtitle != null) {
                 CompositionLocalProvider(LocalContentColor provides subtitleContentColor) {
@@ -226,11 +227,11 @@ fun ListItem(
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 }
-            Text(
+            MarqueeText(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(color = subtitleColor),
                 maxLines = 1,
-                modifier = Modifier.basicMarquee(),
+                modifier = Modifier,
             )
         }
     },
@@ -298,23 +299,21 @@ fun GridItem(
 ) = GridItem(
     modifier = modifier,
     title = {
-        Text(
+        MarqueeText(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
         )
     },
     subtitle = {
-        Text(
+        MarqueeText(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
         )
     },
     thumbnailContent = thumbnailContent,
@@ -424,15 +423,15 @@ fun SongGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        Text(
+        MarqueeText(
             text = song.song.title,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
-            modifier = Modifier.basicMarquee(),
+            modifier = Modifier,
         )
     },
     subtitle = {
-        Text(
+        MarqueeText(
             text =
                 joinByBullet(
                     song.artists.joinToString { it.name },
@@ -441,7 +440,6 @@ fun SongGridItem(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
         )
     },
     badges = badges,
@@ -655,20 +653,19 @@ fun AlbumGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        Text(
+        MarqueeText(
             text = album.album.title,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
-            modifier = Modifier.basicMarquee(),
+            modifier = Modifier,
         )
     },
     subtitle = {
-        Text(
+        MarqueeText(
             text = album.artists.joinToString { it.name },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
         )
     },
     badges = badges,
@@ -761,11 +758,11 @@ fun PlaylistGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        Text(
+        MarqueeText(
             text = playlist.playlist.name,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
-            modifier = Modifier.basicMarquee(),
+            modifier = Modifier,
         )
     },
     subtitle = {
@@ -787,12 +784,11 @@ fun PlaylistGridItem(
                     )
                 }
             }
-        Text(
+        MarqueeText(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
         )
     },
     badges = badges,
@@ -1410,11 +1406,11 @@ fun YouTubeGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        Text(
+        MarqueeText(
             text = item.title,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
-            modifier = Modifier.basicMarquee(),
+            modifier = Modifier,
         )
     },
     subtitle = {
@@ -1426,12 +1422,11 @@ fun YouTubeGridItem(
                 is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
             }
         if (subtitle != null) {
-            Text(
+            MarqueeText(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
             )
         }
     },

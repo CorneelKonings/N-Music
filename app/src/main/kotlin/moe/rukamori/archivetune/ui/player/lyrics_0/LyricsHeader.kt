@@ -32,8 +32,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.component.fadingEdges
+import moe.rukamori.archivetune.ui.component.MarqueeText
 import moe.rukamori.archivetune.ui.state.PlayerUiState
-import androidx.compose.foundation.basicMarquee
+
 import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 import coil3.compose.AsyncImage
 
@@ -144,7 +146,7 @@ fun LyricsHeader(
                     verticalArrangement = Arrangement.Center
                 ) {
                     // Название трека
-                    androidx.compose.material3.Text(
+                    MarqueeText(
                         text = state.title,
                         style = TextStyle(
                             color = Color.White,
@@ -153,11 +155,11 @@ fun LyricsHeader(
                             shadow = SoftTextShadow
                         ),
                         maxLines = 1,
-                        modifier = Modifier.basicMarquee()
+                        modifier = Modifier
                     )
 
                     // Исполнитель
-                    androidx.compose.material3.Text(
+                    MarqueeText(
                         text = state.artist,
                         style = TextStyle(
                             color = Color(0xD9FFFFFF),
@@ -165,7 +167,7 @@ fun LyricsHeader(
                             shadow = SoftTextShadow
                         ),
                         maxLines = 1,
-                        modifier = Modifier.basicMarquee()
+                        modifier = Modifier
                     )
                 }
             }

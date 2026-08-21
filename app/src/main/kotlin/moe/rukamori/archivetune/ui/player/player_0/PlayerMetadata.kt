@@ -33,7 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
-import androidx.compose.foundation.basicMarquee
+
+import moe.rukamori.archivetune.ui.component.fadingEdges
+import moe.rukamori.archivetune.ui.component.MarqueeText
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 
@@ -88,7 +90,7 @@ fun PlayerMetadata(
                         }
                     }
             ) {
-                androidx.compose.material3.Text(
+                MarqueeText(
                     text = title,
                     style = TextStyle(
                         color = Color.White,
@@ -98,7 +100,7 @@ fun PlayerMetadata(
                         shadow = SoftTextShadow
                     ),
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee()
+                    modifier = Modifier
                 )
             }
 
@@ -132,7 +134,7 @@ fun PlayerMetadata(
                         }
                     }
             ) {
-                androidx.compose.material3.Text(
+                MarqueeText(
                     text = artist,
                     style = TextStyle(
                         color = Color(0xF2FFFFFF),
@@ -141,7 +143,7 @@ fun PlayerMetadata(
                         shadow = SoftTextShadow
                     ),
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee()
+                    modifier = Modifier
                 )
             }
         }

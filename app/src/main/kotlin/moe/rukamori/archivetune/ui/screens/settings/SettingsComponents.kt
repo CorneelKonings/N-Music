@@ -10,7 +10,7 @@ package moe.rukamori.archivetune.ui.screens.settings
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.basicMarquee
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -82,6 +82,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import coil3.compose.AsyncImage
+import moe.rukamori.archivetune.ui.component.MarqueeText
+import moe.rukamori.archivetune.ui.component.fadingEdges
 import moe.rukamori.archivetune.ui.component.LocalPreferenceItemIndex
 import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
@@ -342,20 +344,17 @@ fun SettingsRow(
             Spacer(modifier = Modifier.width(SettingsDimensions.RowIconSpacing))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
+                MarqueeText(
                     text = item.title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee(
-                        iterations = Int.MAX_VALUE,
-                        initialDelayMillis = 2000,
-                    ),
+                    modifier = Modifier,
                 )
                 item.subtitle?.let { subtitle ->
                     Spacer(modifier = Modifier.height(SettingsDimensions.RowTextSpacing))
-                    Text(
+                    MarqueeText(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color =
@@ -365,10 +364,7 @@ fun SettingsRow(
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             },
                         maxLines = 1,
-                        modifier = Modifier.basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            initialDelayMillis = 2000,
-                        ),
+                        modifier = Modifier,
                     )
                 }
             }
@@ -533,24 +529,24 @@ fun SettingsSegmentedItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(
+                MarqueeText(
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                     ),
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee(),
+                    modifier = Modifier,
                 )
                 item.subtitle?.let { subtitle ->
                     Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedRowSpacing))
-                    Text(
+                    MarqueeText(
                         text = subtitle,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                         maxLines = 1,
-                        modifier = Modifier.basicMarquee(),
+                        modifier = Modifier,
                     )
                 }
             }
