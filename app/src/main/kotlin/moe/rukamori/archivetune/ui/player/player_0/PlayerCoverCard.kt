@@ -1,15 +1,9 @@
 package moe.rukamori.archivetune.ui.player.player_0
  
 import android.graphics.drawable.Drawable
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,19 +12,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -39,11 +33,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlayerCoverCard(
     coverDrawable: Drawable? = null,
@@ -61,45 +56,72 @@ fun PlayerCoverCard(
     val outlineColor: Color = MaterialTheme.colorScheme.outlineVariant
     
     val hapticFeedback = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-    var hasVibrated by remember { mutableStateOf(false) }
-    var slideDirection by remember { mutableIntStateOf(1) }
+    
+    val offsetX = remember { Animatable(0f) }
+    var accumulatedDragX by remember { mutableStateOf(0f) }
+    
+    val maxTensionOffsetPx = with(density) { 60.dp.toPx() }
+    val snapThresholdPx = with(density) { 80.dp.toPx() }
     
     Box(
         modifier = modifier
+            .aspectRatio(1f, matchHeightConstraintsFirst = true)
+            .graphicsLayer {
+                translationX = offsetX.value
+            }
             .pointerInput(gestureEnabled) {
                 if (!gestureEnabled) return@pointerInput
-                val snapThresholdPx = 100f * density.density
-                var accumulatedDragX = 0f
                 
                 detectHorizontalDragGestures(
                     onDragStart = {
                         accumulatedDragX = 0f
-                        hasVibrated = false
+                    },
+                    onDragEnd = {
+                        coroutineScope.launch {
+                            if (abs(accumulatedDragX) > snapThresholdPx) {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (accumulatedDragX > 0) {
+                                    onPrevious()
+                                } else {
+                                    onNext()
+                                }
+                            }
+                            accumulatedDragX = 0f
+                            offsetX.animateTo(
+                                targetValue = 0f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.78f,
+                                    stiffness = Spring.StiffnessMediumLow
+                                )
+                            )
+                        }
+                    },
+                    onDragCancel = {
+                        coroutineScope.launch {
+                            accumulatedDragX = 0f
+                            offsetX.animateTo(
+                                targetValue = 0f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.78f,
+                                    stiffness = Spring.StiffnessMediumLow
+                                )
+                            )
+                        }
                     },
                     onHorizontalDrag = { change, dragAmount ->
                         change.consume()
-                        accumulatedDragX += dragAmount
-                        
-                        if (abs(accumulatedDragX) > snapThresholdPx && !hasVibrated) {
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            hasVibrated = true
-                        }
-                    },
-                    onDragEnd = {
-                        if (abs(accumulatedDragX) > snapThresholdPx) {
-                            if (accumulatedDragX < 0) {
-                                slideDirection = 1
-                                onNext()
-                            } else {
-                                slideDirection = -1
-                                onPrevious()
-                            }
+                        coroutineScope.launch {
+                            accumulatedDragX += dragAmount
+                            val dragFraction = (abs(accumulatedDragX) / (size.width.toFloat() * 1.5f)).coerceIn(0f, 1f)
+                            val tensionOffset = lerp(0f, maxTensionOffsetPx, dragFraction)
+                            val finalOffset = if (accumulatedDragX > 0) tensionOffset else -tensionOffset
+                            offsetX.snapTo(finalOffset)
                         }
                     }
                 )
             }
-            .aspectRatio(1f, matchHeightConstraintsFirst = true)
             .then(
                 if (isAlbumCoverGlowEnabled) {
                     Modifier.shadow(
@@ -125,44 +147,27 @@ fun PlayerCoverCard(
         contentAlignment = Alignment.Center
     ) {
         val context = LocalContext.current
-        val currentData = coverDrawable ?: coverUrl.takeIf { !it.isNullOrEmpty() }
         
-        AnimatedContent(
-            targetState = currentData,
-            transitionSpec = {
-                (slideInHorizontally(
-                    animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow),
-                    initialOffsetX = { fullWidth -> slideDirection * fullWidth }
-                ) + fadeIn(animationSpec = tween(200))).togetherWith(
-                    slideOutHorizontally(
-                        animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow),
-                        targetOffsetX = { fullWidth -> -slideDirection * fullWidth }
-                    ) + fadeOut(animationSpec = tween(200))
-                )
-            },
-            label = "CoverCarousel"
-        ) { data ->
-            val previousPainter = androidx.compose.runtime.remember { arrayOf<androidx.compose.ui.graphics.painter.Painter?>(null) }
-            
-            val request = androidx.compose.runtime.remember(data) {
-                ImageRequest.Builder(context)
-                    .data(data)
-                    .crossfade(500)
-                    .build()
-            }
-            
-            coil3.compose.AsyncImage(
-                model = request,
-                contentDescription = "Album Art Large",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                placeholder = previousPainter[0] ?: painterResource(id = placeholderResId),
-                error = painterResource(id = placeholderResId),
-                fallback = painterResource(id = placeholderResId),
-                onSuccess = { state ->
-                    previousPainter[0] = state.painter
-                }
-            )
+        val previousPainter = remember { arrayOf<androidx.compose.ui.graphics.painter.Painter?>(null) }
+        
+        val request = remember(coverUrl, coverDrawable) {
+            ImageRequest.Builder(context)
+                .data(coverDrawable ?: coverUrl.takeIf { !it.isNullOrEmpty() })
+                .crossfade(500)
+                .build()
         }
+        
+        coil3.compose.AsyncImage(
+            model = request,
+            contentDescription = "Album Art Large",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            placeholder = previousPainter[0] ?: painterResource(id = placeholderResId),
+            error = painterResource(id = placeholderResId),
+            fallback = painterResource(id = placeholderResId),
+            onSuccess = { state ->
+                previousPainter[0] = state.painter
+            }
+        )
     }
 }
