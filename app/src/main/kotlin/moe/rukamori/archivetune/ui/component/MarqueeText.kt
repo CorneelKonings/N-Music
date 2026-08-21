@@ -58,12 +58,21 @@ fun MarqueeText(
                 drawContent()
                 drawRect(
                     brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, Color.Black),
+                        startX = 0f,
+                        endX = 16.dp.toPx()
+                    ),
+                    blendMode = BlendMode.DstIn
+                )
+                drawRect(
+                    brush = Brush.horizontalGradient(
                         colors = listOf(Color.Black, Color.Transparent),
-                        startX = size.width - 32.dp.toPx(),
+                        startX = size.width - 24.dp.toPx(),
                         endX = size.width
                     ),
                     blendMode = BlendMode.DstIn
                 )
+
             }
             .basicMarquee(
                 iterations = Int.MAX_VALUE,
