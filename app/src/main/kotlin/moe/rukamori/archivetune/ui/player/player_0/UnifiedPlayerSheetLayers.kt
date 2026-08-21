@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -71,16 +73,27 @@ internal fun UnifiedPlayerSheetLayers(
         // ==========================================
         // СЛОЙ 2: БОЛЬШОЙ ПУЛЬТ
         // ==========================================
-        val isFullPlayerVisible by remember {
-            derivedStateOf {
-                (state.isPlaying || expansionFractionProvider() >= 0.005f) && lyricsFractionProvider() <= 0.995f
-            }
+        val hasTrack by remember(state.title) {
+            derivedStateOf { state.title.isNotEmpty() }
         }
 
-        if (isFullPlayerVisible) {
+        val isCollapsed by remember {
+            derivedStateOf { expansionFractionProvider() == 0f }
+        }
+
+        var frozenState by remember { mutableStateOf(state) }
+        if (!isCollapsed) {
+            frozenState = state
+        }
+
+        if (hasTrack) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .offset {
+                        val fraction = expansionFractionProvider()
+                        if (fraction < 0.01f) IntOffset(99999, 0) else IntOffset(0, 0)
+                    }
                     .graphicsLayer {
                         val expansionFraction = expansionFractionProvider()
                         val lyricsFraction = lyricsFractionProvider()
@@ -91,7 +104,7 @@ internal fun UnifiedPlayerSheetLayers(
             ) {
                 // ЧИСТЫЙ ВЫЗОВ: без удалённых параметров
                 FullPlayer(
-                    state = state,
+                    state = frozenState,
                     updateState = updateState,
                     slideOffset = expansionFractionProvider,
                     density = density,
@@ -122,7 +135,7 @@ internal fun UnifiedPlayerSheetLayers(
                 }
         ) {
             LyricsColumn(
-                state = state,
+                state = frozenState,
                 animateProgressProvider = lyricsFractionProvider,
                 onCloseClick = onCloseLyricsClick,
                 onPlayPauseClick = { onAction(PlayerAction.PlayPause) },
