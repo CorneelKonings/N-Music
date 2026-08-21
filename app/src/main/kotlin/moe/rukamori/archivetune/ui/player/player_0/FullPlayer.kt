@@ -179,7 +179,9 @@ fun FullPlayer(
                         coverDrawable = state.coverDrawable,
                         placeholderResId = state.placeholderResId,
                         isAlbumCoverGlowEnabled = state.isAlbumCoverGlowEnabled,
-                        vibrantColor = animatedAccentColor
+                        vibrantColor = animatedAccentColor,
+                        onNext = { onAction(PlayerAction.Next) },
+                        onPrevious = { onAction(PlayerAction.Previous) }
                     )
                 }
             },

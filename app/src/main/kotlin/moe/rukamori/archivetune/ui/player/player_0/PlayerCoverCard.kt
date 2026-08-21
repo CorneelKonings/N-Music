@@ -20,6 +20,24 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.util.lerp
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.sign
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 
@@ -31,14 +49,66 @@ fun PlayerCoverCard(
     modifier: Modifier = Modifier,
     placeholderResId: Int,
     isAlbumCoverGlowEnabled: Boolean = false,
-    vibrantColor: Color = Color.Transparent
+    vibrantColor: Color = Color.Transparent,
+    onNext: () -> Unit = {},
+    onPrevious: () -> Unit = {}
 ) {
     val shadowColor = MaterialTheme.colorScheme.scrim
     val surfaceColor: Color = MaterialTheme.colorScheme.surface
     val outlineColor: Color = MaterialTheme.colorScheme.outlineVariant
     
+    val offsetX = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    val hapticFeedback = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    var hasVibrated by remember { mutableStateOf(false) }
+    
     Box(
         modifier = modifier
+            .graphicsLayer { translationX = offsetX.value }
+            .pointerInput(Unit) {
+                val snapThresholdPx = 100f * density.density
+                val maxTensionOffsetPx = 30f * density.density
+                var accumulatedDragX = 0f
+                
+                detectHorizontalDragGestures(
+                    onDragStart = {
+                        accumulatedDragX = 0f
+                        hasVibrated = false
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        change.consume()
+                        accumulatedDragX += dragAmount
+                        
+                        val dragFraction = (abs(accumulatedDragX) / snapThresholdPx).coerceIn(0f, 1f)
+                        val tensionOffset = lerp(0f, maxTensionOffsetPx, dragFraction)
+                        
+                        scope.launch {
+                            offsetX.snapTo(tensionOffset * sign(accumulatedDragX))
+                        }
+                        
+                        if (abs(accumulatedDragX) > snapThresholdPx && !hasVibrated) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            hasVibrated = true
+                        }
+                    },
+                    onDragEnd = {
+                        if (abs(accumulatedDragX) > snapThresholdPx) {
+                            if (accumulatedDragX < 0) {
+                                onNext()
+                            } else {
+                                onPrevious()
+                            }
+                        }
+                        scope.launch {
+                            offsetX.animateTo(
+                                targetValue = 0f,
+                                animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
+                            )
+                        }
+                    }
+                )
+            }
             .aspectRatio(1f, matchHeightConstraintsFirst = true)
             .then(
                 if (isAlbumCoverGlowEnabled) {

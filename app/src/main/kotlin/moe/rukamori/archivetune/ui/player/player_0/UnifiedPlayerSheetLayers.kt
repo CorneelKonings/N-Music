@@ -2,15 +2,14 @@ package moe.rukamori.archivetune.ui.player.player_0
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import moe.rukamori.archivetune.ui.player.lyrics_0.LyricsColumn
 import moe.rukamori.archivetune.ui.player.player_0.scoped.FullPlayerVisualState
 import moe.rukamori.archivetune.ui.state.PlayerUiState
@@ -50,11 +49,7 @@ internal fun UnifiedPlayerSheetLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                // Сдвигаем ТАЧ-ЗОНУ на фазе Layout
-                .offset {
-                    val fraction = expansionFractionProvider()
-                    if (fraction > 0.99f) IntOffset(99999, 0) else IntOffset(0, 0)
-                }
+                .conditionalPlacement { expansionFractionProvider() < 0.99f }
                 .graphicsLayer {
                     val fraction = expansionFractionProvider()
                     alpha = (1f - (fraction / 0.3f)).coerceIn(0f, 1f)
@@ -71,16 +66,47 @@ internal fun UnifiedPlayerSheetLayers(
         // ==========================================
         // СЛОЙ 2: БОЛЬШОЙ ПУЛЬТ
         // ==========================================
-        val isFullPlayerVisible by remember {
-            derivedStateOf {
-                (state.isPlaying || expansionFractionProvider() >= 0.005f) && lyricsFractionProvider() <= 0.995f
-            }
+        val hasTrack by remember(state.title) {
+            derivedStateOf { state.title.isNotEmpty() }
         }
 
-        if (isFullPlayerVisible) {
+        val isCollapsed by remember {
+            derivedStateOf { expansionFractionProvider() < 0.01f }
+        }
+
+        val effectiveState = if (isCollapsed) {
+            remember(
+                state.title,
+                state.artist,
+                state.coverUrl,
+                state.coverDrawable,
+                state.trackUrl,
+                state.isPlaying,
+                state.isLiked,
+                state.vibrantColor,
+                state.gradientColor,
+                state.durationMs,
+                state.placeholderResId,
+                state.isLyricsVisible,
+                state.isBlurBackgroundEnabled,
+                state.isImmersiveEnabled,
+                state.showCodecInfo,
+                state.isAlbumCoverGlowEnabled,
+                state.codecInfo
+            ) {
+                state.copy(progressMs = 0L)
+            }
+        } else {
+            state
+        }
+
+        if (hasTrack) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .conditionalPlacement {
+                        expansionFractionProvider() >= 0.005f && lyricsFractionProvider() < 0.995f
+                    }
                     .graphicsLayer {
                         val expansionFraction = expansionFractionProvider()
                         val lyricsFraction = lyricsFractionProvider()
@@ -89,9 +115,8 @@ internal fun UnifiedPlayerSheetLayers(
                         translationY = fullPlayerVisualState.translationY - (200f * density * lyricsFraction)
                     }
             ) {
-                // ЧИСТЫЙ ВЫЗОВ: без удалённых параметров
                 FullPlayer(
-                    state = state,
+                    state = effectiveState,
                     updateState = updateState,
                     slideOffset = expansionFractionProvider,
                     density = density,
@@ -112,17 +137,13 @@ internal fun UnifiedPlayerSheetLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                // Сдвигаем ТАЧ-ЗОНУ: пока лирика закрыта, её сетка физически не существует для тач-системы
-                .offset {
-                    val lyricsFraction = lyricsFractionProvider()
-                    if (lyricsFraction < 0.01f) IntOffset(99999, 0) else IntOffset(0, 0)
-                }
+                .conditionalPlacement { lyricsFractionProvider() >= 0.005f }
                 .graphicsLayer {
                     alpha = lyricsFractionProvider()
                 }
         ) {
             LyricsColumn(
-                state = state,
+                state = effectiveState,
                 animateProgressProvider = lyricsFractionProvider,
                 onCloseClick = onCloseLyricsClick,
                 onPlayPauseClick = { onAction(PlayerAction.PlayPause) },
@@ -132,6 +153,26 @@ internal fun UnifiedPlayerSheetLayers(
                 swipeOffsetY = lyricsSwipeOffsetY,
                 onSwipeOffsetChange = onLyricsSwipeOffsetChanged
             )
+        }
+    }
+}
+
+/**
+ * Управляет размещением элемента на фазе Layout без удаления из дерева Composition.
+ * Когда [shouldPlace] возвращает false:
+ * - Элемент не размещается на экране (размер 0x0)
+ * - 0 перехватов тач-событий (полная свобода для жестов других слоев)
+ * - 0 отрисовок на GPU и 0 проблем с Accessibility/TalkBack
+ * - Состояние дерева, Coil painter и кэш обложек сохраняются на 100% без мерцания
+ */
+private fun Modifier.conditionalPlacement(shouldPlace: () -> Boolean): Modifier = this.layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    if (shouldPlace()) {
+        layout(placeable.width, placeable.height) {
+            placeable.placeRelative(0, 0)
+        }
+    } else {
+        layout(0, 0) {
         }
     }
 }
