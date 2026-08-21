@@ -789,6 +789,7 @@ fun PlaylistGridItem(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     },
     badges = badges,

@@ -1,5 +1,6 @@
 package moe.rukamori.archivetune.ui.component
 
+import android.R
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.basicMarquee
@@ -56,7 +57,7 @@ fun MarqueeText(
             .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
             .drawWithContent {
                 drawContent()
-                val leftFadePx = 16.dp.toPx()
+                val leftFadePx = 4.dp.toPx()
                 val rightFadePx = 24.dp.toPx()
                 if (size.width > leftFadePx + rightFadePx) {
                     drawRect(
@@ -103,11 +104,11 @@ fun MarqueeText(
         softWrap = softWrap,
         maxLines = maxLines,
         minLines = minLines,
-        onTextLayout = {
-            if (!hasOverflow && it.hasVisualOverflow) {
-                hasOverflow = true
+        onTextLayout = { layoutResult ->
+            if (hasOverflow != layoutResult.hasVisualOverflow) {
+                hasOverflow = layoutResult.hasVisualOverflow
             }
-            onTextLayout?.invoke(it)
+            onTextLayout?.invoke(layoutResult)
         },
         style = style
     )
