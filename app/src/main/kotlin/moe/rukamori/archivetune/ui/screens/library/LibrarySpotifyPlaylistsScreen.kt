@@ -44,47 +44,23 @@ import moe.rukamori.archivetune.spotify.SpotifyPlaylistQueue
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
 import moe.rukamori.archivetune.ui.component.SpotifyLibraryPlaylistListItem
 import moe.rukamori.archivetune.ui.component.SpotifyLikedSongsListCard
-import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginFallback
-import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
 
 @Composable
 fun LibrarySpotifyPlaylistsScreen(
     navController: NavController,
     viewModel: SpotifyLibraryViewModel = hiltViewModel(),
-    spotifyAccountViewModel: SpotifyAccountViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current
     val coroutineScope = rememberCoroutineScope()
     val playlists by viewModel.playlists.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
-    var showSpotifyLogin by remember { mutableStateOf(false) }
 
     val playerAwareBottomPadding =
         LocalPlayerAwareWindowInsets.current
             .only(WindowInsetsSides.Bottom)
             .asPaddingValues()
             .calculateBottomPadding() + 12.dp
-
-    if (showSpotifyLogin) {
-        SpotifyLoginSheet(
-            onDismiss = { showSpotifyLogin = false },
-            onCookiesCaptured = { spDc, spKey ->
-                spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
-                showSpotifyLogin = false
-                viewModel.refreshPlaylists()
-            },
-        )
-    }
-
-    if (!spotifyState.isAuthenticated) {
-        SpotifyLoginFallback(
-            onLoginClick = { showSpotifyLogin = true },
-            modifier = Modifier.padding(bottom = playerAwareBottomPadding)
-        )
-        return
-    }
 
     ExpressivePullToRefreshBox(
         isRefreshing = isRefreshing,

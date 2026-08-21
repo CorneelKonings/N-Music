@@ -101,8 +101,6 @@ import moe.rukamori.archivetune.ui.component.EmptyPlaceholder
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.SpotifyTrackListItem
-import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginFallback
-import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberPreference
@@ -114,7 +112,6 @@ fun SpotifyLikedSongsScreen(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: SpotifyLikedSongsViewModel = hiltViewModel(),
-    spotifyAccountViewModel: SpotifyAccountViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
@@ -122,8 +119,6 @@ fun SpotifyLikedSongsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val total by viewModel.total.collectAsStateWithLifecycle()
-    val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
-    var showSpotifyLogin by remember { mutableStateOf(false) }
 
     val playerConnection = LocalPlayerConnection.current
     val coroutineScope = rememberCoroutineScope()
@@ -255,17 +250,6 @@ fun SpotifyLikedSongsScreen(
         }
     }
 
-    if (showSpotifyLogin) {
-        SpotifyLoginSheet(
-            onDismiss = { showSpotifyLogin = false },
-            onCookiesCaptured = { spDc, spKey ->
-                spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
-                showSpotifyLogin = false
-                viewModel.refresh()
-            },
-        )
-    }
-
     ExpressivePullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = viewModel::refresh,
@@ -318,18 +302,12 @@ fun SpotifyLikedSongsScreen(
             )
         }
 
-        if (!spotifyState.isAuthenticated) {
-            SpotifyLoginFallback(
-                onLoginClick = { showSpotifyLogin = true },
-                modifier = Modifier.padding(top = systemBarsTopPadding + AppBarHeight)
-            )
-        } else {
-            LazyColumn(
-                state = lazyListState,
-                contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                if (!isSearching) {
+        LazyColumn(
+            state = lazyListState,
+            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            if (!isSearching) {
                     item(key = "header") {
                         Column(
                             modifier =
@@ -616,7 +594,6 @@ fun SpotifyLikedSongsScreen(
                 scrollState = lazyListState,
                 headerItems = if (!isSearching) 1 else 0,
             )
-        }
 
         TopAppBar(
             colors = topAppBarColors,

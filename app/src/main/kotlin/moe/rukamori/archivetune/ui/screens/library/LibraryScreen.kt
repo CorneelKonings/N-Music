@@ -69,6 +69,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.LocalDatabase
@@ -79,12 +81,17 @@ import moe.rukamori.archivetune.constants.LibraryFilter
 import moe.rukamori.archivetune.constants.ShowSpotifyPlaylistsKey
 import moe.rukamori.archivetune.constants.ShowTagsInLibraryKey
 import moe.rukamori.archivetune.db.entities.TagEntity
+import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
 import moe.rukamori.archivetune.ui.component.TagsManagementDialog
+import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 
 @Composable
-fun LibraryScreen(navController: NavController) {
+fun LibraryScreen(
+    navController: NavController,
+    spotifyAccountViewModel: SpotifyAccountViewModel = hiltViewModel(),
+) {
     val defaultFilter by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
     val database = LocalDatabase.current
     val (selectedTagIds, onSelectedTagIdsChange) = rememberPlaylistTagFilterState(database)
@@ -92,6 +99,8 @@ fun LibraryScreen(navController: NavController) {
     val (showTagsInLibrary) = rememberPreference(ShowTagsInLibraryKey, defaultValue = true)
     val (showSpotifyPlaylists) = rememberPreference(ShowSpotifyPlaylistsKey, defaultValue = true)
     var showTagsManagementDialog by rememberSaveable { mutableStateOf(false) }
+    val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
+    var showSpotifyLogin by remember { mutableStateOf(false) }
     val activeSelectedTagIds = if (showTagsInLibrary) selectedTagIds else emptySet()
     val libraryFilters =
         remember(showSpotifyPlaylists) {
@@ -126,6 +135,24 @@ fun LibraryScreen(navController: NavController) {
             initialPage = libraryFilters.indexOf(defaultFilter).takeIf { it >= 0 } ?: 0,
         ) { libraryFilters.size }
 
+    val coroutineScope = rememberCoroutineScope()
+
+    if (showSpotifyLogin) {
+        SpotifyLoginSheet(
+            onDismiss = { showSpotifyLogin = false },
+            onCookiesCaptured = { spDc, spKey ->
+                spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
+                showSpotifyLogin = false
+                val spotifyPage = libraryFilters.indexOf(LibraryFilter.SPOTIFY)
+                if (spotifyPage >= 0) {
+                    coroutineScope.launch {
+                        pagerState.animateScrollToPage(spotifyPage)
+                    }
+                }
+            },
+        )
+    }
+
     val currentFilter = libraryFilters.getOrElse(pagerState.currentPage) { LibraryFilter.LIBRARY }
 
     val configuration = LocalConfiguration.current
@@ -146,7 +173,6 @@ fun LibraryScreen(navController: NavController) {
             LibraryCollapsingHeader(currentFilter = currentFilter, state = headerState)
 
             val tabListState = rememberLazyListState()
-            val coroutineScope = rememberCoroutineScope()
 
             LaunchedEffect(defaultFilter, libraryFilters) {
                 val selectedFilter = defaultFilter.takeIf { it in libraryFilters } ?: LibraryFilter.LIBRARY
@@ -220,8 +246,12 @@ fun LibraryScreen(navController: NavController) {
                         iconRes = iconRes,
                         selected = currentFilter == filter,
                         onClick = {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(page)
+                            if (filter == LibraryFilter.SPOTIFY && !spotifyState.isAuthenticated) {
+                                showSpotifyLogin = true
+                            } else {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(page)
+                                }
                             }
                         },
                     )
