@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import coil3.compose.AsyncImage
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -25,12 +28,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 
 @Composable
@@ -93,8 +97,65 @@ fun PlayerBackgroundLayers(
         label = "ImmersiveThemeTransition"
     )
 
+    val targetUrl = state.coverUrl.takeIf { it.isNotEmpty() }
+
+    val blurImageRequest = remember(targetUrl) {
+        ImageRequest.Builder(context)
+            .data(targetUrl)
+            .size(64)
+            .build()
+    }
+
+    val clearImageRequest = remember(targetUrl) {
+        ImageRequest.Builder(context)
+            .data(targetUrl)
+            .build()
+    }
+
+    var currentClearPainter by remember { mutableStateOf<Painter?>(null) }
+    var currentBlurPainter by remember { mutableStateOf<Painter?>(null) }
+    var activeGradientColor by remember { mutableStateOf(Color(0xFF121212)) }
+
+    val clearPainter = rememberAsyncImagePainter(model = clearImageRequest)
+    val clearState by clearPainter.state.collectAsState()
+
+    val blurPainter = rememberAsyncImagePainter(model = blurImageRequest)
+    val blurState by blurPainter.state.collectAsState()
+
+    LaunchedEffect(clearState, gradientColor) {
+        when (clearState) {
+            is AsyncImagePainter.State.Success -> {
+                currentClearPainter = clearState.painter
+                activeGradientColor = gradientColor
+            }
+            is AsyncImagePainter.State.Error,
+            is AsyncImagePainter.State.Empty -> {
+                currentClearPainter = null
+                activeGradientColor = Color(0xFF121212)
+            }
+            else -> {
+                // Keep previous state during Loading
+            }
+        }
+    }
+
+    LaunchedEffect(blurState) {
+        when (blurState) {
+            is AsyncImagePainter.State.Success -> {
+                currentBlurPainter = blurState.painter
+            }
+            is AsyncImagePainter.State.Error,
+            is AsyncImagePainter.State.Empty -> {
+                currentBlurPainter = null
+            }
+            else -> {
+                // Keep previous state during Loading
+            }
+        }
+    }
+
     val animatedBgColor by animateColorAsState(
-        targetValue = gradientColor,
+        targetValue = activeGradientColor,
         animationSpec = tween(500),
         label = "VibrantGradientColor"
     )
@@ -112,58 +173,53 @@ fun PlayerBackgroundLayers(
                 }
         )
 
-        val targetUrl = state.coverUrl.takeIf { it.isNotEmpty() }
-
-        val blurImageRequest = remember(targetUrl) {
-            ImageRequest.Builder(context)
-                .data(targetUrl)
-                .size(64)
-                .crossfade(true)
-                .crossfade(500)
-                .build()
-        }
-
-        val clearImageRequest = remember(targetUrl) {
-            ImageRequest.Builder(context)
-                .data(targetUrl)
-                .crossfade(true)
-                .crossfade(500)
-                .build()
-        }
-
         Box(modifier = Modifier.fillMaxSize()) {
-            if (targetUrl != null) {
-                AsyncImage(
-                    model = blurImageRequest,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer { alpha = blurOverlayAlpha }
-                        .blur(56.dp),
-                    contentScale = ContentScale.Crop
-                )
+            androidx.compose.animation.Crossfade(
+                targetState = currentBlurPainter,
+                animationSpec = tween(500),
+                label = "BlurCrossfade"
+            ) { painter ->
+                if (painter != null) {
+                    androidx.compose.foundation.Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer { alpha = blurOverlayAlpha }
+                            .blur(56.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
 
-                AsyncImage(
-                    model = clearImageRequest,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(0.75f)
-                        .align(Alignment.TopCenter)
-                        .graphicsLayer {
-                            alpha = immersiveTransitionAlpha
-                            compositingStrategy = CompositingStrategy.Offscreen
-                        }
-                        .drawWithContent {
-                            drawContent()
-                            drawRect(
-                                brush = immersiveMaskBrush,
-                                blendMode = BlendMode.DstIn
-                            )
-                        },
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.TopCenter
-                )
+            androidx.compose.animation.Crossfade(
+                targetState = currentClearPainter,
+                animationSpec = tween(500),
+                label = "ClearCrossfade"
+            ) { painter ->
+                if (painter != null) {
+                    androidx.compose.foundation.Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(0.75f)
+                            .align(Alignment.TopCenter)
+                            .graphicsLayer {
+                                alpha = immersiveTransitionAlpha
+                                compositingStrategy = CompositingStrategy.Offscreen
+                            }
+                            .drawWithContent {
+                                drawContent()
+                                drawRect(
+                                    brush = immersiveMaskBrush,
+                                    blendMode = BlendMode.DstIn
+                                )
+                            },
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.TopCenter
+                    )
+                }
             }
         }
 

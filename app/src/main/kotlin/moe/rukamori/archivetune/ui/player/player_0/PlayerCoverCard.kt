@@ -56,6 +56,7 @@ fun PlayerCoverCard(
     onNext: () -> Unit = {},
     onPrevious: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val shadowColor = MaterialTheme.colorScheme.scrim
     val surfaceColor: Color = MaterialTheme.colorScheme.surface
     val outlineColor: Color = MaterialTheme.colorScheme.outlineVariant
@@ -70,8 +71,37 @@ fun PlayerCoverCard(
     val maxTensionOffsetPx = with(density) { 60.dp.toPx() }
     val snapThresholdPx = with(density) { 80.dp.toPx() }
     
+    var currentPainter by remember { mutableStateOf<Painter?>(null) }
+    var activeVibrantColor by remember { mutableStateOf(Color.Transparent) }
+    
+    val request = remember(coverUrl) {
+        ImageRequest.Builder(context)
+            .data(coverUrl.takeIf { !it.isNullOrEmpty() })
+            .build()
+    }
+    
+    val painter = rememberAsyncImagePainter(model = request)
+    val state by painter.state.collectAsState()
+    
+    LaunchedEffect(state, vibrantColor) {
+        when (state) {
+            is AsyncImagePainter.State.Success -> {
+                currentPainter = state.painter
+                activeVibrantColor = vibrantColor
+            }
+            is AsyncImagePainter.State.Error,
+            is AsyncImagePainter.State.Empty -> {
+                currentPainter = null
+                activeVibrantColor = Color.Transparent
+            }
+            else -> {
+                // Keep currentPainter and activeVibrantColor during Loading
+            }
+        }
+    }
+    
     val animatedVibrantColor by animateColorAsState(
-        targetValue = vibrantColor,
+        targetValue = activeVibrantColor,
         animationSpec = tween(500),
         label = "CoverGlowColor"
     )
@@ -95,90 +125,66 @@ fun PlayerCoverCard(
                     spotShadowColor = shadowColor.copy(alpha = 0.6f)
                 }
             }
-            .pointerInput(gestureEnabled) {
-                if (!gestureEnabled) return@pointerInput
-                
-                detectHorizontalDragGestures(
-                    onDragStart = {
-                        accumulatedDragX = 0f
-                    },
-                    onDragEnd = {
-                        coroutineScope.launch {
-                            if (abs(accumulatedDragX) > snapThresholdPx) {
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                if (accumulatedDragX > 0) {
-                                    onPrevious()
-                                } else {
-                                    onNext()
+            .then(
+                if (gestureEnabled) {
+                    Modifier.pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragStart = {
+                                accumulatedDragX = 0f
+                            },
+                            onDragEnd = {
+                                coroutineScope.launch {
+                                    if (abs(accumulatedDragX) > snapThresholdPx) {
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        if (accumulatedDragX > 0) {
+                                            onPrevious()
+                                        } else {
+                                            onNext()
+                                        }
+                                    }
+                                    accumulatedDragX = 0f
+                                    offsetX.animateTo(
+                                        targetValue = 0f,
+                                        animationSpec = spring(
+                                            dampingRatio = 0.78f,
+                                            stiffness = Spring.StiffnessMediumLow
+                                        )
+                                    )
+                                }
+                            },
+                            onDragCancel = {
+                                coroutineScope.launch {
+                                    accumulatedDragX = 0f
+                                    offsetX.animateTo(
+                                        targetValue = 0f,
+                                        animationSpec = spring(
+                                            dampingRatio = 0.78f,
+                                            stiffness = Spring.StiffnessMediumLow
+                                        )
+                                    )
+                                }
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                coroutineScope.launch {
+                                    accumulatedDragX += dragAmount
+                                    val dragFraction = (abs(accumulatedDragX) / (size.width.toFloat() * 1.5f)).coerceIn(0f, 1f)
+                                    val tensionOffset = lerp(0f, maxTensionOffsetPx, dragFraction)
+                                    val finalOffset = if (accumulatedDragX > 0) tensionOffset else -tensionOffset
+                                    offsetX.snapTo(finalOffset)
                                 }
                             }
-                            accumulatedDragX = 0f
-                            offsetX.animateTo(
-                                targetValue = 0f,
-                                animationSpec = spring(
-                                    dampingRatio = 0.78f,
-                                    stiffness = Spring.StiffnessMediumLow
-                                )
-                            )
-                        }
-                    },
-                    onDragCancel = {
-                        coroutineScope.launch {
-                            accumulatedDragX = 0f
-                            offsetX.animateTo(
-                                targetValue = 0f,
-                                animationSpec = spring(
-                                    dampingRatio = 0.78f,
-                                    stiffness = Spring.StiffnessMediumLow
-                                )
-                            )
-                        }
-                    },
-                    onHorizontalDrag = { change, dragAmount ->
-                        change.consume()
-                        coroutineScope.launch {
-                            accumulatedDragX += dragAmount
-                            val dragFraction = (abs(accumulatedDragX) / (size.width.toFloat() * 1.5f)).coerceIn(0f, 1f)
-                            val tensionOffset = lerp(0f, maxTensionOffsetPx, dragFraction)
-                            val finalOffset = if (accumulatedDragX > 0) tensionOffset else -tensionOffset
-                            offsetX.snapTo(finalOffset)
-                        }
+                        )
                     }
-                )
-            }
+                } else {
+                    Modifier
+                }
+            )
             .clip(RoundedCornerShape(24.dp))
             .background(surfaceColor)
             .border(BorderStroke(1.dp, outlineColor), RoundedCornerShape(24.dp)),
         contentAlignment = Alignment.Center
     ) {
-        val context = LocalContext.current
-        
-        var currentPainter by remember { mutableStateOf<Painter?>(null) }
-        
-        val request = remember(coverUrl) {
-            ImageRequest.Builder(context)
-                .data(coverUrl.takeIf { !it.isNullOrEmpty() })
-                .build()
-        }
-        
-        val painter = rememberAsyncImagePainter(model = request)
-        val state by painter.state.collectAsState()
-        
-        LaunchedEffect(state) {
-            when (state) {
-                is AsyncImagePainter.State.Success -> {
-                    currentPainter = state.painter
-                }
-                is AsyncImagePainter.State.Error,
-                is AsyncImagePainter.State.Empty -> {
-                    currentPainter = null
-                }
-                else -> {
-                    // Keep currentPainter during Loading
-                }
-            }
-        }
-        
         androidx.compose.animation.Crossfade(
             targetState = currentPainter,
             animationSpec = tween(500),

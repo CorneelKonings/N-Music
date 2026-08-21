@@ -77,9 +77,9 @@ fun PlayerLayout(
             val controlsY = maxH - controlsH
 
             layout(maxW, maxH) {
-                toolbarPlaceable.placeRelative(x = toolbarX, y = 0)
                 coverPlaceable.placeRelative(x = coverX, y = coverY)
                 controlsPlaceable.placeRelative(x = controlsX, y = controlsY)
+                toolbarPlaceable.placeRelative(x = toolbarX, y = 0)
             }
         }
     )
