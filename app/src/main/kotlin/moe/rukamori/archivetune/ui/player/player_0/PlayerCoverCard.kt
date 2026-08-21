@@ -149,26 +149,34 @@ fun PlayerCoverCard(
     ) {
         val context = LocalContext.current
         
-        val previousPainter = remember { arrayOf<androidx.compose.ui.graphics.painter.Painter?>(null) }
-        
-        val request = remember(coverUrl) {
-            ImageRequest.Builder(context)
-                .data(coverUrl.takeIf { !it.isNullOrEmpty() })
-                .crossfade(500)
-                .build()
-        }
-        
-        coil3.compose.AsyncImage(
-            model = request,
-            contentDescription = "Album Art Large",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            placeholder = previousPainter[0] ?: painterResource(id = placeholderResId),
-            error = painterResource(id = placeholderResId),
-            fallback = painterResource(id = placeholderResId),
-            onSuccess = { state ->
-                previousPainter[0] = state.painter
+        androidx.compose.animation.Crossfade(
+            targetState = coverUrl.takeIf { !it.isNullOrEmpty() },
+            animationSpec = tween(500),
+            label = "CoverCrossfade"
+        ) { url ->
+            if (url == null) {
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = placeholderResId),
+                    contentDescription = "Album Art Large",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                val request = remember(url) {
+                    ImageRequest.Builder(context)
+                        .data(url)
+                        .crossfade(500)
+                        .build()
+                }
+                
+                coil3.compose.AsyncImage(
+                    model = request,
+                    contentDescription = "Album Art Large",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(id = placeholderResId)
+                )
             }
-        )
+        }
     }
 }
