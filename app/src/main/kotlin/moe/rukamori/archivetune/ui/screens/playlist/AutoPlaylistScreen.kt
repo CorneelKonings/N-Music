@@ -130,6 +130,7 @@ import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.SortHeader
 import moe.rukamori.archivetune.ui.menu.SelectionSongMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
+import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import moe.rukamori.archivetune.ui.theme.yumaClickable
@@ -145,6 +146,7 @@ import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.AutoPlaylistViewModel
+import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -152,6 +154,7 @@ fun AutoPlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
+    spotifyAccountViewModel: SpotifyAccountViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -165,7 +168,9 @@ fun AutoPlaylistScreen(
         if (viewModel.playlist == "liked") stringResource(R.string.liked) else stringResource(R.string.offline)
 
     val songs by viewModel.likedSongs.collectAsStateWithLifecycle()
+    val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
 
+    var showSpotifyLogin by remember { mutableStateOf(false) }
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf(TextFieldValue()) }
     val focusRequester = remember { FocusRequester() }
@@ -307,6 +312,17 @@ fun AutoPlaylistScreen(
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
+            },
+        )
+    }
+
+    if (showSpotifyLogin) {
+        SpotifyLoginSheet(
+            onDismiss = { showSpotifyLogin = false },
+            onCookiesCaptured = { spDc, spKey ->
+                spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
+                showSpotifyLogin = false
+                viewModel.setSpotifySource(true)
             },
         )
     }
@@ -894,7 +910,7 @@ fun AutoPlaylistScreen(
                                                 .weight(1f)
                                                 .height(36.dp)
                                                 .clip(RoundedCornerShape(12.dp))
-                                                .clickable { viewModel.setSpotifySource(false) },
+                                                .yumaClickable { viewModel.setSpotifySource(false) },
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
@@ -914,7 +930,13 @@ fun AutoPlaylistScreen(
                                                 .weight(1f)
                                                 .height(36.dp)
                                                 .clip(RoundedCornerShape(12.dp))
-                                                .clickable { viewModel.setSpotifySource(true) },
+                                                .yumaClickable {
+                                                    if (spotifyState.isAuthenticated) {
+                                                        viewModel.setSpotifySource(true)
+                                                    } else {
+                                                        showSpotifyLogin = true
+                                                    }
+                                                },
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
