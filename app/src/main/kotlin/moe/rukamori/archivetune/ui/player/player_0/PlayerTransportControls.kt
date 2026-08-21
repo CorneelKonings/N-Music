@@ -1,6 +1,8 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
 import androidx.compose.foundation.*
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -10,9 +12,11 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
@@ -44,12 +48,18 @@ private val CenterShadowRadius    = 45.dp
 fun PlayerTransportControls(
     state: PlayerUiState,
     isPlaying: Boolean,
-    animatedAccentColor: Color,
+    vibrantColor: Color,
     slideOffset: () -> Float,
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
     isLarge: Boolean = true,
 ) {
+    val animatedAccentColor by animateColorAsState(
+        targetValue = vibrantColor,
+        animationSpec = tween(400),
+        label = "AccentPaletteColor"
+    )
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -98,7 +108,10 @@ fun PlayerTransportControls(
                 modifier = Modifier
                     .bounceClick(pressedScale = 0.92f) { if (!state.isLoading) onAction(PlayerAction.PlayPause) }
                     .size(CenterButtonSize)
-                    .background(animatedAccentColor, CircleShape),
+                    .clip(CircleShape)
+                    .drawBehind {
+                        drawCircle(animatedAccentColor)
+                    },
                 contentAlignment = Alignment.Center,
             ) {
                 if (state.isLoading) {

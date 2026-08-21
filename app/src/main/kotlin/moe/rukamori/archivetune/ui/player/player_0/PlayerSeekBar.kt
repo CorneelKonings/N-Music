@@ -1,6 +1,7 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -21,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -36,7 +38,7 @@ fun PlayerSeekBar(
     state: PlayerUiState,
     progressMs: Long,
     durationMs: Long,
-    animatedAccentColor: Color,
+    vibrantColor: Color,
     slideOffset: () -> Float,
     showCodecInfo: Boolean = false,
     codecInfo: String = "",
@@ -53,6 +55,12 @@ fun PlayerSeekBar(
     val isPressed by interactionSource.collectIsPressedAsState()
     val isDragged by interactionSource.collectIsDraggedAsState()
     val isInteracting = isPressed || isDragged
+
+    val animatedAccentColor by animateColorAsState(
+        targetValue = vibrantColor,
+        animationSpec = tween(400),
+        label = "AccentPaletteColor"
+    )
 
     val trackHeight by animateDpAsState(
         targetValue = if (isInteracting) 7.dp else 4.dp,
@@ -117,7 +125,9 @@ fun PlayerSeekBar(
                             .fillMaxWidth(fraction)
                             .fillMaxHeight()
                             .clip(CircleShape)
-                            .background(if (isInteracting) animatedAccentColor else Color.White)
+                            .drawBehind {
+                                drawRect(if (isInteracting) animatedAccentColor else Color.White)
+                            }
                     )
                 }
             },

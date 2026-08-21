@@ -72,25 +72,6 @@ fun FullPlayer(
     var showSettingsMenu by remember { mutableStateOf(false) }
     var menuInitialScreen by remember { mutableStateOf(PlayerMenuScreen.SETTINGS) }
 
-    val rawColor = Color(state.vibrantColor)
-
-    // ── Colours ───────────────────────────────────────────────────────────────
-    val animatedBgColor by animateColorAsState(
-        targetValue = Color(state.gradientColor),
-        animationSpec = tween(600),
-        label = "VibrantGradientColor"
-    )
-
-    val animatedAccentColor by animateColorAsState(
-        targetValue = Color(state.vibrantColor),
-        animationSpec = tween(400),
-        label = "AccentPaletteColor"
-    )
-
-    val gradientBrush = Brush.verticalGradient(
-        colors = listOf(animatedBgColor, Color(0xFF121212))
-    )
-
     // ── Lyrics visibility alpha ───────────────────────────────────────────────
     val lyricsAlphaState by animateFloatAsState(
         targetValue = if (state.isLyricsVisible) 0f else 1f,
@@ -138,7 +119,7 @@ fun FullPlayer(
     )
 
     // ── Root ──────────────────────────────────────────────────────────────────
-    PlayerBackgroundLayers(state = state, gradientBrush = gradientBrush)
+    PlayerBackgroundLayers(state = state)
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -179,7 +160,7 @@ fun FullPlayer(
                         coverDrawable = state.coverDrawable,
                         placeholderResId = state.placeholderResId,
                         isAlbumCoverGlowEnabled = state.isAlbumCoverGlowEnabled,
-                        vibrantColor = animatedAccentColor,
+                        vibrantColor = Color(state.vibrantColor),
                         gestureEnabled = !state.isImmersiveEnabled && !state.isLyricsVisible,
                         onNext = { onAction(PlayerAction.Next) },
                         onPrevious = { onAction(PlayerAction.Previous) }
@@ -208,7 +189,7 @@ fun FullPlayer(
                         state = state,
                         progressMs = state.progressMs,
                         durationMs = state.durationMs,
-                        animatedAccentColor = animatedAccentColor,
+                        vibrantColor = Color(state.vibrantColor),
                         slideOffset = slideOffset,
                         showCodecInfo = state.showCodecInfo,
                         codecInfo = state.codecInfo,
@@ -222,7 +203,7 @@ fun FullPlayer(
 
                     PlayerTransportControls(
                         isPlaying = state.isPlaying,
-                        animatedAccentColor = animatedAccentColor,
+                        vibrantColor = Color(state.vibrantColor),
                         slideOffset = slideOffset,
                         onAction = onAction,
                         isLarge = true,

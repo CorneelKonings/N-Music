@@ -1,5 +1,6 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -21,6 +22,7 @@ import coil3.compose.AsyncImagePainter
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -39,8 +41,8 @@ import moe.rukamori.archivetune.ui.state.PlayerUiState
 @Composable
 fun PlayerBackgroundLayers(
     state: PlayerUiState,
-    gradientBrush: Brush,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    gradientColor: Color = Color(state.gradientColor)
 ) {
     val context = LocalContext.current
     val colorScheme = MaterialTheme.colorScheme
@@ -96,12 +98,23 @@ fun PlayerBackgroundLayers(
         label = "ImmersiveThemeTransition"
     )
 
+    val animatedBgColor by animateColorAsState(
+        targetValue = gradientColor,
+        animationSpec = tween(600),
+        label = "VibrantGradientColor"
+    )
+
     Box(modifier = modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = 1f - blurOverlayAlpha }
-                .background(gradientBrush)
+                .drawBehind {
+                    val brush = Brush.verticalGradient(
+                        colors = listOf(animatedBgColor, Color(0xFF121212))
+                    )
+                    drawRect(brush = brush)
+                }
         )
 
         val targetUrl = state.coverUrl.takeIf { it.isNotEmpty() }

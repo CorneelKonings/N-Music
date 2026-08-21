@@ -3,6 +3,8 @@ package moe.rukamori.archivetune.ui.player.player_0
 import android.graphics.drawable.Drawable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -65,11 +67,30 @@ fun PlayerCoverCard(
     val maxTensionOffsetPx = with(density) { 60.dp.toPx() }
     val snapThresholdPx = with(density) { 80.dp.toPx() }
     
+    val animatedVibrantColor by animateColorAsState(
+        targetValue = vibrantColor,
+        animationSpec = tween(400),
+        label = "CoverGlowColor"
+    )
+    
     Box(
         modifier = modifier
             .aspectRatio(1f, matchHeightConstraintsFirst = true)
             .graphicsLayer {
                 translationX = offsetX.value
+                if (isAlbumCoverGlowEnabled) {
+                    shadowElevation = 48.dp.toPx()
+                    shape = RoundedCornerShape(24.dp)
+                    clip = false
+                    ambientShadowColor = animatedVibrantColor.copy(alpha = 0.8f)
+                    spotShadowColor = animatedVibrantColor
+                } else {
+                    shadowElevation = 24.dp.toPx()
+                    shape = RoundedCornerShape(24.dp)
+                    clip = false
+                    ambientShadowColor = shadowColor
+                    spotShadowColor = shadowColor.copy(alpha = 0.6f)
+                }
             }
             .pointerInput(gestureEnabled) {
                 if (!gestureEnabled) return@pointerInput
@@ -122,25 +143,6 @@ fun PlayerCoverCard(
                     }
                 )
             }
-            .then(
-                if (isAlbumCoverGlowEnabled) {
-                    Modifier.shadow(
-                        elevation = 48.dp,
-                        shape = RoundedCornerShape(24.dp),
-                        clip = false,
-                        ambientColor = vibrantColor.copy(alpha = 0.8f),
-                        spotColor = vibrantColor
-                    )
-                } else {
-                    Modifier.shadow(
-                        elevation = 24.dp,
-                        shape = RoundedCornerShape(24.dp),
-                        clip = false,
-                        ambientColor = shadowColor,
-                        spotColor = shadowColor.copy(alpha = 0.6f)
-                    )
-                }
-            )
             .clip(RoundedCornerShape(24.dp))
             .background(surfaceColor)
             .border(BorderStroke(1.dp, outlineColor), RoundedCornerShape(24.dp)),

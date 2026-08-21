@@ -152,13 +152,10 @@ fun LyricsColumn(
             }
     ) {
         // 1. ФОНОВЫЙ СЛОЙ (Использует то же самое оптимизированное размытие/градиент, что и FullPlayer)
-        val animatedBgColor = Color(state.darkMutedColor)
-        val gradientBrush = remember(animatedBgColor) {
-            Brush.verticalGradient(
-                colors = listOf(animatedBgColor, Color(0xFF121212))
-            )
-        }
-        moe.rukamori.archivetune.ui.player.player_0.PlayerBackgroundLayers(state = state, gradientBrush = gradientBrush)
+        moe.rukamori.archivetune.ui.player.player_0.PlayerBackgroundLayers(
+            state = state,
+            gradientColor = Color(state.darkMutedColor)
+        )
         // 2. КАРТОЧКА С ТЕКСТОМ (Выезжает снизу)
         LyricsContentCard(
             state = state,
