@@ -1,10 +1,8 @@
 package moe.rukamori.archivetune.ui.player.player_0
-
+ 
 import android.graphics.drawable.Drawable
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -13,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,7 +20,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 
@@ -38,6 +34,7 @@ fun PlayerCoverCard(
     vibrantColor: Color = Color.Transparent
 ) {
     val shadowColor = MaterialTheme.colorScheme.scrim
+    val surfaceColor: Color = MaterialTheme.colorScheme.surface
     val outlineColor: Color = MaterialTheme.colorScheme.outlineVariant
     
     Box(
@@ -63,39 +60,33 @@ fun PlayerCoverCard(
                 }
             )
             .clip(RoundedCornerShape(24.dp))
+            .background(surfaceColor)
             .border(BorderStroke(1.dp, outlineColor), RoundedCornerShape(24.dp)),
         contentAlignment = Alignment.Center
     ) {
         val context = LocalContext.current
         val currentData = coverDrawable ?: coverUrl.takeIf { !it.isNullOrEmpty() }
         
-        Crossfade(
-            targetState = currentData,
-            animationSpec = tween(500),
-            label = "CoverCrossfade"
-        ) { targetData ->
-            if (targetData == null) {
-                Image(
-                    painter = painterResource(id = placeholderResId),
-                    contentDescription = "Album Art Large",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                val request = remember(targetData) {
-                    ImageRequest.Builder(context)
-                        .data(targetData)
-                        .crossfade(500)
-                        .build()
-                }
-                AsyncImage(
-                    model = request,
-                    contentDescription = "Album Art Large",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    error = painterResource(id = placeholderResId)
-                )
-            }
+        val previousPainter = androidx.compose.runtime.remember { arrayOf<androidx.compose.ui.graphics.painter.Painter?>(null) }
+        
+        val request = androidx.compose.runtime.remember(currentData) {
+            ImageRequest.Builder(context)
+                .data(currentData)
+                .crossfade(500)
+                .build()
         }
+        
+        coil3.compose.AsyncImage(
+            model = request,
+            contentDescription = "Album Art Large",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            placeholder = previousPainter[0] ?: painterResource(id = placeholderResId),
+            error = painterResource(id = placeholderResId),
+            fallback = painterResource(id = placeholderResId),
+            onSuccess = { state ->
+                previousPainter[0] = state.painter
+            }
+        )
     }
 }
