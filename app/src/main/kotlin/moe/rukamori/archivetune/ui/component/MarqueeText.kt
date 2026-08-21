@@ -1,6 +1,5 @@
 package moe.rukamori.archivetune.ui.component
 
-import android.R
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.basicMarquee
@@ -104,11 +103,11 @@ fun MarqueeText(
         softWrap = softWrap,
         maxLines = maxLines,
         minLines = minLines,
-        onTextLayout = { layoutResult ->
-            if (hasOverflow != layoutResult.hasVisualOverflow) {
-                hasOverflow = layoutResult.hasVisualOverflow
+        onTextLayout = {
+            if (!hasOverflow && it.hasVisualOverflow) {
+                hasOverflow = true
             }
-            onTextLayout?.invoke(layoutResult)
+            onTextLayout?.invoke(it)
         },
         style = style
     )
