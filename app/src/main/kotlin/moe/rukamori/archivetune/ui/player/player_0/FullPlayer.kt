@@ -157,7 +157,6 @@ fun FullPlayer(
                 ) {
                     PlayerCoverCard(
                         coverUrl = state.coverUrl,
-                        coverDrawable = state.coverDrawable,
                         placeholderResId = state.placeholderResId,
                         isAlbumCoverGlowEnabled = state.isAlbumCoverGlowEnabled,
                         vibrantColor = Color(state.vibrantColor),

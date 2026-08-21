@@ -3,6 +3,7 @@ package moe.rukamori.archivetune.ui
 import android.app.Application
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
+import android.util.LruCache
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -69,6 +70,12 @@ private val MascotAssets = listOf(
     moe.rukamori.archivetune.R.drawable.mascot_7,
     moe.rukamori.archivetune.R.drawable.mascot_8
 )
+data class PaletteColors(
+    val vibrantColor: Int,
+    val darkMutedColor: Int,
+    val gradientColor: Int
+)
+
 /**
  * Единый источник правды и бизнес-логики для плеера Yuma.
  */
@@ -103,6 +110,8 @@ class PlayerViewModel @Inject constructor(
     private var tickerJob: Job? = null
     private var lyricsJob: Job? = null
     private var likeJob: Job? = null
+    private var paletteJob: Job? = null
+    private val paletteCache = LruCache<String, PaletteColors>(30)
     private val _event = Channel<PlayerEvent>(Channel.BUFFERED)
     val event: Flow<PlayerEvent> = _event.receiveAsFlow()
 
@@ -155,16 +164,25 @@ class PlayerViewModel @Inject constructor(
                         audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET } ?: 0L
                     }
 
+                    val coverUrl = metadata.thumbnailUrl ?: ""
+                    val cachedPalette = paletteCache.get(coverUrl)
+
                     _uiState.update { currentUi ->
                         currentUi.copy(
                             title = title,
                             artist = artist,
                             trackUrl = metadata.id,
-                            durationMs = resolvedDuration
+                            durationMs = resolvedDuration,
+                            coverUrl = coverUrl,
+                            vibrantColor = cachedPalette?.vibrantColor ?: currentUi.vibrantColor,
+                            darkMutedColor = cachedPalette?.darkMutedColor ?: currentUi.darkMutedColor,
+                            gradientColor = cachedPalette?.gradientColor ?: currentUi.gradientColor
                         )
                     }
 
-                    loadCoverAndPalette(metadata.thumbnailUrl ?: "", title, artist)
+                    if (coverUrl.isNotEmpty()) {
+                        loadCoverAndPalette(coverUrl, title, artist)
+                    }
                 }
         }
 
@@ -394,6 +412,8 @@ class PlayerViewModel @Inject constructor(
             return
         }
 
+        val cachedPalette = paletteCache.get(coverUrl)
+
         _uiState.update {
             it.copy(
                 title = title,
@@ -403,18 +423,21 @@ class PlayerViewModel @Inject constructor(
                 isLiked = isLiked,
                 lyricsList = emptyList(),
                 lyricsError = null,
-                currentLineIndex = -1
+                currentLineIndex = -1,
+                coverUrl = coverUrl,
+                vibrantColor = cachedPalette?.vibrantColor ?: android.graphics.Color.WHITE,
+                darkMutedColor = cachedPalette?.darkMutedColor ?: android.graphics.Color.parseColor("#282828"),
+                gradientColor = cachedPalette?.gradientColor ?: android.graphics.Color.parseColor("#121212")
             )
         }
 
         manageTicker(isPlaying)
 
-        if (coverUrl.isNotEmpty()) {
+        if (cachedPalette == null && coverUrl.isNotEmpty()) {
             loadCoverAndPalette(coverUrl, title, artist)
-        } else {
+        } else if (coverUrl.isEmpty()) {
             _uiState.update {
                 it.copy(
-                    coverDrawable = null,
                     vibrantColor = android.graphics.Color.WHITE,
                     darkMutedColor = android.graphics.Color.parseColor("#282828"),
                     gradientColor = android.graphics.Color.parseColor("#121212")
@@ -756,7 +779,8 @@ class PlayerViewModel @Inject constructor(
     }
 
     private fun loadCoverAndPalette(url: String, targetTitle: String, targetArtist: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        paletteJob?.cancel()
+        paletteJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 val request = ImageRequest.Builder(application)
                     .data(url)
@@ -767,18 +791,26 @@ class PlayerViewModel @Inject constructor(
                 val bitmap = result.image?.toBitmap()
 
                 if (bitmap != null) {
-                    val seedColor = extractSeedColor(bitmap)
-                    val scheme = generateDarkColorSchemeFromSeed(seedColor)
+                    val palette = paletteCache.get(url) ?: run {
+                        val seedColor = extractSeedColor(bitmap)
+                        val scheme = generateDarkColorSchemeFromSeed(seedColor)
+                        val newPalette = PaletteColors(
+                            vibrantColor = scheme.primary.toArgb(),
+                            darkMutedColor = scheme.secondaryContainer.toArgb(),
+                            gradientColor = scheme.primaryContainer.toArgb()
+                        )
+                        paletteCache.put(url, newPalette)
+                        newPalette
+                    }
 
                     withContext(Dispatchers.Main) {
                         if (_uiState.value.title == targetTitle && _uiState.value.artist == targetArtist) {
                             _uiState.update {
                                 it.copy(
                                     coverUrl = url, // Сохраняем только чистый URL
-                                    coverDrawable = BitmapDrawable(application.resources, bitmap),
-                                    vibrantColor = scheme.primary.toArgb(),
-                                    darkMutedColor = scheme.secondaryContainer.toArgb(),
-                                    gradientColor = scheme.primaryContainer.toArgb()
+                                    vibrantColor = palette.vibrantColor,
+                                    darkMutedColor = palette.darkMutedColor,
+                                    gradientColor = palette.gradientColor
                                 )
                             }
                         }
@@ -787,14 +819,15 @@ class PlayerViewModel @Inject constructor(
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    _uiState.update {
-                        it.copy(
-                            coverUrl = url,
-                            coverDrawable = null,
-                            vibrantColor = android.graphics.Color.WHITE,
-                            darkMutedColor = android.graphics.Color.parseColor("#282828"),
-                            gradientColor = android.graphics.Color.parseColor("#121212")
-                        )
+                    if (_uiState.value.title == targetTitle && _uiState.value.artist == targetArtist) {
+                        _uiState.update {
+                            it.copy(
+                                coverUrl = url,
+                                vibrantColor = android.graphics.Color.WHITE,
+                                darkMutedColor = android.graphics.Color.parseColor("#282828"),
+                                gradientColor = android.graphics.Color.parseColor("#121212")
+                            )
+                        }
                     }
                 }
             }

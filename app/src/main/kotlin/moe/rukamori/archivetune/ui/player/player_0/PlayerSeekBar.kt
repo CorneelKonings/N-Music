@@ -58,7 +58,7 @@ fun PlayerSeekBar(
 
     val animatedAccentColor by animateColorAsState(
         targetValue = vibrantColor,
-        animationSpec = tween(400),
+        animationSpec = tween(500),
         label = "AccentPaletteColor"
     )
 

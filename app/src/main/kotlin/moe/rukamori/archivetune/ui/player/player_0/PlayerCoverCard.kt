@@ -43,7 +43,6 @@ import kotlin.math.abs
 
 @Composable
 fun PlayerCoverCard(
-    coverDrawable: Drawable? = null,
     coverUrl: String? = null,
     modifier: Modifier = Modifier,
     placeholderResId: Int,
@@ -69,7 +68,7 @@ fun PlayerCoverCard(
     
     val animatedVibrantColor by animateColorAsState(
         targetValue = vibrantColor,
-        animationSpec = tween(400),
+        animationSpec = tween(500),
         label = "CoverGlowColor"
     )
     
@@ -152,9 +151,9 @@ fun PlayerCoverCard(
         
         val previousPainter = remember { arrayOf<androidx.compose.ui.graphics.painter.Painter?>(null) }
         
-        val request = remember(coverUrl, coverDrawable) {
+        val request = remember(coverUrl) {
             ImageRequest.Builder(context)
-                .data(coverDrawable ?: coverUrl.takeIf { !it.isNullOrEmpty() })
+                .data(coverUrl.takeIf { !it.isNullOrEmpty() })
                 .crossfade(500)
                 .build()
         }
