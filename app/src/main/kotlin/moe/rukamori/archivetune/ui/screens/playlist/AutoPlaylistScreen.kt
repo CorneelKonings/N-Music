@@ -560,7 +560,7 @@ fun AutoPlaylistScreen(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
-            if (songs.isNotEmpty() && !isSearching) {
+            if (!isSearching) {
                 // Hero Header Item
                 item(
                     key = "header",
@@ -851,7 +851,6 @@ fun AutoPlaylistScreen(
                             Spacer(modifier = Modifier.height(24.dp))
                         }
                     }
-                }
 
             if (playlistId == "liked") {
                 item(
@@ -940,6 +939,7 @@ fun AutoPlaylistScreen(
                         }
                     }
                 }
+            }
 
             if (playlistId == "liked" && isSpotifySource && !spotifyState.isAuthenticated) {
                 item(key = "spotify_login_fallback") {
