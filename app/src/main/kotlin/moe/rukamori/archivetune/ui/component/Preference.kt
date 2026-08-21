@@ -19,7 +19,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
-import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -293,7 +292,7 @@ fun PreferenceEntry(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.basicMarquee(),
                     )
                 }
                 content?.invoke()
@@ -897,6 +896,7 @@ fun SliderPreference(
                     val sliderState =
                         rememberSliderState(
                             value = sliderValue,
+                            steps = 10,
                             valueRange = HISTORY_DURATION_RANGE,
                             onValueChangeFinished = {},
                         )
@@ -1114,7 +1114,7 @@ fun NumberPickerPreference(
                     val pickerSliderState =
                         rememberSliderState(
                             value = sliderValue,
-                            steps = maxValue - minValue - 1,
+                            steps = (maxValue - minValue - 1).coerceAtLeast(0),
                             valueRange = minValue.toFloat()..maxValue.toFloat(),
                             onValueChangeFinished = {},
                         )
@@ -1219,15 +1219,13 @@ fun PreferenceGroupTitle(
     title: String,
     modifier: Modifier = Modifier,
 ) {
-    AutoScrollingTextOnDemand(
+    Text(
         text = title,
-        style = MaterialTheme.typography.titleSmall.copy(
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-        ),
+        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary),
+        maxLines = 1,
         modifier = modifier.padding(
             horizontal = SettingsDimensions.SectionHeaderHorizontalPadding,
             vertical = SettingsDimensions.SectionHeaderBottomPadding,
-        ),
+        ).basicMarquee(),
     )
 }

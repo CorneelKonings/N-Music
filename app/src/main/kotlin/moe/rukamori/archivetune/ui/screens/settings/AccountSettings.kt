@@ -36,7 +36,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
-import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -1199,20 +1198,24 @@ private fun ProfileIdentityCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                AutoScrollingTextOnDemand(
+                Text(
                     text = accountName,
                     style = MaterialTheme.typography.titleMedium.copy(
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                     ),
+                    maxLines = 1,
+                    modifier = Modifier.basicMarquee(),
                 )
 
                 if (accountHandle.isNotBlank()) {
-                    AutoScrollingTextOnDemand(
+                    Text(
                         text = accountHandle,
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee(),
                     )
                 } else if (!isLoggedIn) {
                     Text(
@@ -1614,19 +1617,23 @@ private fun ExpressiveSegmentedRow(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    AutoScrollingTextOnDemand(
+                    Text(
                         text = title,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold,
                         ),
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee(),
                     )
                     subtitle?.let {
-                        AutoScrollingTextOnDemand(
+                        Text(
                             text = it,
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             ),
+                            maxLines = 1,
+                            modifier = Modifier.basicMarquee(),
                         )
                     }
                 }

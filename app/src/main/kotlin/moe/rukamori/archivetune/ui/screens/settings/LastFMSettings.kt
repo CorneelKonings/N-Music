@@ -615,6 +615,7 @@ private fun LastFmTimingEditorDialog(
                             value = editor.minTrackDurationSeconds.toFloat(),
                             onValueChange = { onMinTrackDurationChange(it.toInt()) },
                             valueRange = 10f..60f,
+                            steps = 9,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
@@ -633,6 +634,7 @@ private fun LastFmTimingEditorDialog(
                             value = editor.scrobbleDelayPercent,
                             onValueChange = onDelayPercentChange,
                             valueRange = 0.3f..0.95f,
+                            steps = 12,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
@@ -647,6 +649,7 @@ private fun LastFmTimingEditorDialog(
                             value = editor.scrobbleDelaySeconds.toFloat(),
                             onValueChange = { onDelaySecondsChange(it.toInt()) },
                             valueRange = 30f..360f,
+                            steps = 10,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }

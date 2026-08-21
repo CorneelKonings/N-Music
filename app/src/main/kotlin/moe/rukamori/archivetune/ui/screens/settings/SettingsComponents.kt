@@ -82,7 +82,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import coil3.compose.AsyncImage
-import moe.rukamori.archivetune.ui.player.player_0.scroll.AutoScrollingTextOnDemand
 import moe.rukamori.archivetune.ui.component.LocalPreferenceItemIndex
 import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
@@ -536,20 +535,22 @@ fun SettingsSegmentedItem(
             ) {
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee(),
                 )
                 item.subtitle?.let { subtitle ->
                     Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedRowSpacing))
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.basicMarquee(),
                     )
                 }
             }

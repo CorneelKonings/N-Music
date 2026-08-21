@@ -106,6 +106,7 @@ fun LyricsAnimationSettings(navController: NavController) {
                                 value = bounceFactor,
                                 onValueChange = onBounceFactorChange,
                                 valueRange = 0f..2f,
+                                steps = 19,
                             )
                         },
                     )
@@ -121,6 +122,7 @@ fun LyricsAnimationSettings(navController: NavController) {
                                 value = glowFactor,
                                 onValueChange = onGlowFactorChange,
                                 valueRange = 0f..2f,
+                                steps = 19,
                             )
                         },
                     )
@@ -136,6 +138,7 @@ fun LyricsAnimationSettings(navController: NavController) {
                                 value = fillTransitionWidth,
                                 onValueChange = onFillTransitionWidthChange,
                                 valueRange = 2f..24f,
+                                steps = 10,
                             )
                         },
                     )

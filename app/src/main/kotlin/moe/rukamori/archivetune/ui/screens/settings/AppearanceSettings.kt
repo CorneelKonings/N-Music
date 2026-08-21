@@ -626,47 +626,30 @@ private fun HomeBackgroundSliderItem(
     val sliderState =
         rememberSliderState(
             value = localValue,
+            steps = 19,
             valueRange = valueRange,
             onValueChangeFinished = { onValueChangeFinished(localValue) },
         )
     sliderState.onValueChange = { localValue = it }
     sliderState.value = localValue
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = SettingsDimensions.RowHorizontalPadding,
-                vertical = SettingsDimensions.RowVerticalPadding,
-            ),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text = valueText(localValue),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
+    PreferenceEntry(
+        title = { Text(title) },
+        description = valueText(localValue),
+        content = {
+            Spacer(Modifier.height(4.dp))
+            Slider(
+                state = sliderState,
+                modifier = Modifier.fillMaxWidth(),
+                track = {
+                    SliderDefaults.Track(
+                        sliderState = sliderState,
+                        trackCornerSize = 12.dp,
+                    )
+                },
             )
         }
-        Spacer(Modifier.height(4.dp))
-        Slider(
-            state = sliderState,
-            modifier = Modifier.fillMaxWidth(),
-            track = {
-                SliderDefaults.Track(
-                    sliderState = sliderState,
-                    trackCornerSize = 12.dp,
-                )
-            },
-        )
-    }
+    )
 }
 
 enum class DarkMode {

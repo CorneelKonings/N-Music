@@ -101,6 +101,8 @@ import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.PoTokenState
 import moe.rukamori.archivetune.viewmodels.PoTokenViewModel
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 
 private const val DEFAULT_EXTRACT_URL = "https://youtube.com/account"
 
@@ -505,11 +507,16 @@ private fun SelectableTokenCard(
     onCopy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 2.dp,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    val colors = LocalYumaColors.current
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .yumaGlassCard(
+                shape = MaterialTheme.shapes.medium,
+                backgroundColor = colors.glassBackground,
+                borderColor = colors.glassBorder,
+            ),
     ) {
         Row(
             modifier =

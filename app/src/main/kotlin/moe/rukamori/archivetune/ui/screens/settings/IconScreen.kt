@@ -93,6 +93,8 @@ import moe.rukamori.archivetune.viewmodels.IconScreenState
 import moe.rukamori.archivetune.viewmodels.IconScreenUiModel
 import moe.rukamori.archivetune.viewmodels.IconViewModel
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 
 @Composable
 fun IconScreen(
@@ -342,15 +344,14 @@ private fun CurrentIconCard(
     modifier: Modifier = Modifier,
 ) {
     val name = appIconName(icon)
+    val colors = LocalYumaColors.current
 
-    ElevatedCard(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+    Box(
+        modifier = modifier.yumaGlassCard(
+            shape = MaterialTheme.shapes.extraLarge,
+            backgroundColor = colors.glassBackground,
+            borderColor = colors.glassBorder,
+        ),
     ) {
         Row(
             modifier =

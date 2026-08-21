@@ -692,7 +692,7 @@ private fun DependencyLicenseList(
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap),
     ) {
         items(
             count = licenses.size,
@@ -772,24 +772,29 @@ private fun SegmentedListItemSurface(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape =
-            segmentedListItemShape(
-                index = index,
-                itemCount = itemCount,
-            ),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        content = content,
-    )
+    val colors = LocalYumaColors.current
+    val shape = segmentedListItemShape(index = index, itemCount = itemCount)
+    
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .yumaGlassCard(
+                shape = shape,
+                backgroundColor = colors.glassBackground,
+                borderColor = colors.glassBorder,
+            )
+            .clip(shape),
+    ) {
+        content()
+    }
 }
 
 private fun segmentedListItemShape(
     index: Int,
     itemCount: Int,
 ): Shape {
-    val outerCorner = 24.dp
-    val innerCorner = 4.dp
+    val outerCorner = SettingsDimensions.SegmentedCornerLarge
+    val innerCorner = SettingsDimensions.SegmentedCornerSmall
     return when {
         itemCount <= 1 -> {
             RoundedCornerShape(outerCorner)
