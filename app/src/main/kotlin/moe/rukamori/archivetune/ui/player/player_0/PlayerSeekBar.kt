@@ -86,7 +86,7 @@ fun PlayerSeekBar(
 
     val animatedProgress by animateFloatAsState(
         targetValue = baseProgress.coerceIn(0f, maxRange),
-        animationSpec = if (isDragging.value) snap() else tween(durationMillis = 250, easing = FastOutSlowInEasing),
+        animationSpec = if (isDragging.value) snap() else tween(durationMillis = 250, easing = LinearEasing),
         label = "SliderLineFluidAnimation"
     )
 
