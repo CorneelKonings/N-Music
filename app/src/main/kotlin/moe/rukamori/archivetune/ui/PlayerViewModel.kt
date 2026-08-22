@@ -329,6 +329,26 @@ class PlayerViewModel @Inject constructor(
                 settingsRepository.setAlbumCoverGlowEnabled(newValue)
                 _uiState.update { it.copy(isAlbumCoverGlowEnabled = newValue) }
             }
+            is PlayerAction.TranslateLyrics -> translateLyrics(action.langCode, action.useAi)
+            is PlayerAction.DeleteLyrics -> deleteLyricsCache()
+            is PlayerAction.OpenAlbum -> {
+                val metadata = playerConnection?.mediaMetadata?.value
+                val albumId = metadata?.album?.id
+                if (albumId != null) {
+                    viewModelScope.launch {
+                        _event.send(PlayerEvent.Navigate("album/$albumId"))
+                    }
+                }
+            }
+            is PlayerAction.OpenArtist -> {
+                val metadata = playerConnection?.mediaMetadata?.value
+                val artistId = metadata?.artists?.firstOrNull()?.id
+                if (artistId != null) {
+                    viewModelScope.launch {
+                        _event.send(PlayerEvent.Navigate("artist/$artistId"))
+                    }
+                }
+            }
             else -> { /* Обработка в UI или узкоспециализированных холдерах */ }
         }
     }
