@@ -44,3 +44,9 @@
   - `PlayerViewModelLyricsTest.kt`: Created unit tests using Turbine and MockK to verify both DB hit (no network call) and DB miss (network call) scenarios.
   - Used `mockkStatic(android.graphics.Color::class)` to fix `RuntimeException: Method parseColor in android.graphics.Color not mocked` during tests.
 - **Status**: `compileFossMobileArm64DebugKotlin` and `testFossMobileArm64DebugUnitTest` are green.
+
+## 2026-08-22: WAVE2-T3 - Ordered Providers via DataStore
+- **Changes**:
+  - `LyricsHelper.kt`: `orderedProviders` was already implemented using `LyricsProviderOrderKey` and `deserializeLyricsProviderOrder`. Changed `private` to `internal` to allow testing.
+  - `LyricsHelperOrderTest.kt`: Created unit test to verify that `orderedProviders` returns providers in the order specified by `LyricsProviderOrderKey` in DataStore. Used MockK to mock `Context.dataStore`.
+- **Status**: `compileFossMobileArm64DebugKotlin` and `testFossMobileArm64DebugUnitTest` are green.

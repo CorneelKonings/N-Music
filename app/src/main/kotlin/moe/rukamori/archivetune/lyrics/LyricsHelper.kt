@@ -236,7 +236,7 @@ class LyricsHelper
                 null
             }
 
-        private suspend fun orderedProviders(): List<LyricsProvider> {
+        internal suspend fun orderedProviders(): List<LyricsProvider> {
             val orderStr = context.dataStore.data.first()[LyricsProviderOrderKey]
             val orderedEnums = deserializeLyricsProviderOrder(orderStr)
             val providerMap: Map<PreferredLyricsProvider, LyricsProvider> =
