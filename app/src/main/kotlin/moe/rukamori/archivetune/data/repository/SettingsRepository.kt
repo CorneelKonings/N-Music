@@ -2,6 +2,7 @@ package moe.rukamori.archivetune.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import moe.rukamori.archivetune.constants.AppFontPreference
+import moe.rukamori.archivetune.lyrics.LyricsRomanizationPreferences
 
 data class UserSettings(
     val isDarkTheme: Boolean = true,
@@ -11,6 +12,7 @@ data class UserSettings(
 
 interface SettingsRepository {
     val userSettings: Flow<UserSettings>
+    val lyricsRomanizationPrefsFlow: Flow<LyricsRomanizationPreferences>
     suspend fun updateThemeColor(colorHex: String): Result<Unit>
     suspend fun updateFontPreference(preference: AppFontPreference): Result<Unit>
     fun isBlurBackgroundEnabled(): Boolean

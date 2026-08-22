@@ -281,6 +281,12 @@ class PlayerViewModel @Inject constructor(
 
         val isFirstLaunch = settingsRepository.isFirstLaunch()
         _uiState.update { it.copy(shouldShowWelcome = isFirstLaunch) }
+
+        viewModelScope.launch {
+            settingsRepository.lyricsRomanizationPrefsFlow.collect { prefs ->
+                _uiState.update { it.copy(lyricsRomanizationPrefs = prefs) }
+            }
+        }
     }
 
     // ==========================================

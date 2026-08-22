@@ -6,8 +6,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.constants.AppFontPreference
+import moe.rukamori.archivetune.constants.LyricsRomanizeChineseKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeHindiKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeJapaneseKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeKoreanKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeOtherLanguagesKey
+import moe.rukamori.archivetune.lyrics.LyricsRomanizationPreferences
+import moe.rukamori.archivetune.utils.dataStore
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,6 +28,16 @@ class SettingsRepositoryImpl @Inject constructor(
 
     private val _settingsFlow = MutableStateFlow(loadSettings())
     override val userSettings: Flow<UserSettings> = _settingsFlow.asStateFlow()
+
+    override val lyricsRomanizationPrefsFlow: Flow<LyricsRomanizationPreferences> = context.dataStore.data.map { preferences ->
+        LyricsRomanizationPreferences(
+            romanizeJapanese = preferences[LyricsRomanizeJapaneseKey] ?: true,
+            romanizeKorean = preferences[LyricsRomanizeKoreanKey] ?: true,
+            romanizeChinese = preferences[LyricsRomanizeChineseKey] ?: true,
+            romanizeHindi = preferences[LyricsRomanizeHindiKey] ?: true,
+            romanizeOther = preferences[LyricsRomanizeOtherLanguagesKey] ?: true
+        )
+    }
 
     private fun loadSettings(): UserSettings {
         val colorHex = prefs.getString("theme_color_hex", "ED5564") ?: "ED5564"

@@ -16,11 +16,11 @@ import moe.rukamori.archivetune.db.entities.LyricsEntity
 import java.lang.Character.UnicodeScript
 
 data class LyricsRomanizationPreferences(
-    val romanizeJapanese: Boolean,
-    val romanizeKorean: Boolean,
-    val romanizeChinese: Boolean,
-    val romanizeHindi: Boolean,
-    val romanizeOther: Boolean,
+    val romanizeJapanese: Boolean = true,
+    val romanizeKorean: Boolean = true,
+    val romanizeChinese: Boolean = true,
+    val romanizeHindi: Boolean = true,
+    val romanizeOther: Boolean = true,
 ) {
     val isEnabled: Boolean
         get() = romanizeJapanese || romanizeKorean || romanizeChinese || romanizeHindi || romanizeOther
