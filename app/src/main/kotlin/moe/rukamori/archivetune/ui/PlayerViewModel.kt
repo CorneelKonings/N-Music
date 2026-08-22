@@ -433,9 +433,9 @@ class PlayerViewModel @Inject constructor(
     ) {
         val current = _uiState.value
 
-        if (current.title == title && current.artist == artist) {
+        if (current.trackUrl == trackUrl && trackUrl.isNotEmpty()) {
             _uiState.update {
-                it.copy(isPlaying = isPlaying, isLiked = isLiked, trackUrl = trackUrl)
+                it.copy(isPlaying = isPlaying, isLiked = isLiked, title = title, artist = artist)
             }
             if (current.isPlaying != isPlaying) {
                 manageTicker(isPlaying)
@@ -867,7 +867,7 @@ class PlayerViewModel @Inject constructor(
             }
         }
     }
-    fun fetchLyrics() {
+    fun fetchLyrics(force: Boolean = false) {
         val currentState = _uiState.value
         val trackUrl = currentState.trackUrl
         val title = currentState.title
@@ -881,9 +881,24 @@ class PlayerViewModel @Inject constructor(
         lyricsJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 val db = playerConnection?.database
-                val cached = db?.getLyricsById(trackUrl)
+                val cached = if (force) null else db?.getLyricsById(trackUrl)
                 
-                if (cached != null && cached.lyrics != moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
+                if (cached != null) {
+                    if (cached.lyrics == moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
+                        withContext(Dispatchers.Main) {
+                            _uiState.update {
+                                it.copy(
+                                    lyricsList = emptyList(),
+                                    isSynced = false,
+                                    isLoadingLyrics = false,
+                                    lyricsError = "lyrics_not_found",
+                                    currentLineIndex = -1
+                                )
+                            }
+                        }
+                        return@launch
+                    }
+                    
                     val parsedLines = parseLyrics(cached.lyrics)
                     val isSynced = parsedLines.any { line -> line.time > 0 }
                     withContext(Dispatchers.Main) {
@@ -913,7 +928,7 @@ class PlayerViewModel @Inject constructor(
                 val rawLyrics = lyricsHelper.getLyrics(metadata)
                 val parsedLines = parseLyrics(rawLyrics)
 
-                if (rawLyrics.isNotBlank() && rawLyrics != moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
+                if (rawLyrics.isNotBlank()) {
                     playerConnection?.database?.query {
                         replaceLyrics(
                             id = trackUrl,
@@ -987,7 +1002,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun refreshLyrics() {
-        fetchLyrics()
+        fetchLyrics(force = true)
     }
 
     fun togglePlayPause() {
