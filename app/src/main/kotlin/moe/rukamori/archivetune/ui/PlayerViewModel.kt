@@ -923,27 +923,26 @@ class PlayerViewModel @Inject constructor(
             return emptyList()
         }
 
-        val lines = mutableListOf<LyricsEntry>()
-        val lrcPattern = Regex("""\[(\d{2}):(\d{2})\.(\d{2,3})](.+)""")
+        val normalized = moe.rukamori.archivetune.lyrics.LyricsUtils.normalizeLyricsText(rawLyrics)
+        val durationMs = audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET } ?: 0L
 
-        rawLyrics.lines().forEach { line ->
-            val match = lrcPattern.find(line)
-            if (match != null) {
-                val (min, sec, ms, text) = match.destructured
-                val timeMs = (min.toLong() * 60 + sec.toLong()) * 1000 +
-                        (if (ms.length == 2) ms.toLong() * 10 else ms.toLong())
-                val cleanText = text.trim()
-
-                lines.add(
-                    LyricsEntry(
-                        text = cleanText,
-                        time = timeMs,
-                    )
-                )
+        val parsed = when {
+            moe.rukamori.archivetune.lyrics.LyricsUtils.isTtml(normalized) -> {
+                moe.rukamori.archivetune.lyrics.LyricsUtils.parseTtml(normalized, (durationMs / 1000).toInt())
+            }
+            moe.rukamori.archivetune.lyrics.LyricsUtils.isLineSyncedLrc(normalized) -> {
+                moe.rukamori.archivetune.lyrics.LyricsUtils.parseLyrics(normalized)
+            }
+            else -> {
+                normalized.lines()
+                    .filter { it.isNotBlank() }
+                    .map { line ->
+                        LyricsEntry(time = -1L, text = line.trim())
+                    }
             }
         }
 
-        return lines.sortedBy { it.time }
+        return moe.rukamori.archivetune.lyrics.LyricsUtils.insertInstrumentalBreaks(parsed, durationMs)
     }
 
     fun setLyricsVisible(isVisible: Boolean) {
