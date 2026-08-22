@@ -121,8 +121,24 @@ internal class SheetVerticalDragGestureHandler(
         scope.launch {
             if (targetState == PlayerSheetState.EXPANDED) {
                 launch {
+                    visualOvershootScaleY.animateTo(
+                        targetValue = 1f,
+                        animationSpec = spring(
+                            dampingRatio = 0.78f,
+                            stiffness = Spring.StiffnessMediumLow
+                        )
+                    )
+                }
+                launch {
                     // ИСПРАВЛЕНО: передаем реальную скорость для плавного подхвата пружиной
-                    onAnimateSheet(true, null, verticalVelocity)
+                    onAnimateSheet(
+                        true,
+                        spring(
+                            dampingRatio = 0.78f,
+                            stiffness = Spring.StiffnessMediumLow
+                        ),
+                        verticalVelocity
+                    )
                 }
                 onExpandSheetState()
             } else {

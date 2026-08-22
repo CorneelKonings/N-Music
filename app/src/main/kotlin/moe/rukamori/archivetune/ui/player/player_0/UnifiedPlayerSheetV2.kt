@@ -249,7 +249,7 @@ fun UnifiedPlayerSheetV2(
                         targetExpanded = targetExpanded,
                         canExpand = true,
                         collapsedY = collapsedY,
-                        animationSpec = spec ?: spring(),
+                        animationSpec = spec ?: spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow),
                         initialVelocity = velocity
                     )
                 },
