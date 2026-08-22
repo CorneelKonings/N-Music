@@ -201,7 +201,7 @@ fun LyricsContentCard(
                                         blendMode = BlendMode.DstIn
                                     )
                                 },
-                            contentPadding = PaddingValues(top = 16.dp, bottom = 220.dp, start = 0.dp, end = 0.dp),
+                            contentPadding = PaddingValues(top = 32.dp, bottom = 220.dp, start = 0.dp, end = 0.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
