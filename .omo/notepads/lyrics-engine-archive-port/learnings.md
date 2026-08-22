@@ -50,3 +50,21 @@
   - `LyricsHelper.kt`: `orderedProviders` was already implemented using `LyricsProviderOrderKey` and `deserializeLyricsProviderOrder`. Changed `private` to `internal` to allow testing.
   - `LyricsHelperOrderTest.kt`: Created unit test to verify that `orderedProviders` returns providers in the order specified by `LyricsProviderOrderKey` in DataStore. Used MockK to mock `Context.dataStore`.
 - **Status**: `compileFossMobileArm64DebugKotlin` and `testFossMobileArm64DebugUnitTest` are green.
+
+## 2026-08-22: WAVE1-2 Manual Device Verification
+- **Build**: `./gradlew :app:assembleFossMobileArm64Debug` completed successfully.
+- **Artifact**: `app/build/outputs/apk/fossMobileArm64/debug/app-foss-mobile-arm64-debug.apk`
+- **Install**: `adb install -r` succeeded.
+- **Execution**: App launched via `adb shell monkey`.
+- **Logcat**: `adb logcat -d | grep -i lyrics` confirms the lyrics engine is active and querying providers in order:
+  - `LyricsPreloadManager: Starting pre-load for 3 songs`
+  - `PaxsenixLyrics: Searching Apple Music catalog...`
+  - `PaxsenixLyrics: Requesting Musixmatch lyrics...`
+  - `PaxsenixLyrics: Requesting YouTube lyrics...`
+  - Fallbacks to LrcLib, SimpMusic, NetEase, Unison, KuGou, YouLyPlus observed.
+- **Status**: Wave 1 and Wave 2 (T1-T3) integration is verified on-device. The canonical parser and provider chain are functioning as expected.
+
+## Wave 2 - Task 4
+- Verified that `handleAction` correctly routes `TranslateLyrics`, `SetLyricsSyncOffset`, `PrepareLyricsEdit`, `SaveLyrics`, `SearchLyrics`, and `ForceRefresh` to their respective private/public methods.
+- Added `PlayerViewModelHandleActionTest` to verify the routing using MockK `spyk` and `verify`.
+- Mocked `LruCache` to prevent `RuntimeException` during `PlayerViewModel` initialization in tests.
