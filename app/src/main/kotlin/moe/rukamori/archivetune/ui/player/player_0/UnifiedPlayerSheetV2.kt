@@ -194,7 +194,7 @@ fun UnifiedPlayerSheetV2(
                 translationY = translationY,
                 expansionFraction = expansionFraction,
                 mutex = mutatorMutex,
-                defaultAnimationSpec = spring(),
+                defaultAnimationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow),
                 expandedY = expandedY
             )
         }
