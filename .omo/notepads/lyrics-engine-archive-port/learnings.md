@@ -75,3 +75,4 @@
 - **Execution**: App launched via `adb shell monkey`.
 - **Logcat**: `adb logcat -d | grep -i "Key.*already used\|FATAL"` returned empty, confirming the crash is fixed.
 - **Status**: Hotfix verified on-device. Plain lyrics with -1L time no longer crash the LazyColumn.
+- Wave3-T2: Implemented progressMsProvider to avoid LazyColumn recomposition on every tick. Used produceState to poll the provider and derivedStateOf inside itemsIndexed to only trigger recomposition when isActive changes.

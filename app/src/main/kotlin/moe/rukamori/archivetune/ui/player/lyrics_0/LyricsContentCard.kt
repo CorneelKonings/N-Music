@@ -1,6 +1,7 @@
 package moe.rukamori.archivetune.ui.player.lyrics_0
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
@@ -241,6 +243,12 @@ fun LyricsContentCard(
                                     label = "LyricsLineScale"
                                 )
 
+                                val animatedBlur by animateDpAsState(
+                                    targetValue = if (isActive) 0.dp else 0.5.dp,
+                                    animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing),
+                                    label = "LyricsLineBlur"
+                                )
+
                                 Text(
                                     text = line.text,
                                     color = Color.White,
@@ -258,7 +266,8 @@ fun LyricsContentCard(
                                             alpha = animatedAlpha
                                             scaleX = animatedScale
                                             scaleY = animatedScale
-                                        },
+                                        }
+                                        .blur(animatedBlur),
                                     style = TextStyle(
                                         fontSize = 24.sp,
                                         fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
