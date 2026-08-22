@@ -25,14 +25,31 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.playback.ExoDownloadService
+import androidx.compose.material3.CircularWavyProgressIndicator
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
+import moe.rukamori.archivetune.LocalDownloadUtil
 import moe.rukamori.archivetune.ui.utils.ShowMediaInfo
+import moe.rukamori.archivetune.download.FlacDownloader
 
 // Состояния суб-навигации
-enum class PlayerMenuScreen { SETTINGS, CUSTOMIZATION, SLEEP_TIMER, ABOUT, DETAILS }
+enum class PlayerMenuScreen { SETTINGS, CUSTOMIZATION, SLEEP_TIMER, ABOUT, DETAILS, DOWNLOAD }
 
 @Composable
 fun FullPlayerOptionsMenu(
@@ -72,6 +89,7 @@ fun FullPlayerOptionsMenu(
                 currentScreen == PlayerMenuScreen.DETAILS ||
                 currentScreen == PlayerMenuScreen.CUSTOMIZATION ||
                 currentScreen == PlayerMenuScreen.SLEEP_TIMER ||
+                currentScreen == PlayerMenuScreen.DOWNLOAD ||
                 currentScreen == PlayerMenuScreen.ABOUT -> currentScreen = PlayerMenuScreen.SETTINGS
                 else -> onDismissRequest()
             }
@@ -143,6 +161,7 @@ fun FullPlayerOptionsMenu(
                                     onNavigateToCustomization = { currentScreen = PlayerMenuScreen.CUSTOMIZATION },
                                     onNavigateToSleepTimer = { currentScreen = PlayerMenuScreen.SLEEP_TIMER },
                                     onNavigateToDetails = { currentScreen = PlayerMenuScreen.DETAILS },
+                                    onNavigateToDownload = { currentScreen = PlayerMenuScreen.DOWNLOAD },
                                     onOpenEqualizer = onOpenEqualizer,
                                     onOpenPlaybackSpeed = onOpenPlaybackSpeed,
                                     onOpenAddToPlaylist = onOpenAddToPlaylist,
@@ -170,6 +189,12 @@ fun FullPlayerOptionsMenu(
                                     state = state,
                                     updateState = updateState,
                                     onAction = onAction,
+                                    onDismissRequest = onDismissRequest
+                                )
+                            }
+                            PlayerMenuScreen.DOWNLOAD -> {
+                                DownloadMenuContent(
+                                    state = state,
                                     onDismissRequest = onDismissRequest
                                 )
                             }
@@ -215,6 +240,236 @@ fun FullPlayerOptionsMenu(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DownloadMenuContent(
+    state: PlayerUiState,
+    onDismissRequest: () -> Unit
+) {
+    val context = LocalContext.current
+    val download by LocalDownloadUtil.current
+        .getDownload(state.trackUrl)
+        .collectAsState(initial = null)
+    
+    val (playbackSource) = moe.rukamori.archivetune.utils.rememberEnumPreference(
+        moe.rukamori.archivetune.constants.PlaybackSourceKey, 
+        defaultValue = moe.rukamori.archivetune.constants.PlaybackSource.YT_MUSIC
+    )
+    val (externalDownloaderEnabled) = moe.rukamori.archivetune.utils.rememberPreference(
+        moe.rukamori.archivetune.constants.ExternalDownloaderEnabledKey, 
+        defaultValue = false
+    )
+    val (externalDownloaderPackage) = moe.rukamori.archivetune.utils.rememberPreference(
+        moe.rukamori.archivetune.constants.ExternalDownloaderPackageKey, 
+        defaultValue = ""
+    )
+
+    val GoogleSans = FontFamily(
+        Font(R.font.google_sans_regular, FontWeight.Normal),
+        Font(R.font.google_sans_bold, FontWeight.Bold)
+    )
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Download",
+            color = Color.White,
+            fontSize = 19.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = GoogleSans,
+            modifier = Modifier.padding(start = 4.dp, bottom = 16.dp)
+        )
+
+        when (download?.state) {
+            Download.STATE_COMPLETED -> {
+                ListItem(
+                    headlineContent = {
+                        Text(
+                            text = stringResource(R.string.remove_download),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.offline),
+                            tint = MaterialTheme.colorScheme.error,
+                            contentDescription = null,
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        DownloadService.sendRemoveDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            state.trackUrl,
+                            false,
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                )
+            }
+            Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+                ListItem(
+                    headlineContent = { Text(text = stringResource(R.string.downloading), color = Color.White) },
+                    leadingContent = {
+                        CircularWavyProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        DownloadService.sendRemoveDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            state.trackUrl,
+                            false,
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                )
+            }
+            else -> {
+                ListItem(
+                    headlineContent = { Text(text = stringResource(R.string.action_download), color = Color.White) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.download),
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        val downloadRequest = DownloadRequest
+                            .Builder(state.trackUrl, state.trackUrl.toUri())
+                            .setCustomCacheKey(state.trackUrl)
+                            .setData(state.title.toByteArray())
+                            .build()
+                        DownloadService.sendAddDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false,
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                )
+            }
+        }
+
+        if (playbackSource == moe.rukamori.archivetune.constants.PlaybackSource.FLAC) {
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 56.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+            val flacWorkInfos by WorkManager.getInstance(context)
+                .getWorkInfosForUniqueWorkFlow("flac_download_${state.trackUrl}")
+                .collectAsState(emptyList())
+            val flacWorkState = flacWorkInfos.firstOrNull()?.state
+
+            when (flacWorkState) {
+                WorkInfo.State.RUNNING, WorkInfo.State.ENQUEUED -> {
+                    ListItem(
+                        headlineContent = { Text(text = stringResource(R.string.downloading), color = Color.White) },
+                        leadingContent = {
+                            CircularWavyProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            WorkManager.getInstance(context).cancelUniqueWork("flac_download_${state.trackUrl}")
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                }
+                WorkInfo.State.SUCCEEDED -> {
+                    ListItem(
+                        headlineContent = { Text(text = stringResource(R.string.remove_download), color = Color.White) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.offline),
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            FlacDownloader.deleteFlac(
+                                context,
+                                state.trackUrl,
+                                state.title,
+                                state.artist,
+                                "",
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                }
+                else -> {
+                    ListItem(
+                        headlineContent = { Text(text = stringResource(R.string.download_flac), color = Color.White) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.download),
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            FlacDownloader.downloadFlac(
+                                context,
+                                state.trackUrl,
+                                state.title,
+                                state.artist,
+                                "",
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                }
+            }
+        }
+
+        if (externalDownloaderEnabled) {
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 56.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+            ListItem(
+                headlineContent = { Text(text = stringResource(R.string.open_with_downloader), color = Color.White) },
+                leadingContent = {
+                    Icon(
+                        painter = painterResource(R.drawable.download),
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                },
+                modifier = Modifier.clickable {
+                    onDismissRequest()
+                    val url = "https://music.youtube.com/watch?v=${state.trackUrl}"
+                    if (externalDownloaderPackage.isBlank()) {
+                        android.widget.Toast.makeText(
+                            context,
+                            context.getString(R.string.external_downloader_not_configured),
+                            android.widget.Toast.LENGTH_LONG,
+                        ).show()
+                        return@clickable
+                    }
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                        setPackage(externalDownloaderPackage)
+                        data = android.net.Uri.parse(url)
+                        addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    try {
+                        context.startActivity(intent)
+                    } catch (e: android.content.ActivityNotFoundException) {
+                        android.widget.Toast.makeText(
+                            context,
+                            context.getString(R.string.external_downloader_not_installed),
+                            android.widget.Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            )
         }
     }
 }

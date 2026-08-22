@@ -35,21 +35,6 @@ import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.net.toUri
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
-import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
-import moe.rukamori.archivetune.LocalDownloadUtil
-import moe.rukamori.archivetune.constants.PlaybackSource
-import moe.rukamori.archivetune.constants.PlaybackSourceKey
-import moe.rukamori.archivetune.download.FlacDownloader
-import moe.rukamori.archivetune.playback.ExoDownloadService
-import moe.rukamori.archivetune.utils.rememberEnumPreference
-import androidx.compose.material3.CircularWavyProgressIndicator
 import moe.rukamori.archivetune.utils.SpeedDialPin
 import moe.rukamori.archivetune.utils.SpeedDialPinType
 import moe.rukamori.archivetune.utils.parseSpeedDialPins
@@ -70,6 +55,7 @@ fun SettingsMenuContent(
     onNavigateToCustomization: () -> Unit,
     onNavigateToSleepTimer: () -> Unit,
     onNavigateToDetails: () -> Unit,
+    onNavigateToDownload: () -> Unit,
     onOpenEqualizer: () -> Unit,
     onOpenPlaybackSpeed: () -> Unit,
     onOpenAddToPlaylist: () -> Unit,
@@ -80,14 +66,6 @@ fun SettingsMenuContent(
     val softUpdateInteraction = remember { MutableInteractionSource() }
     val isSoftUpdatePressed by softUpdateInteraction.collectIsPressedAsState()
     val softUpdateScale by animateFloatAsState(if (isSoftUpdatePressed) 0.96f else 1f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium))
-
-    val context = LocalContext.current
-    val (playbackSource) = rememberEnumPreference(PlaybackSourceKey, defaultValue = PlaybackSource.YT_MUSIC)
-    val download by LocalDownloadUtil.current.getDownload(state.trackUrl).collectAsState(initial = null)
-    val flacWorkInfos by WorkManager.getInstance(context)
-        .getWorkInfosForUniqueWorkFlow("flac_download_${state.trackUrl}")
-        .collectAsState(emptyList())
-    val flacWorkState = flacWorkInfos.firstOrNull()?.state
 
     val (speedDialSongIds, onSpeedDialSongIdsChange) = rememberPreference(SpeedDialSongIdsKey, "")
     val speedDialPins = remember(speedDialSongIds) { parseSpeedDialPins(speedDialSongIds) }
@@ -199,109 +177,13 @@ fun SettingsMenuContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (playbackSource == PlaybackSource.FLAC) {
-            when (flacWorkState) {
-                WorkInfo.State.RUNNING, WorkInfo.State.ENQUEUED -> {
-                    CompactMenuRow(
-                        title = "Downloading...",
-                        subtitle = "Tap to cancel",
-                        leadingContent = {
-                            CircularWavyProgressIndicator(modifier = Modifier.size(20.dp))
-                        },
-                        onClick = {
-                            WorkManager.getInstance(context).cancelUniqueWork("flac_download_${state.trackUrl}")
-                        }
-                    )
-                }
-                WorkInfo.State.SUCCEEDED -> {
-                    CompactMenuRow(
-                        title = "Remove Download",
-                        subtitle = "Tap to delete offline cache",
-                        iconResId = R.drawable.offline,
-                        onClick = {
-                            FlacDownloader.deleteFlac(
-                                context,
-                                state.trackUrl,
-                                state.title,
-                                state.artist,
-                                ""
-                            )
-                        }
-                    )
-                }
-                else -> {
-                    CompactMenuRow(
-                        title = "Download",
-                        subtitle = "Save track offline",
-                        iconResId = R.drawable.download,
-                        onClick = {
-                            FlacDownloader.downloadFlac(
-                                context,
-                                state.trackUrl,
-                                state.title,
-                                state.artist,
-                                ""
-                            )
-                        }
-                    )
-                }
-            }
-        } else {
-            when (download?.state) {
-                Download.STATE_COMPLETED -> {
-                    CompactMenuRow(
-                        title = "Downloaded",
-                        subtitle = "Tap to delete offline cache",
-                        iconResId = R.drawable.offline,
-                        onClick = {
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                state.trackUrl,
-                                false,
-                            )
-                        }
-                    )
-                }
-                Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                    CompactMenuRow(
-                        title = "Downloading...",
-                        subtitle = "Tap to cancel",
-                        leadingContent = {
-                            CircularWavyProgressIndicator(modifier = Modifier.size(20.dp))
-                        },
-                        onClick = {
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                state.trackUrl,
-                                false,
-                            )
-                        }
-                    )
-                }
-                else -> {
-                    CompactMenuRow(
-                        title = "Download",
-                        subtitle = "Save track offline",
-                        iconResId = R.drawable.download,
-                        onClick = {
-                            val downloadRequest = DownloadRequest
-                                .Builder(state.trackUrl, state.trackUrl.toUri())
-                                .setCustomCacheKey(state.trackUrl)
-                                .setData(state.title.toByteArray())
-                                .build()
-                            DownloadService.sendAddDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                downloadRequest,
-                                false,
-                            )
-                        }
-                    )
-                }
-            }
-        }
+        CompactMenuRow(
+            title = "Download",
+            subtitle = "Save track offline",
+            iconResId = R.drawable.download,
+            onClick = onNavigateToDownload,
+            showArrow = true
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -377,8 +259,7 @@ fun AboutMenuSection(
 fun CompactMenuRow(
     title: String,
     subtitle: String,
-    iconResId: Int? = null,
-    leadingContent: @Composable (() -> Unit)? = null,
+    iconResId: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     showArrow: Boolean = false,
@@ -411,16 +292,12 @@ fun CompactMenuRow(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (leadingContent != null) {
-                leadingContent()
-            } else if (iconResId != null) {
-                Icon(
-                    painter = painterResource(id = iconResId),
-                    contentDescription = title,
-                    tint = if (isActive) activeIconTint else Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            Icon(
+                painter = painterResource(id = iconResId),
+                contentDescription = title,
+                tint = if (isActive) activeIconTint else Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(20.dp)
+            )
 
             Spacer(modifier = Modifier.width(10.dp))
 
