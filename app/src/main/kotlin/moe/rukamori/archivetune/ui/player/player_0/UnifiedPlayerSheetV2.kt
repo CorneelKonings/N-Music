@@ -78,6 +78,7 @@ fun UnifiedPlayerSheetV2(
     onImmersiveChanged: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
     onSeekStarted: () -> Unit,
+    progressMsProvider: () -> Long,
     bottomBarHeight: Dp = 0.dp,
     onExpansionFractionChanged: (Float) -> Unit = {},
     onLyricsClick: () -> Unit = {}
@@ -357,6 +358,7 @@ fun UnifiedPlayerSheetV2(
                     updateState = updateState,
                     expansionFractionProvider = { expansionFraction.value },
                     lyricsFractionProvider = lyricsFractionProvider,
+                    progressMsProvider = progressMsProvider,
                     fullPlayerVisualState = fullPlayerVisualState,
                     lyricsSwipeOffsetY = lyricsSwipeOffsetY,
                     onLyricsSwipeOffsetChanged = { lyricsSwipeOffsetY = it },

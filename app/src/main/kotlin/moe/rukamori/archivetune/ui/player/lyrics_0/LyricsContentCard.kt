@@ -47,6 +47,7 @@ import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 fun LyricsContentCard(
     state: PlayerUiState,
     animateProgressProvider: () -> Float,
+    progressMsProvider: () -> Long,
     onSearchClick: () -> Unit,
     lazyListState: LazyListState,
     modifier: Modifier = Modifier,
@@ -170,6 +171,13 @@ fun LyricsContentCard(
                         }
                     }
                 } else {
+                    val currentMsState = produceState(initialValue = 0L, progressMsProvider) {
+                        while (true) {
+                            value = progressMsProvider()
+                            kotlinx.coroutines.delay(32)
+                        }
+                    }
+
                     Box(modifier = Modifier.fillMaxSize()) {
                         LazyColumn(
                             state = lazyListState,
@@ -209,7 +217,17 @@ fun LyricsContentCard(
                                 items = state.lyricsList,
                                 key = { index, line -> "${line.time}_$index" }
                             ) { index, line ->
-                                val isActive = index == state.currentLineIndex
+                                val syncOffset = state.lyricsSyncOffset
+                                val nextTime = remember(state.lyricsList, index) {
+                                    state.lyricsList.getOrNull(index + 1)?.time ?: Long.MAX_VALUE
+                                }
+                                val isActive by remember(line.time, nextTime, syncOffset) {
+                                    derivedStateOf {
+                                        val currentMs = currentMsState.value + syncOffset
+                                        val target = currentMs + 300L
+                                        target >= line.time && target < nextTime
+                                    }
+                                }
 
                                 val animatedAlpha by animateFloatAsState(
                                     targetValue = if (isActive) 1f else 0.35f,

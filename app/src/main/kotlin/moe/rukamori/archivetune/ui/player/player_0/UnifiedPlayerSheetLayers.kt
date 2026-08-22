@@ -23,6 +23,7 @@ internal fun UnifiedPlayerSheetLayers(
     updateState: UpdateState,
     expansionFractionProvider: () -> Float,
     lyricsFractionProvider: () -> Float,
+    progressMsProvider: () -> Long,
     fullPlayerVisualState: FullPlayerVisualState,
     lyricsSwipeOffsetY: Float,
     onLyricsSwipeOffsetChanged: (Float) -> Unit,
@@ -145,6 +146,7 @@ internal fun UnifiedPlayerSheetLayers(
             LyricsColumn(
                 state = effectiveState,
                 animateProgressProvider = lyricsFractionProvider,
+                progressMsProvider = progressMsProvider,
                 onCloseClick = onCloseLyricsClick,
                 onPlayPauseClick = { onAction(PlayerAction.PlayPause) },
                 onMoreClick = onMoreLyricsClick,

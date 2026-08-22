@@ -2719,6 +2719,7 @@ private fun ScopedPlayerSheet(
     val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
     UnifiedPlayerSheetV2(
         state = uiState,
+        progressMsProvider = playerViewModel.progressMsProvider,
         onAction = { action ->
             when (action) {
                 is PlayerAction.StartRadio -> {

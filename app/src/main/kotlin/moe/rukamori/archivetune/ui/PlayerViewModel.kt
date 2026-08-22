@@ -105,6 +105,8 @@ class PlayerViewModel @Inject constructor(
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.NoUpdate)
     val updateState: StateFlow<UpdateState> = _updateState.asStateFlow()
 
+    val progressMsProvider: () -> Long = { audioPlayer?.currentPosition ?: _uiState.value.progressMs }
+
     private var lastFetchedTrackKey: String = ""
     private var isUserSeeking = false
     private var tickerJob: Job? = null

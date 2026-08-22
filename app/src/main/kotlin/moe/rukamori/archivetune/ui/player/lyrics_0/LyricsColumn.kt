@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 fun LyricsColumn(
     state: PlayerUiState,
     animateProgressProvider: () -> Float,
+    progressMsProvider: () -> Long,
     onCloseClick: () -> Unit,
     onMoreClick: () -> Unit,
     onSearchClick: () -> Unit,
@@ -160,6 +161,7 @@ fun LyricsColumn(
         LyricsContentCard(
             state = state,
             animateProgressProvider = animateProgressProvider,
+            progressMsProvider = progressMsProvider,
             onSearchClick = onSearchClick,
             lazyListState = lazyListState,
             onLineClick = onLineClick
