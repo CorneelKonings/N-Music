@@ -872,6 +872,25 @@ class PlayerViewModel @Inject constructor(
         lyricsJob?.cancel()
         lyricsJob = viewModelScope.launch(Dispatchers.IO) {
             try {
+                val db = playerConnection?.database
+                val cached = db?.getLyricsById(trackUrl)
+                
+                if (cached != null && cached.lyrics != moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
+                    val parsedLines = parseLyrics(cached.lyrics)
+                    withContext(Dispatchers.Main) {
+                        _uiState.update {
+                            it.copy(
+                                lyricsList = parsedLines,
+                                isSynced = parsedLines.any { line -> line.time > 0 },
+                                isLoadingLyrics = false,
+                                lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null,
+                                currentLineIndex = -1
+                            )
+                        }
+                    }
+                    return@launch
+                }
+
                 // 👇 АДАПТИРУЙ под свою сигнатуру MediaMetadata
                 val metadata = moe.rukamori.archivetune.models.MediaMetadata(
                     id = trackUrl,
