@@ -883,22 +883,7 @@ class PlayerViewModel @Inject constructor(
                 val db = playerConnection?.database
                 val cached = if (force) null else db?.getLyricsById(trackUrl)
                 
-                if (cached != null) {
-                    if (cached.lyrics == moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
-                        withContext(Dispatchers.Main) {
-                            _uiState.update {
-                                it.copy(
-                                    lyricsList = emptyList(),
-                                    isSynced = false,
-                                    isLoadingLyrics = false,
-                                    lyricsError = "lyrics_not_found",
-                                    currentLineIndex = -1
-                                )
-                            }
-                        }
-                        return@launch
-                    }
-                    
+                if (cached != null && cached.lyrics != moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
                     val parsedLines = parseLyrics(cached.lyrics)
                     val isSynced = parsedLines.any { line -> line.time > 0 }
                     withContext(Dispatchers.Main) {
@@ -917,12 +902,13 @@ class PlayerViewModel @Inject constructor(
                 }
 
                 // 👇 АДАПТИРУЙ под свою сигнатуру MediaMetadata
+                val currentMetadata = playerConnection?.mediaMetadata?.value
                 val metadata = moe.rukamori.archivetune.models.MediaMetadata(
                     id = trackUrl,
                     title = title,
                     artists = listOf(moe.rukamori.archivetune.models.MediaMetadata.Artist(id = null,  name = artist)),
                     duration = (currentState.durationMs / 1000).toInt(),
-                    album = null
+                    album = currentMetadata?.album
                 )
 
                 val rawLyrics = lyricsHelper.getLyrics(metadata)
