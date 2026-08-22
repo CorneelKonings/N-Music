@@ -878,7 +878,11 @@ fun Lyrics(
 
                         val targetAlpha =
                             when {
-                                !isSynced || (isSelectionModeActive && isSelected) -> {
+                                !isSynced -> {
+                                    0.35f
+                                }
+
+                                isSelectionModeActive && isSelected -> {
                                     1f
                                 }
 

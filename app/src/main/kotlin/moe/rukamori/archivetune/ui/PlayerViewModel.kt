@@ -124,11 +124,14 @@ class PlayerViewModel @Inject constructor(
                 .collect { cached ->
                     if (cached != null) {
                         val parsedLines = parseLyrics(cached.lyrics)
+                        val isSynced = parsedLines.any { line -> line.time > 0 }
                         _uiState.update {
+                            val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, it.progressMs, it.lyricsSyncOffset) else -1
                             it.copy(
                                 lyricsList = parsedLines,
-                                isSynced = parsedLines.any { line -> line.time > 0 },
-                                lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null
+                                isSynced = isSynced,
+                                lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null,
+                                currentLineIndex = targetIndex
                             )
                         }
                     }
@@ -625,20 +628,31 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    private fun updateLyricsProgress(progressMs: Long) {
-        val state = _uiState.value
-        if (state.lyricsList.isEmpty() || !state.isLyricsVisible || !state.isSynced) return
-
-        val adjustedProgressMs = (progressMs + state.lyricsSyncOffset).coerceAtLeast(0L)
-
+    private fun findCurrentLineIndex(lyricsList: List<LyricsEntry>, progressMs: Long, syncOffset: Int): Int {
+        val adjustedProgressMs = (progressMs + syncOffset).coerceAtLeast(0L)
         var targetIndex = -1
-        for (i in state.lyricsList.indices) {
-            if (adjustedProgressMs >= state.lyricsList[i].time) {
+        for (i in lyricsList.indices) {
+            if (adjustedProgressMs >= lyricsList[i].time) {
                 targetIndex = i
             } else {
                 break
             }
         }
+        return targetIndex
+    }
+
+    private fun updateLyricsProgress(progressMs: Long) {
+        val state = _uiState.value
+        if (state.lyricsList.isEmpty() || !state.isLyricsVisible) return
+
+        if (!state.isSynced || state.lyricsList.all { it.time == -1L }) {
+            if (state.currentLineIndex != -1) {
+                _uiState.update { it.copy(currentLineIndex = -1) }
+            }
+            return
+        }
+
+        val targetIndex = findCurrentLineIndex(state.lyricsList, progressMs, state.lyricsSyncOffset)
 
         if (targetIndex != state.currentLineIndex) {
             _uiState.update { it.copy(currentLineIndex = targetIndex) }
@@ -877,14 +891,16 @@ class PlayerViewModel @Inject constructor(
                 
                 if (cached != null && cached.lyrics != moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
                     val parsedLines = parseLyrics(cached.lyrics)
+                    val isSynced = parsedLines.any { line -> line.time > 0 }
                     withContext(Dispatchers.Main) {
                         _uiState.update {
+                            val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, it.progressMs, it.lyricsSyncOffset) else -1
                             it.copy(
                                 lyricsList = parsedLines,
-                                isSynced = parsedLines.any { line -> line.time > 0 },
+                                isSynced = isSynced,
                                 isLoadingLyrics = false,
                                 lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null,
-                                currentLineIndex = -1
+                                currentLineIndex = targetIndex
                             )
                         }
                     }
@@ -913,14 +929,16 @@ class PlayerViewModel @Inject constructor(
                     }
                 }
 
+                val isSynced = parsedLines.any { line -> line.time > 0 }
                 withContext(Dispatchers.Main) {
                     _uiState.update {
+                        val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, it.progressMs, it.lyricsSyncOffset) else -1
                         it.copy(
                             lyricsList = parsedLines,
-                            isSynced = parsedLines.any { line -> line.time > 0 },
+                            isSynced = isSynced,
                             isLoadingLyrics = false,
                             lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null,
-                            currentLineIndex = -1
+                            currentLineIndex = targetIndex
                         )
                     }
                 }
@@ -965,7 +983,10 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun setLyricsVisible(isVisible: Boolean) {
-        _uiState.update { it.copy(isLyricsVisible = isVisible) }
+        _uiState.update { 
+            val targetIndex = if (!isVisible || !it.isSynced || it.lyricsList.all { line -> line.time == -1L }) -1 else findCurrentLineIndex(it.lyricsList, it.progressMs, it.lyricsSyncOffset)
+            it.copy(isLyricsVisible = isVisible, currentLineIndex = targetIndex) 
+        }
         if (isVisible && _uiState.value.lyricsList.isEmpty()) {
             fetchLyrics()
         }

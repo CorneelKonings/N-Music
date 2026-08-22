@@ -657,7 +657,7 @@ fun LyricsV2(
                 val lineAlpha =
                     when {
                         !isSynced -> {
-                            0.92f
+                            0.35f
                         }
 
                         isActive -> {
