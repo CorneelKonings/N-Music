@@ -22,7 +22,7 @@ import moe.rukamori.archivetune.playback.AdvancedSleepTimer
 import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.playback.queues.YouTubeQueue
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
-import moe.rukamori.archivetune.ui.state.LyricLine
+import moe.rukamori.archivetune.lyrics.LyricsEntry
 import moe.rukamori.archivetune.ui.state.PlayerEvent
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
@@ -127,7 +127,7 @@ class PlayerViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 lyricsList = parsedLines,
-                                isSynced = parsedLines.any { line -> line.timeMs > 0 },
+                                isSynced = parsedLines.any { line -> line.time > 0 },
                                 lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null
                             )
                         }
@@ -627,7 +627,7 @@ class PlayerViewModel @Inject constructor(
 
         var targetIndex = -1
         for (i in state.lyricsList.indices) {
-            if (adjustedProgressMs >= state.lyricsList[i].timeMs) {
+            if (adjustedProgressMs >= state.lyricsList[i].time) {
                 targetIndex = i
             } else {
                 break
@@ -648,9 +648,9 @@ class PlayerViewModel @Inject constructor(
             var rawText = cached?.lyrics ?: ""
             if (rawText.isBlank()) {
                 rawText = _uiState.value.lyricsList.joinToString("\n") { line ->
-                    val min = line.timeMs / 60000
-                    val sec = (line.timeMs % 60000) / 1000
-                    val ms = (line.timeMs % 1000) / 10
+                    val min = line.time / 60000
+                    val sec = (line.time % 60000) / 1000
+                    val ms = (line.time % 1000) / 10
                     String.format(java.util.Locale.US, "[%02d:%02d.%02d] %s", min, sec, ms, line.text)
                 }
             }
@@ -674,7 +674,7 @@ class PlayerViewModel @Inject constructor(
             }
             val parsedLines = parseLyrics(text)
             withContext(Dispatchers.Main) {
-                _uiState.update { it.copy(lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.timeMs > 0 }) }
+                _uiState.update { it.copy(lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
             }
         }
     }
@@ -695,9 +695,9 @@ class PlayerViewModel @Inject constructor(
                     var rawText = cached?.lyrics ?: ""
                     if (rawText.isBlank()) {
                         rawText = _uiState.value.lyricsList.joinToString("\n") { line ->
-                            val min = line.timeMs / 60000
-                            val sec = (line.timeMs % 60000) / 1000
-                            val ms = (line.timeMs % 1000) / 10
+                            val min = line.time / 60000
+                            val sec = (line.time % 60000) / 1000
+                            val ms = (line.time % 1000) / 10
                             String.format(java.util.Locale.US, "[%02d:%02d.%02d] %s", min, sec, ms, line.text)
                         }
                     }
@@ -734,7 +734,7 @@ class PlayerViewModel @Inject constructor(
                     }
                     val parsedLines = parseLyrics(translatedLyrics)
                     withContext(Dispatchers.Main) {
-                        _uiState.update { it.copy(isAiTranslating = false, lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.timeMs > 0 }) }
+                        _uiState.update { it.copy(isAiTranslating = false, lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
                     }
                 } catch (e: CancellationException) {
                     throw e
@@ -756,9 +756,9 @@ class PlayerViewModel @Inject constructor(
                     var rawText = cached?.lyrics ?: ""
                     if (rawText.isBlank()) {
                         rawText = _uiState.value.lyricsList.joinToString("\n") { line ->
-                            val min = line.timeMs / 60000
-                            val sec = (line.timeMs % 60000) / 1000
-                            val ms = (line.timeMs % 1000) / 10
+                            val min = line.time / 60000
+                            val sec = (line.time % 60000) / 1000
+                            val ms = (line.time % 1000) / 10
                             String.format(java.util.Locale.US, "[%02d:%02d.%02d] %s", min, sec, ms, line.text)
                         }
                     }
@@ -785,7 +785,7 @@ class PlayerViewModel @Inject constructor(
                     }
                     val parsedLines = parseLyrics(translatedLyrics)
                     withContext(Dispatchers.Main) {
-                        _uiState.update { it.copy(isStandardTranslating = false, lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.timeMs > 0 }) }
+                        _uiState.update { it.copy(isStandardTranslating = false, lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
                     }
                 } catch (e: CancellationException) {
                     throw e
@@ -892,7 +892,7 @@ class PlayerViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             lyricsList = parsedLines,
-                            isSynced = parsedLines.any { line -> line.timeMs > 0 },
+                            isSynced = parsedLines.any { line -> line.time > 0 },
                             isLoadingLyrics = false,
                             lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null,
                             currentLineIndex = -1
@@ -912,12 +912,12 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    private fun parseLyrics(rawLyrics: String): List<LyricLine> {
+    private fun parseLyrics(rawLyrics: String): List<LyricsEntry> {
         if (rawLyrics.isBlank() || rawLyrics == moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
             return emptyList()
         }
 
-        val lines = mutableListOf<LyricLine>()
+        val lines = mutableListOf<LyricsEntry>()
         val lrcPattern = Regex("""\[(\d{2}):(\d{2})\.(\d{2,3})](.+)""")
 
         rawLyrics.lines().forEach { line ->
@@ -929,17 +929,15 @@ class PlayerViewModel @Inject constructor(
                 val cleanText = text.trim()
 
                 lines.add(
-                    LyricLine(
+                    LyricsEntry(
                         text = cleanText,
-                        timeMs = timeMs,
-                        startChar = 0,
-                        endChar = cleanText.length,
+                        time = timeMs,
                     )
                 )
             }
         }
 
-        return lines.sortedBy { it.timeMs }
+        return lines.sortedBy { it.time }
     }
 
     fun setLyricsVisible(isVisible: Boolean) {

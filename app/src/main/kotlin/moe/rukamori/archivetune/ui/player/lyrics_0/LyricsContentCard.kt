@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.TextStyle
-import moe.rukamori.archivetune.ui.state.LyricLine
+import moe.rukamori.archivetune.lyrics.LyricsEntry
 import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 
 @Composable
@@ -207,7 +207,7 @@ fun LyricsContentCard(
                         ) {
                             itemsIndexed(
                                 items = state.lyricsList,
-                                key = { _, line -> line.timeMs }
+                                key = { _, line -> line.time }
                             ) { index, line ->
                                 val isActive = index == state.currentLineIndex
 
@@ -234,7 +234,7 @@ fun LyricsContentCard(
                                             interactionSource = remember { MutableInteractionSource() },
                                             indication = null
                                         ) {
-                                            onLineClick(line.timeMs)
+                                            onLineClick(line.time)
                                         }
                                         .graphicsLayer {
                                             alpha = animatedAlpha

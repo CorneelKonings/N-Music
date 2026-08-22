@@ -2,7 +2,8 @@ package moe.rukamori.archivetune.ui.state
 
 import android.graphics.Color
 import android.graphics.drawable.Drawable
-//import moe.rukamori.archivetune.data.lyrics.internal.LyricLine
+import moe.rukamori.archivetune.lyrics.LyricsEntry
+import moe.rukamori.archivetune.lyrics.LyricsRomanizationPreferences
 import androidx.compose.runtime.Immutable
 /**
  * Единый источник правды (State) для всего интерфейса Spot.
@@ -23,7 +24,8 @@ data class PlayerUiState(
     val durationMs: Long = 0L,
 
     // Состояние лирики
-    val lyricsList: List<LyricLine> = emptyList(),
+    val lyricsList: List<LyricsEntry> = emptyList(),
+    val lyricsRomanizationPrefs: LyricsRomanizationPreferences? = null,
     val currentLineIndex: Int = -1,
     val isSynced: Boolean = false,
     val isLyricsVisible: Boolean = false,
