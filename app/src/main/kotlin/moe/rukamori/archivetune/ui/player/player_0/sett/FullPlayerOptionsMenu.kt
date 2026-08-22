@@ -27,10 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
@@ -284,61 +280,48 @@ fun DownloadMenuContent(
 
         when (download?.state) {
             Download.STATE_COMPLETED -> {
-                ListItem(
-                    headlineContent = {
-                        Text(
-                            text = stringResource(R.string.remove_download),
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.offline),
-                            tint = MaterialTheme.colorScheme.error,
-                            contentDescription = null,
-                        )
-                    },
-                    modifier = Modifier.clickable {
+                CompactMenuRow(
+                    title = "Downloaded",
+                    subtitle = "Tap to delete offline cache",
+                    iconResId = R.drawable.offline,
+                    isActive = true,
+                    activeIconTint = Color(0xFFFF5252),
+                    onClick = {
                         DownloadService.sendRemoveDownload(
                             context,
                             ExoDownloadService::class.java,
                             state.trackUrl,
                             false,
                         )
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    }
                 )
             }
             Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                ListItem(
-                    headlineContent = { Text(text = stringResource(R.string.downloading), color = Color.White) },
+                CompactMenuRow(
+                    title = "Downloading...",
+                    subtitle = "Tap to cancel",
                     leadingContent = {
                         CircularWavyProgressIndicator(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White
                         )
                     },
-                    modifier = Modifier.clickable {
+                    onClick = {
                         DownloadService.sendRemoveDownload(
                             context,
                             ExoDownloadService::class.java,
                             state.trackUrl,
                             false,
                         )
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    }
                 )
             }
             else -> {
-                ListItem(
-                    headlineContent = { Text(text = stringResource(R.string.action_download), color = Color.White) },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.download),
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                    },
-                    modifier = Modifier.clickable {
+                CompactMenuRow(
+                    title = "Standard Download",
+                    subtitle = "Opus / AAC offline cache",
+                    iconResId = R.drawable.download,
+                    onClick = {
                         val downloadRequest = DownloadRequest
                             .Builder(state.trackUrl, state.trackUrl.toUri())
                             .setCustomCacheKey(state.trackUrl)
@@ -350,17 +333,13 @@ fun DownloadMenuContent(
                             downloadRequest,
                             false,
                         )
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    }
                 )
             }
         }
 
         if (playbackSource == moe.rukamori.archivetune.constants.PlaybackSource.FLAC) {
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 56.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
+            Spacer(modifier = Modifier.height(8.dp))
             val flacWorkInfos by WorkManager.getInstance(context)
                 .getWorkInfosForUniqueWorkFlow("flac_download_${state.trackUrl}")
                 .collectAsState(emptyList())
@@ -368,30 +347,28 @@ fun DownloadMenuContent(
 
             when (flacWorkState) {
                 WorkInfo.State.RUNNING, WorkInfo.State.ENQUEUED -> {
-                    ListItem(
-                        headlineContent = { Text(text = stringResource(R.string.downloading), color = Color.White) },
+                    CompactMenuRow(
+                        title = "Downloading FLAC...",
+                        subtitle = "Tap to cancel",
                         leadingContent = {
                             CircularWavyProgressIndicator(
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(20.dp),
+                                color = Color.White
                             )
                         },
-                        modifier = Modifier.clickable {
+                        onClick = {
                             WorkManager.getInstance(context).cancelUniqueWork("flac_download_${state.trackUrl}")
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        }
                     )
                 }
                 WorkInfo.State.SUCCEEDED -> {
-                    ListItem(
-                        headlineContent = { Text(text = stringResource(R.string.remove_download), color = Color.White) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.offline),
-                                contentDescription = null,
-                                tint = Color.White
-                            )
-                        },
-                        modifier = Modifier.clickable {
+                    CompactMenuRow(
+                        title = "FLAC Downloaded",
+                        subtitle = "Tap to delete .flac file",
+                        iconResId = R.drawable.offline,
+                        isActive = true,
+                        activeIconTint = Color(0xFFFF5252),
+                        onClick = {
                             FlacDownloader.deleteFlac(
                                 context,
                                 state.trackUrl,
@@ -399,21 +376,15 @@ fun DownloadMenuContent(
                                 state.artist,
                                 "",
                             )
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        }
                     )
                 }
                 else -> {
-                    ListItem(
-                        headlineContent = { Text(text = stringResource(R.string.download_flac), color = Color.White) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.download),
-                                contentDescription = null,
-                                tint = Color.White
-                            )
-                        },
-                        modifier = Modifier.clickable {
+                    CompactMenuRow(
+                        title = "Lossless FLAC",
+                        subtitle = "Download full quality .flac",
+                        iconResId = R.drawable.download,
+                        onClick = {
                             FlacDownloader.downloadFlac(
                                 context,
                                 state.trackUrl,
@@ -421,28 +392,19 @@ fun DownloadMenuContent(
                                 state.artist,
                                 "",
                             )
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        }
                     )
                 }
             }
         }
 
         if (externalDownloaderEnabled) {
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 56.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-            ListItem(
-                headlineContent = { Text(text = stringResource(R.string.open_with_downloader), color = Color.White) },
-                leadingContent = {
-                    Icon(
-                        painter = painterResource(R.drawable.download),
-                        contentDescription = null,
-                        tint = Color.White
-                    )
-                },
-                modifier = Modifier.clickable {
+            Spacer(modifier = Modifier.height(8.dp))
+            CompactMenuRow(
+                title = "External Downloader",
+                subtitle = "Open in external download manager",
+                iconResId = R.drawable.download,
+                onClick = {
                     onDismissRequest()
                     val url = "https://music.youtube.com/watch?v=${state.trackUrl}"
                     if (externalDownloaderPackage.isBlank()) {
@@ -451,7 +413,7 @@ fun DownloadMenuContent(
                             context.getString(R.string.external_downloader_not_configured),
                             android.widget.Toast.LENGTH_LONG,
                         ).show()
-                        return@clickable
+                        return@CompactMenuRow
                     }
                     val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
                         setPackage(externalDownloaderPackage)
@@ -467,8 +429,7 @@ fun DownloadMenuContent(
                             android.widget.Toast.LENGTH_SHORT,
                         ).show()
                     }
-                },
-                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                }
             )
         }
     }

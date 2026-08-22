@@ -259,7 +259,8 @@ fun AboutMenuSection(
 fun CompactMenuRow(
     title: String,
     subtitle: String,
-    iconResId: Int,
+    iconResId: Int? = null,
+    leadingContent: (@Composable () -> Unit)? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     showArrow: Boolean = false,
@@ -292,12 +293,16 @@ fun CompactMenuRow(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(id = iconResId),
-                contentDescription = title,
-                tint = if (isActive) activeIconTint else Color.White.copy(alpha = 0.8f),
-                modifier = Modifier.size(20.dp)
-            )
+            if (leadingContent != null) {
+                leadingContent()
+            } else if (iconResId != null) {
+                Icon(
+                    painter = painterResource(id = iconResId),
+                    contentDescription = title,
+                    tint = if (isActive) activeIconTint else Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.width(10.dp))
 
