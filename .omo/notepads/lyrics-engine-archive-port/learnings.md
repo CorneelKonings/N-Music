@@ -68,3 +68,10 @@
 - Verified that `handleAction` correctly routes `TranslateLyrics`, `SetLyricsSyncOffset`, `PrepareLyricsEdit`, `SaveLyrics`, `SearchLyrics`, and `ForceRefresh` to their respective private/public methods.
 - Added `PlayerViewModelHandleActionTest` to verify the routing using MockK `spyk` and `verify`.
 - Mocked `LruCache` to prevent `RuntimeException` during `PlayerViewModel` initialization in tests.
+
+## 2026-08-22: Hotfix Verification (-1 Key Crash)
+- **Build**: `./gradlew :app:assembleFossMobileArm64Debug` completed successfully.
+- **Install**: `adb install -r` succeeded.
+- **Execution**: App launched via `adb shell monkey`.
+- **Logcat**: `adb logcat -d | grep -i "Key.*already used\|FATAL"` returned empty, confirming the crash is fixed.
+- **Status**: Hotfix verified on-device. Plain lyrics with -1L time no longer crash the LazyColumn.

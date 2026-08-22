@@ -630,15 +630,7 @@ class PlayerViewModel @Inject constructor(
 
     private fun findCurrentLineIndex(lyricsList: List<LyricsEntry>, progressMs: Long, syncOffset: Int): Int {
         val adjustedProgressMs = (progressMs + syncOffset).coerceAtLeast(0L)
-        var targetIndex = -1
-        for (i in lyricsList.indices) {
-            if (adjustedProgressMs >= lyricsList[i].time) {
-                targetIndex = i
-            } else {
-                break
-            }
-        }
-        return targetIndex
+        return moe.rukamori.archivetune.lyrics.LyricsUtils.findCurrentLineIndex(lyricsList, adjustedProgressMs, 300L)
     }
 
     private fun updateLyricsProgress(progressMs: Long) {
