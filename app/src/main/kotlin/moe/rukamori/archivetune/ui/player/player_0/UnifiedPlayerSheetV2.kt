@@ -287,6 +287,15 @@ fun UnifiedPlayerSheetV2(
         val colorBottom = Color(0xFF121212)
 
         Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    alpha = (expansionFraction.value * 0.6f).coerceIn(0f, 0.6f)
+                }
+                .background(Color.Black)
+        )
+
+        Box(
             modifier = modifier
                 .fillMaxSize()
                 .offset {
