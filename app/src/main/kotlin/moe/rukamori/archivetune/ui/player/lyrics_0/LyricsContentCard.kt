@@ -207,7 +207,7 @@ fun LyricsContentCard(
                         ) {
                             itemsIndexed(
                                 items = state.lyricsList,
-                                key = { _, line -> line.time }
+                                key = { index, line -> "${line.time}_$index" }
                             ) { index, line ->
                                 val isActive = index == state.currentLineIndex
 
