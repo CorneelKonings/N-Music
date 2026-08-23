@@ -2716,7 +2716,6 @@ private fun ScopedPlayerSheet(
     bottomNavigationBarHeight: Dp,
     onExpansionFractionChanged: (Float) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
     val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
     UnifiedPlayerSheetV2(
         state = uiState,
@@ -2728,20 +2727,14 @@ private fun ScopedPlayerSheet(
                 }
                 is PlayerAction.OpenArtist -> {
                     playerConnection?.service?.currentMediaMetadata?.value?.artists?.firstOrNull()?.id?.let { artistId ->
-                        scope.launch {
-                            playerViewModel.requestSheetCollapse()
-                            delay(100)
-                            navController.navigate("artist/$artistId")
-                        }
+                        navController.navigate("artist/$artistId")
+                        playerViewModel.requestSheetCollapse()
                     }
                 }
                 is PlayerAction.OpenAlbum -> {
                     playerConnection?.service?.currentMediaMetadata?.value?.album?.id?.let { albumId ->
-                        scope.launch {
-                            playerViewModel.requestSheetCollapse()
-                            delay(100)
-                            navController.navigate("album/$albumId")
-                        }
+                        navController.navigate("album/$albumId")
+                        playerViewModel.requestSheetCollapse()
                     }
                 }
                 else -> playerViewModel.handleAction(action)
