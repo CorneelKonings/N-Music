@@ -713,7 +713,7 @@ fun LyricsEnhanced(
                 ) {
                     val lyricsViewportOffset = remember(maxHeight) { maxHeight * 0.32f }
 
-                    key(lyricsSessionKey, syncedLyricsRenderVersion) {
+                    key(lyricsSessionKey, syncedLyricsRenderVersion, lyricsTextSize, lyricsLineSpacing) {
                         KaraokeLyricsView(
                             listState = listState,
                             lyrics = syncedLyrics,
