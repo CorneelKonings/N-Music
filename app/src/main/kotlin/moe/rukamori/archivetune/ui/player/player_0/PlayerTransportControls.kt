@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
@@ -31,8 +32,6 @@ private val CapsuleHorizontalPad  = 20.dp
 private val CapsuleHeight         = 96.dp
 private val CapsulePadHorizontal  = 32.dp
 private val CapsuleBorderWidth    = 1.dp
-private val CapsuleBgAlpha        = 0.10f
-private val CapsuleBorderAlpha    = 0.10f
 
 private val SideButtonSize        = 48.dp
 private val SideIconSize          = 36.dp
@@ -76,8 +75,19 @@ fun PlayerTransportControls(
                 .fillMaxWidth()
                 .height(CapsuleHeight)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = CapsuleBgAlpha))
-                .border(BorderStroke(CapsuleBorderWidth, Color.White.copy(alpha = CapsuleBorderAlpha)), CircleShape)
+                .background(animatedAccentColor.copy(alpha = 0.12f))
+                .border(
+                    BorderStroke(
+                        CapsuleBorderWidth,
+                        Brush.verticalGradient(
+                            listOf(
+                                animatedAccentColor.copy(alpha = 0.28f),
+                                animatedAccentColor.copy(alpha = 0.08f),
+                            ),
+                        ),
+                    ),
+                    CircleShape,
+                )
                 .padding(horizontal = CapsulePadHorizontal),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,

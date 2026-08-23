@@ -32,7 +32,6 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -153,6 +152,12 @@ fun LyricsContentCard(
                 )
 
                 if (showPlayerControls) {
+                    val animatedAccentColor by animateColorAsState(
+                        targetValue = Color(state.vibrantColor),
+                        animationSpec = tween(500),
+                        label = "LyricsTransportAccent",
+                    )
+
                     Box(
                         modifier =
                             Modifier
@@ -177,20 +182,14 @@ fun LyricsContentCard(
                                     translationY = 40f * (1f - progress)
                                 }
                                 .clip(RoundedCornerShape(32.dp))
-                                .background(
-                                    if (state.isBlurBackgroundEnabled) {
-                                        Color.Black.copy(alpha = 0.20f)
-                                    } else {
-                                        MaterialTheme.colorScheme.surface.copy(alpha = 0.22f)
-                                    },
-                                )
+                                .background(animatedAccentColor.copy(alpha = 0.12f))
                                 .border(
                                     BorderStroke(
                                         1.dp,
                                         Brush.verticalGradient(
                                             listOf(
-                                                Color.White.copy(alpha = 0.22f),
-                                                Color.White.copy(alpha = 0.08f),
+                                                animatedAccentColor.copy(alpha = 0.28f),
+                                                animatedAccentColor.copy(alpha = 0.08f),
                                             ),
                                         ),
                                     ),
@@ -222,11 +221,6 @@ fun LyricsContentCard(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                val animatedAccentColor by animateColorAsState(
-                                    targetValue = Color(state.vibrantColor),
-                                    animationSpec = tween(500),
-                                    label = "LyricsTransportAccent",
-                                )
                                 val playPauseIcon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
 
                                 Box(
