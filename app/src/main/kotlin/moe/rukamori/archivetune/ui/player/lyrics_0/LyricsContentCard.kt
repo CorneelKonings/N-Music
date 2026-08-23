@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,16 +46,23 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.lyrics.LyricsEntry
+import moe.rukamori.archivetune.lyrics.LyricsRomanizationPreferences
 import moe.rukamori.archivetune.constants.LyricsLineBlurKey
 import moe.rukamori.archivetune.constants.LyricsClickKey
 import moe.rukamori.archivetune.constants.LyricsScrollKey
 import moe.rukamori.archivetune.constants.LyricsTextSizeKey
 import moe.rukamori.archivetune.constants.LyricsLineSpacingKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeJapaneseKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeKoreanKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeChineseKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeHindiKey
+import moe.rukamori.archivetune.constants.LyricsRomanizeOtherLanguagesKey
 import moe.rukamori.archivetune.constants.LyricsV2BounceFactorKey
 import moe.rukamori.archivetune.constants.LyricsV2GlowFactorKey
 import moe.rukamori.archivetune.constants.LyricsV2FillTransitionWidthKey
 import moe.rukamori.archivetune.constants.ShowLyricsPlayerControlsKey
 import moe.rukamori.archivetune.ui.theme.rememberArchiveTuneLyricsFontFamily
+import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberPreference
 
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
@@ -101,6 +109,27 @@ fun LyricsContentCard(
     val (glowFactor) = rememberPreference(LyricsV2GlowFactorKey, defaultValue = 1f)
     val (fillTransitionWidth) = rememberPreference(LyricsV2FillTransitionWidthKey, defaultValue = 8f)
     val (showPlayerControls) = rememberPreference(ShowLyricsPlayerControlsKey, defaultValue = true)
+    val (romanizeChinese) = rememberPreference(LyricsRomanizeChineseKey, defaultValue = true)
+    val (romanizeHindi) = rememberPreference(LyricsRomanizeHindiKey, defaultValue = true)
+    val (romanizeJapanese) = rememberPreference(LyricsRomanizeJapaneseKey, defaultValue = true)
+    val (romanizeKorean) = rememberPreference(LyricsRomanizeKoreanKey, defaultValue = true)
+    val (romanizeOtherLanguages) = rememberPreference(LyricsRomanizeOtherLanguagesKey, defaultValue = true)
+    val romanizationPreferences =
+        remember(
+            romanizeJapanese,
+            romanizeKorean,
+            romanizeChinese,
+            romanizeHindi,
+            romanizeOtherLanguages,
+        ) {
+            LyricsRomanizationPreferences(
+                romanizeJapanese = romanizeJapanese,
+                romanizeKorean = romanizeKorean,
+                romanizeChinese = romanizeChinese,
+                romanizeHindi = romanizeHindi,
+                romanizeOther = romanizeOtherLanguages,
+            )
+        }
     val lyricsFontFamily = rememberArchiveTuneLyricsFontFamily()
     
     var isManualScrolling by remember { mutableStateOf(false) }
@@ -124,11 +153,20 @@ fun LyricsContentCard(
         }
     }
 
-    LaunchedEffect(state.currentLineIndex, state.isLyricsVisible) {
+    LaunchedEffect(state.currentLineIndex, state.isLyricsVisible, isManualScrolling, lyricsScroll) {
         if (state.isLyricsVisible && state.isSynced && state.currentLineIndex >= 0 && state.currentLineIndex < state.lyricsList.size) {
             if (lyricsScroll && !isManualScrolling) {
-                val viewportHeight = lazyListState.layoutInfo.viewportSize.height
+                val visibleInfo = lazyListState.layoutInfo
+                val viewportHeight = visibleInfo.viewportSize.height
                 val targetOffset = (viewportHeight * 0.35f).toInt()
+                
+                val distance = kotlin.math.abs(state.currentLineIndex - lazyListState.firstVisibleItemIndex)
+                if (distance > 15) {
+                    lazyListState.scrollToItem(
+                        (state.currentLineIndex - 2).coerceAtLeast(0),
+                        0
+                    )
+                }
                 lazyListState.animateScrollToItem(
                     index = state.currentLineIndex,
                     scrollOffset = -targetOffset
@@ -292,12 +330,19 @@ fun LyricsContentCard(
                                     )
                                 },
                             contentPadding = PaddingValues(top = 32.dp, bottom = 220.dp, start = 0.dp, end = 0.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             itemsIndexed(
                                 items = state.lyricsList,
-                                key = { index, line -> "${line.time}_$index" }
+                                key = { index, line -> "${line.time}_$index" },
+                                contentType = { _, line ->
+                                    when {
+                                        line == LyricsEntry.HEAD_LYRICS_ENTRY -> "head"
+                                        line.isInstrumental -> "instrumental"
+                                        line.words != null && state.isSynced -> "wordSynced"
+                                        else -> "lineSynced"
+                                    }
+                                }
                             ) { index, line ->
                                 val syncOffset = state.lyricsSyncOffset
                                 val nextTime = remember(state.lyricsList, index) {
@@ -321,7 +366,7 @@ fun LyricsContentCard(
                                 val distanceFromActive = if (state.isSynced && state.currentLineIndex >= 0) kotlin.math.abs(index - state.currentLineIndex) else 0
 
                                 if (line == LyricsEntry.HEAD_LYRICS_ENTRY) {
-                                    Spacer(modifier = Modifier.height(100.dp))
+                                    Spacer(modifier = Modifier.height(120.dp))
                                 } else if (line.isInstrumental) {
                                     val instrAlpha = when {
                                         isActive -> 1f
@@ -413,7 +458,8 @@ fun LyricsContentCard(
                                         onLineClick = onLineClick,
                                         distanceFromActive = distanceFromActive,
                                         isManualScrolling = isManualScrolling,
-                                        lyricsLineBlur = lyricsLineBlur
+                                        lyricsLineBlur = lyricsLineBlur,
+                                        romanizationPreferences = romanizationPreferences
                                     )
                                 }
                             }
@@ -433,117 +479,148 @@ fun LyricsContentCard(
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(bottom = 32.dp)
+                                    .padding(bottom = 24.dp)
                                     .fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Row(
                                     modifier = Modifier
-                                        .height(56.dp)
-                                        .clip(RoundedCornerShape(28.dp))
-                                        .background(Color(0x20FFFFFF))
-                                        .border(BorderStroke(1.dp, Color(0x33FFFFFF)), RoundedCornerShape(28.dp))
+                                        .height(72.dp)
+                                        .clip(RoundedCornerShape(36.dp))
+                                        .background(Color(0x33000000))
+                                        .border(BorderStroke(1.dp, Color(0x33FFFFFF)), RoundedCornerShape(36.dp))
                                         .padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Icon(
-                                    painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
-                                    contentDescription = "Previous",
-                                    tint = Color.White,
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .clickable { onAction(PlayerAction.Previous) }
-                                        .padding(4.dp)
-                                )
-                                
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White)
-                                        .clickable { onAction(PlayerAction.PlayPause) },
-                                    contentAlignment = Alignment.Center
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
                                 ) {
-                                    Icon(
-                                        painter = rememberVectorPainter(if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow),
-                                        contentDescription = "Play/Pause",
-                                        tint = Color.Black,
-                                        modifier = Modifier.size(24.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(56.dp)
+                                            .clip(CircleShape)
+                                            .clickable { onAction(PlayerAction.Previous) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
+                                            contentDescription = "Previous",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    }
+                                    
+                                    Box(
+                                        modifier = Modifier
+                                            .size(64.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.White)
+                                            .clickable { onAction(PlayerAction.PlayPause) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            painter = rememberVectorPainter(if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow),
+                                            contentDescription = "Play/Pause",
+                                            tint = Color.Black,
+                                            modifier = Modifier.size(36.dp)
+                                        )
+                                    }
+                                    
+                                    Box(
+                                        modifier = Modifier
+                                            .size(56.dp)
+                                            .clip(CircleShape)
+                                            .clickable { onAction(PlayerAction.Next) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            painter = rememberVectorPainter(Icons.Rounded.SkipNext),
+                                            contentDescription = "Next",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(30.dp)
+                                        )
+                                    }
+                                    
+                                    var sliderPosition by remember { mutableStateOf(0f) }
+                                    val isDragging = remember { mutableStateOf(false) }
+                                    val interactionSource = remember { MutableInteractionSource() }
+                                    val isPressed by interactionSource.collectIsPressedAsState()
+                                    val isDragged by interactionSource.collectIsDraggedAsState()
+                                    val isInteracting = isPressed || isDragged
+                                    
+                                    val maxRange = maxOf(1f, state.durationMs.toFloat())
+                                    val baseProgress = if (isDragging.value) sliderPosition else currentMsState.value.toFloat()
+                                    
+                                    val animatedProgress by animateFloatAsState(
+                                        targetValue = baseProgress.coerceIn(0f, maxRange),
+                                        animationSpec = if (isDragging.value) snap() else tween(durationMillis = 250, easing = LinearEasing),
+                                        label = "SliderLineFluidAnimation"
                                     )
-                                }
-                                
-                                Icon(
-                                    painter = rememberVectorPainter(Icons.Rounded.SkipNext),
-                                    contentDescription = "Next",
-                                    tint = Color.White,
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .clickable { onAction(PlayerAction.Next) }
-                                        .padding(4.dp)
-                                )
-                                
-                                var sliderPosition by remember { mutableStateOf(0f) }
-                                val isDragging = remember { mutableStateOf(false) }
-                                val interactionSource = remember { MutableInteractionSource() }
-                                val isPressed by interactionSource.collectIsPressedAsState()
-                                val isDragged by interactionSource.collectIsDraggedAsState()
-                                val isInteracting = isPressed || isDragged
-                                
-                                val maxRange = maxOf(1f, state.durationMs.toFloat())
-                                val baseProgress = if (isDragging.value) sliderPosition else currentMsState.value.toFloat()
-                                
-                                val animatedProgress by animateFloatAsState(
-                                    targetValue = baseProgress.coerceIn(0f, maxRange),
-                                    animationSpec = if (isDragging.value) snap() else tween(durationMillis = 250, easing = LinearEasing),
-                                    label = "SliderLineFluidAnimation"
-                                )
-                                
-                                Slider(
-                                    value = baseProgress.coerceIn(0f, maxRange),
-                                    onValueChange = {
-                                        isDragging.value = true
-                                        sliderPosition = it
-                                        onSeekStarted()
-                                    },
-                                    onValueChangeFinished = {
-                                        isDragging.value = false
-                                        onSeek(sliderPosition)
-                                    },
-                                    valueRange = 0f..maxRange,
-                                    interactionSource = interactionSource,
-                                    track = { _ ->
-                                        val fraction = (animatedProgress / maxRange).coerceIn(0f, 1f)
-                                        Box(
+                                    
+                                    Column(
+                                        modifier = Modifier.width(130.dp),
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Slider(
+                                            value = baseProgress.coerceIn(0f, maxRange),
+                                            onValueChange = {
+                                                isDragging.value = true
+                                                sliderPosition = it
+                                                onSeekStarted()
+                                            },
+                                            onValueChangeFinished = {
+                                                isDragging.value = false
+                                                onSeek(sliderPosition)
+                                            },
+                                            valueRange = 0f..maxRange,
+                                            interactionSource = interactionSource,
+                                            track = { _ ->
+                                                val fraction = (animatedProgress / maxRange).coerceIn(0f, 1f)
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(8.dp)
+                                                        .clip(CircleShape)
+                                                        .background(Color.White.copy(alpha = 0.25f)),
+                                                    contentAlignment = Alignment.CenterStart
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth(fraction)
+                                                            .fillMaxHeight()
+                                                            .clip(CircleShape)
+                                                            .background(Color.White)
+                                                    )
+                                                }
+                                            },
+                                            thumb = { Box(modifier = Modifier.size(0.dp)) },
+                                            colors = SliderDefaults.colors(
+                                                thumbColor = Color.Transparent,
+                                                activeTickColor = Color.Transparent,
+                                                inactiveTickColor = Color.Transparent,
+                                                disabledThumbColor = Color.Transparent
+                                            ),
+                                            modifier = Modifier.fillMaxWidth().height(24.dp)
+                                        )
+                                        
+                                        Row(
                                             modifier = Modifier
-                                                .width(100.dp)
-                                                .height(if (isInteracting) 6.dp else 4.dp)
-                                                .clip(CircleShape)
-                                                .background(Color.White.copy(alpha = 0.2f)),
-                                            contentAlignment = Alignment.CenterStart
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 2.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth(fraction)
-                                                    .fillMaxHeight()
-                                                    .clip(CircleShape)
-                                                    .background(Color.White)
+                                            Text(
+                                                text = makeTimeString(baseProgress.toLong()),
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium),
+                                                color = Color.White.copy(alpha = 0.7f)
+                                            )
+                                            Text(
+                                                text = makeTimeString(state.durationMs),
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium),
+                                                color = Color.White.copy(alpha = 0.7f)
                                             )
                                         }
-                                    },
-                                    thumb = { Box(modifier = Modifier.size(0.dp)) },
-                                    colors = SliderDefaults.colors(
-                                        thumbColor = Color.Transparent,
-                                        activeTickColor = Color.Transparent,
-                                        inactiveTickColor = Color.Transparent,
-                                        disabledThumbColor = Color.Transparent
-                                    ),
-                                    modifier = Modifier.width(100.dp)
-                                )
+                                    }
+                                }
                             }
-                        }
                         }
                     }
                 }
