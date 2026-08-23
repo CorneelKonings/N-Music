@@ -57,7 +57,9 @@ import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.first
 import me.bush.translator.Language
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicLong
 
 
 private val MascotAssets = listOf(
@@ -111,6 +113,7 @@ class PlayerViewModel @Inject constructor(
     private var isUserSeeking = false
     private var tickerJob: Job? = null
     private var lyricsJob: Job? = null
+    private val lyricsFetchGeneration = AtomicLong(0)
     private var likeJob: Job? = null
     private var paletteJob: Job? = null
     private val paletteCache = LruCache<String, PaletteColors>(30)
@@ -132,6 +135,7 @@ class PlayerViewModel @Inject constructor(
                             it.copy(
                                 lyricsList = parsedLines,
                                 isSynced = isSynced,
+                                isLoadingLyrics = false,
                                 lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null,
                                 currentLineIndex = targetIndex
                             )
@@ -445,6 +449,9 @@ class PlayerViewModel @Inject constructor(
 
         val cachedPalette = paletteCache.get(coverUrl)
 
+        lyricsFetchGeneration.incrementAndGet()
+        lyricsJob?.cancel()
+
         _uiState.update {
             it.copy(
                 title = title,
@@ -455,6 +462,7 @@ class PlayerViewModel @Inject constructor(
                 lyricsList = emptyList(),
                 lyricsError = null,
                 currentLineIndex = -1,
+                isLoadingLyrics = false,
                 coverUrl = coverUrl,
                 vibrantColor = cachedPalette?.vibrantColor ?: android.graphics.Color.WHITE,
                 darkMutedColor = cachedPalette?.darkMutedColor ?: android.graphics.Color.parseColor("#282828"),
@@ -875,29 +883,19 @@ class PlayerViewModel @Inject constructor(
 
         if (trackUrl.isEmpty() || title.isEmpty()) return
 
+        val generation = lyricsFetchGeneration.incrementAndGet()
+        lyricsJob?.cancel()
+
         _uiState.update { it.copy(isLoadingLyrics = true, lyricsError = null) }
 
-        lyricsJob?.cancel()
         lyricsJob = viewModelScope.launch(Dispatchers.IO) {
+            var success = false
             try {
                 val db = playerConnection?.database
                 val cached = if (force) null else db?.getLyricsById(trackUrl)
                 
                 if (cached != null && cached.lyrics != moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
-                    val parsedLines = parseLyrics(cached.lyrics)
-                    val isSynced = parsedLines.any { line -> line.time > 0 }
-                    withContext(Dispatchers.Main) {
-                        _uiState.update {
-                            val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, it.progressMs, it.lyricsSyncOffset) else -1
-                            it.copy(
-                                lyricsList = parsedLines,
-                                isSynced = isSynced,
-                                isLoadingLyrics = false,
-                                lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null,
-                                currentLineIndex = targetIndex
-                            )
-                        }
-                    }
+                    success = true
                     return@launch
                 }
 
@@ -911,8 +909,12 @@ class PlayerViewModel @Inject constructor(
                     album = currentMetadata?.album
                 )
 
-                val rawLyrics = lyricsHelper.getLyrics(metadata)
-                val parsedLines = parseLyrics(rawLyrics)
+                val rawLyrics = kotlinx.coroutines.withTimeoutOrNull(15000) {
+                    lyricsHelper.getLyrics(metadata)
+                } ?: ""
+
+                ensureActive()
+                if (generation != lyricsFetchGeneration.get()) return@launch
 
                 if (rawLyrics.isNotBlank()) {
                     playerConnection?.database?.query {
@@ -922,28 +924,35 @@ class PlayerViewModel @Inject constructor(
                             source = moe.rukamori.archivetune.db.entities.LyricsEntity.Source.REMOTE.value
                         )
                     }
-                }
-
-                val isSynced = parsedLines.any { line -> line.time > 0 }
-                withContext(Dispatchers.Main) {
-                    _uiState.update {
-                        val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, it.progressMs, it.lyricsSyncOffset) else -1
-                        it.copy(
-                            lyricsList = parsedLines,
-                            isSynced = isSynced,
-                            isLoadingLyrics = false,
-                            lyricsError = if (parsedLines.isEmpty()) "lyrics_not_found" else null,
-                            currentLineIndex = targetIndex
-                        )
+                    success = true
+                } else {
+                    if (generation != lyricsFetchGeneration.get()) return@launch
+                    withContext(Dispatchers.Main) {
+                        _uiState.update {
+                            it.copy(
+                                lyricsError = "lyrics_not_found"
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                if (generation != lyricsFetchGeneration.get()) return@launch
                 withContext(Dispatchers.Main) {
                     _uiState.update {
                         it.copy(
-                            isLoadingLyrics = false,
                             lyricsError = "lyrics_error_loading"
                         )
+                    }
+                }
+            } finally {
+                if (generation == lyricsFetchGeneration.get()) {
+                    withContext(kotlinx.coroutines.NonCancellable) {
+                        withContext(Dispatchers.Main) {
+                            if (generation == lyricsFetchGeneration.get() && !success) {
+                                _uiState.update { it.copy(isLoadingLyrics = false) }
+                            }
+                        }
                     }
                 }
             }
