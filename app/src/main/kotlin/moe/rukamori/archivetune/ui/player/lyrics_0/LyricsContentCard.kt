@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -157,7 +158,7 @@ fun LyricsContentCard(
                 LyricsEnhanced(
                     sliderPositionProvider = progressMsProvider,
                     lyricsSyncOffset = state.lyricsSyncOffset,
-                    textColorOverride = Color.White,
+                    textColorOverride = if (isLightTheme) MaterialTheme.colorScheme.onSurface else Color.White,
                     modifier = Modifier.fillMaxSize(),
                 )
 
@@ -191,17 +192,37 @@ fun LyricsContentCard(
                                     scaleY = 0.88f + (0.12f * progress)
                                     translationY = 40f * (1f - progress)
                                 }
+                                .shadow(
+                                    elevation = if (isLightTheme) 8.dp else 0.dp,
+                                    shape = RoundedCornerShape(32.dp),
+                                    clip = false,
+                                )
                                 .clip(RoundedCornerShape(32.dp))
-                                .background(animatedAccentColor.copy(alpha = 0.15f))
+                                .background(
+                                    if (isLightTheme) {
+                                        Color.White.copy(alpha = 0.65f)
+                                    } else {
+                                        animatedAccentColor.copy(alpha = 0.15f)
+                                    },
+                                )
                                 .border(
                                     BorderStroke(
                                         1.dp,
-                                        Brush.verticalGradient(
-                                            listOf(
-                                                animatedAccentColor.copy(alpha = 0.28f),
-                                                animatedAccentColor.copy(alpha = 0.08f),
-                                            ),
-                                        ),
+                                        if (isLightTheme) {
+                                            Brush.verticalGradient(
+                                                listOf(
+                                                    Color.White.copy(alpha = 0.85f),
+                                                    Color.White.copy(alpha = 0.35f),
+                                                ),
+                                            )
+                                        } else {
+                                            Brush.verticalGradient(
+                                                listOf(
+                                                    animatedAccentColor.copy(alpha = 0.28f),
+                                                    animatedAccentColor.copy(alpha = 0.08f),
+                                                ),
+                                            )
+                                        },
                                     ),
                                     RoundedCornerShape(32.dp),
                                 )
