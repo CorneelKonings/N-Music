@@ -32,6 +32,7 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
@@ -83,11 +85,19 @@ fun LyricsContentCard(
         label = "LyricsBgAnimation",
     )
 
+    val isLightTheme = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+    val surfaceColor = MaterialTheme.colorScheme.surface
+
     val cardBackgroundBrush =
-        remember(animatedDarkMuted) {
-            val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
+        remember(animatedDarkMuted, isLightTheme, surfaceColor) {
+            val startColor =
+                if (isLightTheme) {
+                    lerp(animatedDarkMuted, Color.White, 0.35f)
+                } else {
+                    lerp(animatedDarkMuted, Color.Black, 0.7f)
+                }
             val midColor = animatedDarkMuted
-            val endColor = Color(0xFF121212)
+            val endColor = if (isLightTheme) surfaceColor else Color(0xFF121212)
 
             Brush.verticalGradient(
                 0.0f to startColor,
@@ -182,7 +192,7 @@ fun LyricsContentCard(
                                     translationY = 40f * (1f - progress)
                                 }
                                 .clip(RoundedCornerShape(32.dp))
-                                .background(animatedAccentColor.copy(alpha = 0.12f))
+                                .background(animatedAccentColor.copy(alpha = 0.15f))
                                 .border(
                                     BorderStroke(
                                         1.dp,
@@ -221,6 +231,7 @@ fun LyricsContentCard(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                val controlContentColor = if (isLightTheme) MaterialTheme.colorScheme.onSurface else Color.White
                                 val playPauseIcon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
 
                                 Box(
@@ -238,7 +249,7 @@ fun LyricsContentCard(
                                         painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
                                         contentDescription = "Previous Track",
                                         modifier = Modifier.size(36.dp),
-                                        colorFilter = ColorFilter.tint(Color.White),
+                                        colorFilter = ColorFilter.tint(controlContentColor),
                                     )
                                 }
 
@@ -285,7 +296,7 @@ fun LyricsContentCard(
                                         painter = rememberVectorPainter(Icons.Rounded.SkipNext),
                                         contentDescription = "Next Track",
                                         modifier = Modifier.size(36.dp),
-                                        colorFilter = ColorFilter.tint(Color.White),
+                                        colorFilter = ColorFilter.tint(controlContentColor),
                                     )
                                 }
                             }
