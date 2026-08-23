@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import androidx.compose.ui.layout.layout
 import moe.rukamori.archivetune.lyrics.LyricsEntry
+import moe.rukamori.archivetune.constants.LyricsLineBlurKey
+import moe.rukamori.archivetune.utils.rememberPreference
 
 @Composable
 fun LyricsContentCard(
@@ -53,6 +55,9 @@ fun LyricsContentCard(
 ) {
     val context = LocalContext.current
     val screenHeightPx = remember { context.resources.displayMetrics.heightPixels.toFloat() }
+
+    val (lyricsLineBlur) = rememberPreference(LyricsLineBlurKey, defaultValue = true)
+    val isManualScrolling = lazyListState.isScrollInProgress
 
     // Анимируем базовые цвета палитры
     val animatedDarkMuted by animateColorAsState(
@@ -234,6 +239,8 @@ fun LyricsContentCard(
                                     }
                                 }
 
+                                val distanceFromActive = if (state.isSynced && state.currentLineIndex >= 0) kotlin.math.abs(index - state.currentLineIndex) else 0
+
                                 if (line == LyricsEntry.HEAD_LYRICS_ENTRY) {
                                     Spacer(modifier = Modifier.height(100.dp))
                                 } else if (line.isInstrumental) {
@@ -263,7 +270,10 @@ fun LyricsContentCard(
                                         bounceFactor = 1f,
                                         glowFactor = 1f,
                                         fillTransitionWidth = 8f,
-                                        onLineClick = onLineClick
+                                        onLineClick = onLineClick,
+                                        distanceFromActive = distanceFromActive,
+                                        isManualScrolling = isManualScrolling,
+                                        lyricsLineBlur = lyricsLineBlur
                                     )
                                 }
                             }

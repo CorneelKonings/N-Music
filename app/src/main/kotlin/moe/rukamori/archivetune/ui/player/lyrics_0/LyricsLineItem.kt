@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -60,7 +61,10 @@ fun LyricsLineItem(
     glowFactor: Float,
     fillTransitionWidth: Float,
     onLineClick: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    distanceFromActive: Int = 0,
+    isManualScrolling: Boolean = false,
+    lyricsLineBlur: Boolean = true
 ) {
     val horizontalAlignment = remember(item.agent) {
         when (item.agent?.lowercase()) {
@@ -86,8 +90,29 @@ fun LyricsLineItem(
         }
     }
 
+    val lineAlpha = when {
+        isActive -> 1f
+        isManualScrolling -> when {
+            distanceFromActive == 1 -> 0.72f
+            distanceFromActive == 2 -> 0.56f
+            distanceFromActive == 3 -> 0.40f
+            else -> 0.28f
+        }
+        distanceFromActive == 1 -> 0.52f
+        distanceFromActive == 2 -> 0.30f
+        distanceFromActive == 3 -> 0.18f
+        else -> inactiveAlpha
+    }
+
+    val targetBlur = when {
+        isActive || !lyricsLineBlur || isManualScrolling -> 0f
+        distanceFromActive == 1 -> 2f
+        distanceFromActive == 2 -> 5f
+        else -> 12f
+    }
+
     val animatedBlur by animateFloatAsState(
-        targetValue = if (isActive) 0f else 4f,
+        targetValue = targetBlur,
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
         label = "lineBlur"
     )
@@ -99,7 +124,7 @@ fun LyricsLineItem(
     )
 
     val animatedLineAlpha by animateFloatAsState(
-        targetValue = if (isActive) 1f else inactiveAlpha,
+        targetValue = lineAlpha,
         animationSpec = tween(durationMillis = if (isActive) 330 else 500, easing = FastOutSlowInEasing),
         label = "lineAlpha"
     )
@@ -117,7 +142,7 @@ fun LyricsLineItem(
             )
             .then(
                 if (animatedBlur > 0f) {
-                    Modifier.blur(radiusX = animatedBlur.dp, radiusY = animatedBlur.dp)
+                    Modifier.blur(radiusX = animatedBlur.dp, radiusY = animatedBlur.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
                 } else {
                     Modifier
                 }
