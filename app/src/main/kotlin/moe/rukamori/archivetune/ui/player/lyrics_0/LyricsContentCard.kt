@@ -48,6 +48,25 @@ import moe.rukamori.archivetune.lyrics.LyricsEntry
 import moe.rukamori.archivetune.constants.LyricsLineBlurKey
 import moe.rukamori.archivetune.utils.rememberPreference
 
+import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.snap
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LyricsContentCard(
     state: PlayerUiState,
@@ -56,7 +75,10 @@ fun LyricsContentCard(
     onSearchClick: () -> Unit,
     lazyListState: LazyListState,
     modifier: Modifier = Modifier,
-    onLineClick: (Long) -> Unit
+    onLineClick: (Long) -> Unit,
+    onAction: (PlayerAction) -> Unit,
+    onSeek: (Float) -> Unit,
+    onSeekStarted: () -> Unit
 ) {
     val context = LocalContext.current
     val screenHeightPx = remember { context.resources.displayMetrics.heightPixels.toFloat() }
@@ -385,6 +407,121 @@ fun LyricsContentCard(
                                     .size(48.dp)
                                     .align(Alignment.Center)
                             )
+                        }
+                        
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 32.dp)
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .height(56.dp)
+                                    .clip(RoundedCornerShape(28.dp))
+                                    .background(Color(0x20FFFFFF))
+                                    .border(BorderStroke(1.dp, Color(0x33FFFFFF)), RoundedCornerShape(28.dp))
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Icon(
+                                    painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
+                                    contentDescription = "Previous",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .clickable { onAction(PlayerAction.Previous) }
+                                        .padding(4.dp)
+                                )
+                                
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White)
+                                        .clickable { onAction(PlayerAction.PlayPause) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = rememberVectorPainter(if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow),
+                                        contentDescription = "Play/Pause",
+                                        tint = Color.Black,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                
+                                Icon(
+                                    painter = rememberVectorPainter(Icons.Rounded.SkipNext),
+                                    contentDescription = "Next",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .clickable { onAction(PlayerAction.Next) }
+                                        .padding(4.dp)
+                                )
+                                
+                                var sliderPosition by remember { mutableStateOf(0f) }
+                                val isDragging = remember { mutableStateOf(false) }
+                                val interactionSource = remember { MutableInteractionSource() }
+                                val isPressed by interactionSource.collectIsPressedAsState()
+                                val isDragged by interactionSource.collectIsDraggedAsState()
+                                val isInteracting = isPressed || isDragged
+                                
+                                val maxRange = maxOf(1f, state.durationMs.toFloat())
+                                val baseProgress = if (isDragging.value) sliderPosition else currentMsState.value.toFloat()
+                                
+                                val animatedProgress by animateFloatAsState(
+                                    targetValue = baseProgress.coerceIn(0f, maxRange),
+                                    animationSpec = if (isDragging.value) snap() else tween(durationMillis = 250, easing = LinearEasing),
+                                    label = "SliderLineFluidAnimation"
+                                )
+                                
+                                Slider(
+                                    value = baseProgress.coerceIn(0f, maxRange),
+                                    onValueChange = {
+                                        isDragging.value = true
+                                        sliderPosition = it
+                                        onSeekStarted()
+                                    },
+                                    onValueChangeFinished = {
+                                        isDragging.value = false
+                                        onSeek(sliderPosition)
+                                    },
+                                    valueRange = 0f..maxRange,
+                                    interactionSource = interactionSource,
+                                    track = { _ ->
+                                        val fraction = (animatedProgress / maxRange).coerceIn(0f, 1f)
+                                        Box(
+                                            modifier = Modifier
+                                                .width(100.dp)
+                                                .height(if (isInteracting) 6.dp else 4.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.White.copy(alpha = 0.2f)),
+                                            contentAlignment = Alignment.CenterStart
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(fraction)
+                                                    .fillMaxHeight()
+                                                    .clip(CircleShape)
+                                                    .background(Color.White)
+                                            )
+                                        }
+                                    },
+                                    thumb = { Box(modifier = Modifier.size(0.dp)) },
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = Color.Transparent,
+                                        activeTickColor = Color.Transparent,
+                                        inactiveTickColor = Color.Transparent,
+                                        disabledThumbColor = Color.Transparent
+                                    ),
+                                    modifier = Modifier.width(100.dp)
+                                )
+                            }
                         }
                     }
                 }

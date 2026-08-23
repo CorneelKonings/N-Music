@@ -149,9 +149,12 @@ internal fun UnifiedPlayerSheetLayers(
                 progressMsProvider = progressMsProvider,
                 onCloseClick = onCloseLyricsClick,
                 onPlayPauseClick = { onAction(PlayerAction.PlayPause) },
+                onAction = onAction,
                 onMoreClick = onMoreLyricsClick,
                 onSearchClick = onSearchLyricsClick,
                 onLineClick = { timeMs -> onSeek(timeMs.toFloat()) },
+                onSeek = onSeek,
+                onSeekStarted = onSeekStarted,
                 swipeOffsetY = lyricsSwipeOffsetY,
                 onSwipeOffsetChange = onLyricsSwipeOffsetChanged
             )

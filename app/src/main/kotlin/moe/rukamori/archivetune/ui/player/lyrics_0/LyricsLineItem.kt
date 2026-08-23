@@ -137,8 +137,8 @@ fun LyricsLineItem(
             .padding(
                 start = if (isAllBackground) 32.dp else 24.dp,
                 end = 24.dp,
-                top = 8.dp,
-                bottom = 8.dp
+                top = 3.dp,
+                bottom = 3.dp
             )
             .then(
                 if (animatedBlur > 0f) {
@@ -172,7 +172,20 @@ fun LyricsLineItem(
             )
         }
 
-        if (!romanizedText.isNullOrBlank()) {
+        val mainWords = item.words?.filter { !it.isBackground } ?: emptyList()
+        val bgWords = item.words?.filter { it.isBackground } ?: emptyList()
+
+        val romajiWords = remember(item.providerRomanizedWords, romanizedText, mainWords.size) {
+            if (item.providerRomanizedWords?.size == mainWords.size) {
+                item.providerRomanizedWords
+            } else {
+                romanizedText?.split(Regex("\\s+"))?.filter { it.isNotBlank() }
+            }
+        }
+        
+        val canMapRomaji = romajiWords != null && romajiWords.size == mainWords.size
+
+        if (!romanizedText.isNullOrBlank() && !canMapRomaji) {
             Text(
                 text = romanizedText!!,
                 style = supplementaryTextStyle,
@@ -191,15 +204,12 @@ fun LyricsLineItem(
                 else -> Arrangement.Start
             }
 
-            val mainWords = item.words.filter { !it.isBackground }
-            val bgWords = item.words.filter { it.isBackground }
-
             if (mainWords.isNotEmpty()) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = arrangement
                 ) {
-                    mainWords.forEachIndexed { _, word ->
+                    mainWords.forEachIndexed { index, word ->
                         if (word.text == " ") {
                             Text(
                                 text = " ",
@@ -216,20 +226,48 @@ fun LyricsLineItem(
                             return@forEachIndexed
                         }
 
-                        AnimatedWordV2(
-                            word = word,
-                            isLineActive = isActive,
-                            isLinePast = isPast,
-                            currentPositionMs = currentPositionMs,
-                            textColor = textColor,
-                            inactiveAlpha = inactiveAlpha,
-                            fontSize = if (isAllBackground) baseFontSize * 0.82f else baseFontSize,
-                            isBackground = isAllBackground,
-                            lyricsFontFamily = lyricsFontFamily,
-                            bounceFactor = bounceFactor,
-                            glowFactor = glowFactor,
-                            fillTransitionWidth = fillTransitionWidth
-                        )
+                        if (canMapRomaji) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(horizontal = 1.dp)
+                            ) {
+                                Text(
+                                    text = romajiWords!![index],
+                                    style = supplementaryTextStyle,
+                                    color = textColor.copy(alpha = if (isActive) 0.76f else 0.42f),
+                                    textAlign = TextAlign.Center
+                                )
+                                AnimatedWordV2(
+                                    word = word,
+                                    isLineActive = isActive,
+                                    isLinePast = isPast,
+                                    currentPositionMs = currentPositionMs,
+                                    textColor = textColor,
+                                    inactiveAlpha = inactiveAlpha,
+                                    fontSize = if (isAllBackground) baseFontSize * 0.82f else baseFontSize,
+                                    isBackground = isAllBackground,
+                                    lyricsFontFamily = lyricsFontFamily,
+                                    bounceFactor = bounceFactor,
+                                    glowFactor = glowFactor,
+                                    fillTransitionWidth = fillTransitionWidth
+                                )
+                            }
+                        } else {
+                            AnimatedWordV2(
+                                word = word,
+                                isLineActive = isActive,
+                                isLinePast = isPast,
+                                currentPositionMs = currentPositionMs,
+                                textColor = textColor,
+                                inactiveAlpha = inactiveAlpha,
+                                fontSize = if (isAllBackground) baseFontSize * 0.82f else baseFontSize,
+                                isBackground = isAllBackground,
+                                lyricsFontFamily = lyricsFontFamily,
+                                bounceFactor = bounceFactor,
+                                glowFactor = glowFactor,
+                                fillTransitionWidth = fillTransitionWidth
+                            )
+                        }
                     }
                 }
             }

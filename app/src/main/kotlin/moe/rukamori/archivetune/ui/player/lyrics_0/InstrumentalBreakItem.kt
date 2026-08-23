@@ -1,20 +1,16 @@
 package moe.rukamori.archivetune.ui.player.lyrics_0
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.withTransform
-import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.dp
+import kotlin.math.sin
 
 @Composable
 fun InstrumentalBreakItem(
@@ -25,13 +21,16 @@ fun InstrumentalBreakItem(
     inactiveAlpha: Float,
     modifier: Modifier = Modifier,
 ) {
-    val musicNotePath = remember {
-        PathParser().parsePathString(
-            "M10 21q-1.65 0-2.825-1.175T6 17t1.175-2.825T10 13q.575 0 1.063.138t.937.412V4" +
-                "q0-.425.288-.712T13 3h4q.425 0 .713.288T18 4v2q0 .425-.288.713T17 7h-3v10" +
-                "q0 1.65-1.175 2.825T10 21"
-        ).toPath()
-    }
+    val infiniteTransition = rememberInfiniteTransition(label = "dots")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2f * Math.PI.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "phase"
+    )
 
     val targetFillFraction = when {
         durationMs <= 0L -> 0f
@@ -49,29 +48,40 @@ fun InstrumentalBreakItem(
         label = "instrumentalFill"
     )
 
-    Canvas(modifier = modifier.size(48.dp)) {
-        val scaleX = size.width / 24f
-        val scaleY = size.height / 24f
-        val pivot = Offset.Zero
-
-        withTransform(
-            transformBlock = { scale(scaleX, scaleY, pivot) }
-        ) {
-            drawPath(path = musicNotePath, color = textColor.copy(alpha = inactiveAlpha))
-        }
-
-        if (fillFraction > 0f) {
-            val clipTop = size.height * (1f - fillFraction)
-            clipRect(
-                left = 0f,
-                top = clipTop,
-                right = size.width,
-                bottom = size.height,
-            ) {
-                withTransform(
-                    transformBlock = { scale(scaleX, scaleY, pivot) }
+    Canvas(modifier = modifier.size(width = 64.dp, height = 24.dp)) {
+        val dotRadius = 4.dp.toPx()
+        val spacing = 16.dp.toPx()
+        val startX = center.x - spacing
+        
+        for (i in 0..2) {
+            val dotPhase = phase - (i * (Math.PI.toFloat() / 2f))
+            val bounceOffset = (sin(dotPhase) * 4.dp.toPx()).coerceAtMost(0f)
+            
+            val dotCenter = Offset(startX + (i * spacing), center.y + bounceOffset)
+            
+            drawCircle(
+                color = textColor.copy(alpha = inactiveAlpha),
+                radius = dotRadius,
+                center = dotCenter
+            )
+            
+            val dotStartFraction = i / 3f
+            val dotEndFraction = (i + 1) / 3f
+            if (fillFraction > dotStartFraction) {
+                val dotFillRatio = ((fillFraction - dotStartFraction) / (dotEndFraction - dotStartFraction)).coerceIn(0f, 1f)
+                val clipRight = dotCenter.x - dotRadius + (dotRadius * 2 * dotFillRatio)
+                
+                clipRect(
+                    left = dotCenter.x - dotRadius,
+                    top = dotCenter.y - dotRadius,
+                    right = clipRight,
+                    bottom = dotCenter.y + dotRadius
                 ) {
-                    drawPath(path = musicNotePath, color = textColor)
+                    drawCircle(
+                        color = textColor,
+                        radius = dotRadius,
+                        center = dotCenter
+                    )
                 }
             }
         }

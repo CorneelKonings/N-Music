@@ -30,7 +30,10 @@ fun LyricsColumn(
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier,
     onPlayPauseClick: () -> Unit,
+    onAction: (moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction) -> Unit,
     onLineClick: (Long) -> Unit,
+    onSeek: (Float) -> Unit,
+    onSeekStarted: () -> Unit,
     swipeOffsetY: Float,
     onSwipeOffsetChange: (Float) -> Unit
 ) {
@@ -140,7 +143,10 @@ fun LyricsColumn(
             progressMsProvider = progressMsProvider,
             onSearchClick = onSearchClick,
             lazyListState = lazyListState,
-            onLineClick = onLineClick
+            onLineClick = onLineClick,
+            onAction = onAction,
+            onSeek = onSeek,
+            onSeekStarted = onSeekStarted
         )
         // 3. ПАРЯЩАЯ ШАПКА-КАПСУЛА (Поверх всего)
         LyricsHeader(
