@@ -40,7 +40,7 @@ fun LyricsColumn(
     val density = context.resources.displayMetrics.density
 
     val lazyListState = rememberLazyListState()
-    val viewportOffset = -(screenHeightPx * 0.25f).toInt()
+    val viewportOffset = -(screenHeightPx * 0.35f).toInt()
 
     // 1. Убираем делегат 'by' и оставляем чистый объект стейта, чтобы читать .value
     val isAtTopState = remember {
@@ -63,9 +63,6 @@ fun LyricsColumn(
         }
     }
 
-    // Наш сдвиг свайпа
-//    var swipeOffsetY by remember { mutableStateOf(0f) }
-
     // ФИКС «ПРИЗРАКА СВАЙПА»:
     // Как только лирика переходит в статус видимой (isLyricsVisible == true),
     // мы мгновенно сбрасываем сдвиг свайпа в ноль, пока экран еще полностью прозрачен.
@@ -87,13 +84,6 @@ fun LyricsColumn(
                     scrollOffset = viewportOffset
                 )
             }
-        }
-    }
-
-    // Проверяем, находится ли список в самом верху, чтобы разрешить свайп вниз
-    val isAtTop by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset == 0
         }
     }
 
