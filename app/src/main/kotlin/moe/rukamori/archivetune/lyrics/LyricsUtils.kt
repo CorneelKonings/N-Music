@@ -523,27 +523,7 @@ object LyricsUtils {
         if (entries.isEmpty()) return entries
         val result = mutableListOf<LyricsEntry>()
         insertIntroInstrumentalIfNeeded(entries, result)
-        
-        for (i in 0 until entries.size - 1) {
-            val currentEntry = entries[i]
-            val nextEntry = entries[i + 1]
-            result.add(currentEntry)
-            
-            if (nextEntry.time - currentEntry.time >= 6000L) {
-                result.add(
-                    LyricsEntry(
-                        time = currentEntry.time + 2500L,
-                        text = "",
-                        isInstrumental = true,
-                        durationMs = nextEntry.time - (currentEntry.time + 2500L) - 500L
-                    )
-                )
-            }
-        }
-        if (entries.isNotEmpty()) {
-            result.add(entries.last())
-        }
-        
+        result.addAll(entries)
         insertOutroInstrumentalIfNeeded(entries, songDurationMs, result)
         return result
     }
