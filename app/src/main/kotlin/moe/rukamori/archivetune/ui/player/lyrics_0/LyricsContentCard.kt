@@ -1,7 +1,6 @@
 package moe.rukamori.archivetune.ui.player.lyrics_0
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -24,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
@@ -41,9 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.text.TextStyle
 import moe.rukamori.archivetune.lyrics.LyricsEntry
-import moe.rukamori.archivetune.ui.theme.SoftTextShadow
 
 @Composable
 fun LyricsContentCard(
@@ -231,123 +227,44 @@ fun LyricsContentCard(
                                     }
                                 }
 
-                                val animatedAlpha by animateFloatAsState(
-                                    targetValue = if (isActive) 1f else 0.35f,
-                                    animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing),
-                                    label = "LyricsLineAlpha"
-                                )
+                                val isPast by remember(line.time, nextTime, syncOffset) {
+                                    derivedStateOf {
+                                        val currentMs = currentMsState.value + syncOffset
+                                        currentMs >= nextTime
+                                    }
+                                }
 
-                                val animatedScale by animateFloatAsState(
-                                    targetValue = if (isActive) 1.08f else 1f,
-                                    animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing),
-                                    label = "LyricsLineScale"
-                                )
-
-                                val animatedBlur by animateDpAsState(
-                                    targetValue = if (isActive) 0.dp else 0.5.dp,
-                                    animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing),
-                                    label = "LyricsLineBlur"
-                                )
-
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 2.dp, horizontal = 24.dp)
-                                        .clickable(
+                                if (line == LyricsEntry.HEAD_LYRICS_ENTRY) {
+                                    Spacer(modifier = Modifier.height(100.dp))
+                                } else if (line.isInstrumental) {
+                                    InstrumentalBreakItem(
+                                        durationMs = line.durationMs,
+                                        currentPositionMs = currentMsState.value + syncOffset,
+                                        startTimeMs = line.time,
+                                        textColor = Color.White,
+                                        inactiveAlpha = 0.35f,
+                                        modifier = Modifier.clickable(
                                             interactionSource = remember { MutableInteractionSource() },
                                             indication = null
                                         ) {
                                             if (line.time >= 0L) onLineClick(line.time)
                                         }
-                                        .graphicsLayer {
-                                            alpha = animatedAlpha
-                                            scaleX = animatedScale
-                                            scaleY = animatedScale
-                                        }
-                                        .blur(animatedBlur)
-                                ) {
-                                    if (line.words != null) {
-                                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-                                        androidx.compose.foundation.layout.FlowRow(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.Center
-                                        ) {
-                                            line.words.forEach { word ->
-                                                if (word.text == " " || word.text == "\n") {
-                                                    Text(
-                                                        text = word.text,
-                                                        style = TextStyle(fontSize = 24.sp)
-                                                    )
-                                                    return@forEach
-                                                }
-                                                
-                                                val wordStartMs = (word.startTime * 1000).toLong()
-                                                val wordEndMs = (word.endTime * 1000).toLong()
-                                                val wordDuration = (wordEndMs - wordStartMs).coerceAtLeast(1L)
-                                                
-                                                Text(
-                                                    text = word.text,
-                                                    color = Color.White,
-                                                    style = TextStyle(
-                                                        fontSize = 24.sp,
-                                                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
-                                                        shadow = SoftTextShadow
-                                                    ),
-                                                    modifier = Modifier
-                                                        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                                                        .drawWithContent {
-                                                            drawContent()
-                                                            
-                                                            val currentMs = currentMsState.value + syncOffset
-                                                            val progress = when {
-                                                                currentMs >= wordEndMs -> 1f
-                                                                currentMs <= wordStartMs -> 0f
-                                                                else -> ((currentMs - wordStartMs).toFloat() / wordDuration).coerceIn(0f, 1f)
-                                                            }
-                                                            
-                                                            val edgeWidth = 8.dp.toPx()
-                                                            val center = size.width * progress
-                                                            
-                                                            drawRect(
-                                                                brush = Brush.horizontalGradient(
-                                                                    colors = listOf(Color.White, Color.White.copy(alpha = 0.35f)),
-                                                                    startX = center - edgeWidth,
-                                                                    endX = center + edgeWidth
-                                                                ),
-                                                                blendMode = BlendMode.DstIn
-                                                            )
-                                                        }
-                                                )
-                                            }
-                                        }
-                                    } else {
-                                        Text(
-                                            text = line.text,
-                                            color = Color.White,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.fillMaxWidth(),
-                                            style = TextStyle(
-                                                fontSize = 24.sp,
-                                                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
-                                                shadow = SoftTextShadow
-                                            )
-                                        )
-                                    }
-
-                                    if (!line.providerTranslationText.isNullOrBlank()) {
-                                        Text(
-                                            text = line.providerTranslationText!!,
-                                            color = Color.White.copy(alpha = 0.65f),
-                                            textAlign = TextAlign.Center,
-                                            style = TextStyle(
-                                                fontSize = 15.sp,
-                                                fontWeight = FontWeight.Normal,
-                                                shadow = SoftTextShadow
-                                            ),
-                                            modifier = Modifier.padding(top = 2.dp)
-                                        )
-                                    }
+                                    )
+                                } else {
+                                    LyricsLineItem(
+                                        item = line,
+                                        isActive = isActive,
+                                        isPast = isPast,
+                                        currentPositionMs = currentMsState.value + syncOffset,
+                                        textColor = Color.White,
+                                        inactiveAlpha = 0.35f,
+                                        baseFontSize = 24f,
+                                        lyricsFontFamily = null,
+                                        bounceFactor = 1f,
+                                        glowFactor = 1f,
+                                        fillTransitionWidth = 8f,
+                                        onLineClick = onLineClick
+                                    )
                                 }
                             }
                         }
