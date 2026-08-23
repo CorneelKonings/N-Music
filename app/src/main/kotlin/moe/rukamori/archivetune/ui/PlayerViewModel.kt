@@ -128,7 +128,8 @@ class PlayerViewModel @Inject constructor(
                 .flatMapLatest { connection -> connection.currentLyrics }
                 .collect { cached ->
                     if (cached != null) {
-                        val parsedLines = parseLyrics(cached.lyrics)
+                        val durationMs = audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET } ?: 0L
+                        val parsedLines = parseLyrics(cached.lyrics, durationMs)
                         val isSynced = parsedLines.any { line -> line.time > 0 }
                         _uiState.update {
                             val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, it.progressMs, it.lyricsSyncOffset) else -1
@@ -712,6 +713,7 @@ class PlayerViewModel @Inject constructor(
         val metadata = playerConnection?.mediaMetadata?.value ?: return
         val trackId = metadata.id ?: return
         if (trackId.isEmpty()) return
+        val durationMs = audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET } ?: 0L
         viewModelScope.launch(Dispatchers.IO) {
             playerConnection?.database?.query {
                 replaceLyrics(
@@ -720,7 +722,7 @@ class PlayerViewModel @Inject constructor(
                     source = moe.rukamori.archivetune.db.entities.LyricsEntity.Source.USER_EDIT.value
                 )
             }
-            val parsedLines = parseLyrics(text)
+            val parsedLines = parseLyrics(text, durationMs)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
             }
@@ -731,6 +733,7 @@ class PlayerViewModel @Inject constructor(
         val metadata = playerConnection?.mediaMetadata?.value ?: return
         val trackId = metadata.id ?: return
         if (trackId.isEmpty()) return
+        val durationMs = audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET } ?: 0L
 
         viewModelScope.launch(Dispatchers.IO) {
             if (useAi) {
@@ -780,7 +783,7 @@ class PlayerViewModel @Inject constructor(
                     application.dataStore.edit { settings ->
                         settings[AiApiValidationStatusKey] = AiApiValidationStatus.SUCCESS.name
                     }
-                    val parsedLines = parseLyrics(translatedLyrics)
+                    val parsedLines = parseLyrics(translatedLyrics, durationMs)
                     withContext(Dispatchers.Main) {
                         _uiState.update { it.copy(isAiTranslating = false, lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
                     }
@@ -831,7 +834,7 @@ class PlayerViewModel @Inject constructor(
                             source = moe.rukamori.archivetune.db.entities.LyricsEntity.Source.AI_TRANSLATION.value,
                         )
                     }
-                    val parsedLines = parseLyrics(translatedLyrics)
+                    val parsedLines = parseLyrics(translatedLyrics, durationMs)
                     withContext(Dispatchers.Main) {
                         _uiState.update { it.copy(isStandardTranslating = false, lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
                     }
@@ -985,13 +988,12 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    private fun parseLyrics(rawLyrics: String): List<LyricsEntry> {
+    private fun parseLyrics(rawLyrics: String, durationMs: Long): List<LyricsEntry> {
         if (rawLyrics.isBlank() || rawLyrics == moe.rukamori.archivetune.db.entities.LyricsEntity.LYRICS_NOT_FOUND) {
             return emptyList()
         }
 
         val normalized = moe.rukamori.archivetune.lyrics.LyricsUtils.normalizeLyricsText(rawLyrics)
-        val durationMs = audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET } ?: 0L
 
         val parsed = when {
             moe.rukamori.archivetune.lyrics.LyricsUtils.isTtml(normalized) -> {
