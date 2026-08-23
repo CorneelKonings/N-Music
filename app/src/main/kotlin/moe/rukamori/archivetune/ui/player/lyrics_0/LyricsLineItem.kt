@@ -46,6 +46,8 @@ import moe.rukamori.archivetune.lyrics.WordTimestamp
 import kotlin.math.PI
 import kotlin.math.sin
 
+import moe.rukamori.archivetune.lyrics.LyricsRomanizationPreferences
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LyricsLineItem(
@@ -66,7 +68,8 @@ fun LyricsLineItem(
     modifier: Modifier = Modifier,
     distanceFromActive: Int = 0,
     isManualScrolling: Boolean = false,
-    lyricsLineBlur: Boolean = true
+    lyricsLineBlur: Boolean = true,
+    romanizationPreferences: LyricsRomanizationPreferences = LyricsRomanizationPreferences(),
 ) {
     val horizontalAlignment = remember(item.agent) {
         when (item.agent?.lowercase()) {
@@ -139,8 +142,8 @@ fun LyricsLineItem(
             .padding(
                 start = if (isAllBackground) 32.dp else 24.dp,
                 end = 24.dp,
-                top = (lyricsLineSpacing * 4).dp,
-                bottom = (lyricsLineSpacing * 4).dp
+                top = (lyricsLineSpacing * 8).dp,
+                bottom = (lyricsLineSpacing * 8).dp
             )
             .then(
                 if (animatedBlur > 0f) {
@@ -160,7 +163,12 @@ fun LyricsLineItem(
             },
         horizontalAlignment = horizontalAlignment
     ) {
-        val romanizedText by item.romanizedTextFlow.collectAsState()
+        val romanizedText = if (romanizationPreferences.isEnabled) {
+            val value by item.romanizedTextFlow.collectAsState()
+            value
+        } else {
+            null
+        }
         val translationText = item.providerTranslationText
 
         val supplementaryBaseTextStyle = MaterialTheme.typography.bodyMedium
@@ -177,8 +185,10 @@ fun LyricsLineItem(
         val mainWords = item.words?.filter { !it.isBackground } ?: emptyList()
         val bgWords = item.words?.filter { it.isBackground } ?: emptyList()
 
-        val romajiWords = remember(item.providerRomanizedWords, romanizedText, mainWords.size) {
-            if (item.providerRomanizedWords?.size == mainWords.size) {
+        val romajiWords = remember(item.providerRomanizedWords, romanizedText, mainWords.size, romanizationPreferences) {
+            if (!romanizationPreferences.isEnabled) {
+                null
+            } else if (item.providerRomanizedWords?.size == mainWords.size) {
                 item.providerRomanizedWords
             } else {
                 romanizedText?.split(Regex("\\s+"))?.filter { it.isNotBlank() }
@@ -247,6 +257,7 @@ fun LyricsLineItem(
                                     textColor = textColor,
                                     inactiveAlpha = inactiveAlpha,
                                     fontSize = if (isAllBackground) lyricsTextSize * 0.82f else lyricsTextSize,
+                                    lineSpacing = lyricsLineSpacing,
                                     isBackground = isAllBackground,
                                     lyricsFontFamily = lyricsFontFamily,
                                     bounceFactor = bounceFactor,
@@ -262,7 +273,8 @@ fun LyricsLineItem(
                                 currentPositionMs = currentPositionMs,
                                 textColor = textColor,
                                 inactiveAlpha = inactiveAlpha,
-                                    fontSize = if (isAllBackground) lyricsTextSize * 0.82f else lyricsTextSize,
+                                fontSize = if (isAllBackground) lyricsTextSize * 0.82f else lyricsTextSize,
+                                lineSpacing = lyricsLineSpacing,
                                 isBackground = isAllBackground,
                                 lyricsFontFamily = lyricsFontFamily,
                                 bounceFactor = bounceFactor,
@@ -290,6 +302,7 @@ fun LyricsLineItem(
                                 text = " ",
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     fontSize = (lyricsTextSize * 0.65f).sp,
+                                    lineHeight = (lyricsTextSize * 0.65f * lyricsLineSpacing).sp,
                                     fontFamily = lyricsFontFamily ?: MaterialTheme.typography.headlineMedium.fontFamily
                                 ),
                                 color = Color.Transparent
@@ -305,6 +318,7 @@ fun LyricsLineItem(
                             textColor = textColor,
                             inactiveAlpha = inactiveAlpha,
                             fontSize = lyricsTextSize * 0.65f,
+                            lineSpacing = lyricsLineSpacing,
                             isBackground = true,
                             lyricsFontFamily = lyricsFontFamily,
                             bounceFactor = bounceFactor,
@@ -321,7 +335,7 @@ fun LyricsLineItem(
                     fontSize = if (isAllBackground) (lyricsTextSize * 0.82f).sp else lyricsTextSize.sp,
                     fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
                     fontStyle = if (isAllBackground) FontStyle.Italic else FontStyle.Normal,
-                    lineHeight = (lyricsTextSize * 1.2f).sp,
+                    lineHeight = (lyricsTextSize * lyricsLineSpacing).sp,
                     fontFamily = lyricsFontFamily ?: MaterialTheme.typography.headlineMedium.fontFamily
                 ),
                 color = textColor.copy(alpha = if (isActive) 1f else 0.52f),
@@ -353,6 +367,7 @@ fun AnimatedWordV2(
     textColor: Color,
     inactiveAlpha: Float,
     fontSize: Float,
+    lineSpacing: Float = 1.3f,
     isBackground: Boolean,
     lyricsFontFamily: FontFamily?,
     bounceFactor: Float,
@@ -425,7 +440,7 @@ fun AnimatedWordV2(
                 fontSize = actualFontSize.sp,
                 fontWeight = fontWeight,
                 fontStyle = FontStyle.Normal,
-                lineHeight = (actualFontSize * 1.35f).sp,
+                lineHeight = (actualFontSize * lineSpacing).sp,
                 fontFamily = lyricsFontFamily ?: MaterialTheme.typography.headlineMedium.fontFamily
             ),
             color = textColor.copy(alpha = if (isBackground) inactiveAlpha * 0.7f else inactiveAlpha),
@@ -439,7 +454,7 @@ fun AnimatedWordV2(
                     fontSize = actualFontSize.sp,
                     fontWeight = fontWeight,
                     fontStyle = FontStyle.Normal,
-                    lineHeight = (actualFontSize * 1.35f).sp,
+                    lineHeight = (actualFontSize * lineSpacing).sp,
                     fontFamily = lyricsFontFamily ?: MaterialTheme.typography.headlineMedium.fontFamily,
                     shadow = if (glowAlpha > 0f) {
                         Shadow(

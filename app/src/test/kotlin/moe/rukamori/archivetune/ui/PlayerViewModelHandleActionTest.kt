@@ -82,6 +82,7 @@ class PlayerViewModelHandleActionTest {
         every { settingsRepository.isImmersiveEnabled() } returns false
         every { settingsRepository.isShowCodecInfoEnabled() } returns false
         every { settingsRepository.isAlbumCoverGlowEnabled() } returns false
+        every { settingsRepository.lyricsRomanizationPrefsFlow } returns MutableStateFlow(moe.rukamori.archivetune.lyrics.LyricsRomanizationPreferences())
 
         viewModel = spyk(PlayerViewModel(
             application = application,

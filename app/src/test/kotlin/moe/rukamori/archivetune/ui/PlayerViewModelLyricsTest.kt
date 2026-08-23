@@ -37,6 +37,7 @@ class PlayerViewModelLyricsTest {
     private lateinit var lyricsHelper: LyricsHelper
     private lateinit var database: MusicDatabase
     private lateinit var connectionHolder: PlayerConnectionHolder
+    private val currentLyricsFlow = MutableStateFlow<LyricsEntity?>(null)
 
     @Before
     fun setup() {
@@ -47,9 +48,14 @@ class PlayerViewModelLyricsTest {
         val application = mockk<Application>(relaxed = true)
         lyricsHelper = mockk(relaxed = true)
         database = mockk(relaxed = true)
+        every { database.query(any()) } answers { firstArg<MusicDatabase.() -> Unit>().invoke(database) }
+        every { database.replaceLyrics(any(), any(), any()) } returns Unit
+        every { database.replaceLyrics(any(), any(), any(), any()) } returns Unit
         
         val playerConnection = mockk<PlayerConnection>(relaxed = true)
         every { playerConnection.database } returns database
+        every { playerConnection.currentLyrics } returns currentLyricsFlow
+        every { playerConnection.mediaMetadata } returns MutableStateFlow(null)
         
         connectionHolder = PlayerConnectionHolder()
         connectionHolder.connection.value = playerConnection
@@ -60,6 +66,7 @@ class PlayerViewModelLyricsTest {
         every { settingsRepository.isImmersiveEnabled() } returns false
         every { settingsRepository.isShowCodecInfoEnabled() } returns false
         every { settingsRepository.isAlbumCoverGlowEnabled() } returns false
+        every { settingsRepository.lyricsRomanizationPrefsFlow } returns MutableStateFlow(moe.rukamori.archivetune.lyrics.LyricsRomanizationPreferences())
 
         viewModel = PlayerViewModel(
             application = application,
@@ -89,14 +96,16 @@ class PlayerViewModelLyricsTest {
         val title = "Test Title"
         val artist = "Test Artist"
         val cachedLyrics = "[00:01.00] Cached Line"
-        
-        setUiState(PlayerUiState(trackUrl = trackUrl, title = title, artist = artist, durationMs = 10000L))
-        
-        coEvery { database.getLyricsById(trackUrl) } returns LyricsEntity(
+        val entity = LyricsEntity(
             id = trackUrl,
             lyrics = cachedLyrics,
             source = LyricsEntity.Source.REMOTE.value
         )
+        
+        setUiState(PlayerUiState(trackUrl = trackUrl, title = title, artist = artist, durationMs = 0L))
+        
+        coEvery { database.getLyricsById(trackUrl) } returns entity
+        currentLyricsFlow.value = entity
 
         // Act
         viewModel.fetchLyrics()
@@ -121,14 +130,20 @@ class PlayerViewModelLyricsTest {
         val title = "Test Title 2"
         val artist = "Test Artist 2"
         val remoteLyrics = "[00:02.00] Remote Line"
+        val entity = LyricsEntity(
+            id = trackUrl,
+            lyrics = remoteLyrics,
+            source = LyricsEntity.Source.REMOTE.value
+        )
         
-        setUiState(PlayerUiState(trackUrl = trackUrl, title = title, artist = artist, durationMs = 10000L))
+        setUiState(PlayerUiState(trackUrl = trackUrl, title = title, artist = artist, durationMs = 0L))
         
         coEvery { database.getLyricsById(trackUrl) } returns null
         coEvery { lyricsHelper.getLyrics(any()) } returns remoteLyrics
 
         // Act
         viewModel.fetchLyrics()
+        currentLyricsFlow.value = entity
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Assert

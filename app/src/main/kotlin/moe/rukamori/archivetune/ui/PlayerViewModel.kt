@@ -324,6 +324,9 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.lyricsRomanizationPrefsFlow.collect { prefs ->
                 _uiState.update { it.copy(lyricsRomanizationPrefs = prefs) }
+                if (_uiState.value.lyricsList.isNotEmpty()) {
+                    startRomanizationJob(_uiState.value.lyricsList, lyricsFetchGeneration.get())
+                }
             }
         }
     }
