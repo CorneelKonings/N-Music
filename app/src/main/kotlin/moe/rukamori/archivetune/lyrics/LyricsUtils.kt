@@ -8,6 +8,7 @@ package moe.rukamori.archivetune.lyrics
 
 import android.icu.text.Transliterator
 import android.text.format.DateUtils
+import android.util.LruCache
 import com.atilika.kuromoji.ipadic.Tokenizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -373,6 +374,8 @@ object LyricsUtils {
     private val kuromojiTokenizer: Tokenizer by lazy {
         Tokenizer()
     }
+
+    private val romanizationCache = LruCache<String, String>(200)
 
     fun isTtml(lyrics: String): Boolean {
         val trimmed = normalizeLyricsText(lyrics)
@@ -993,6 +996,11 @@ object LyricsUtils {
     ): String? {
         if (!shouldRomanizeLyricsLine(text, preferences)) return null
 
+        val key = "$text|${preferences.hashCode()}"
+        synchronized(romanizationCache) {
+            romanizationCache.get(key)
+        }?.let { return it }
+
         val romanized =
             when {
                 preferences.romanizeJapanese && looksJapanese(text) -> romanizeJapanese(text)
@@ -1003,7 +1011,13 @@ object LyricsUtils {
                 else -> null
             }
 
-        return normalizeRomanizedText(text, romanized)
+        val result = normalizeRomanizedText(text, romanized)
+        if (result != null) {
+            synchronized(romanizationCache) {
+                romanizationCache.put(key, result)
+            }
+        }
+        return result
     }
 
     suspend fun romanizeLyricsWordWithLineContext(
@@ -1012,6 +1026,12 @@ object LyricsUtils {
         preferences: LyricsRomanizationPreferences,
     ): String? {
         if (word.isBlank()) return null
+
+        val key = "$word|${preferences.hashCode()}"
+        synchronized(romanizationCache) {
+            romanizationCache.get(key)
+        }?.let { return it }
+
         val romanized =
             when {
                 preferences.romanizeJapanese && looksJapanese(lineText) -> romanizeJapanese(word)
@@ -1021,7 +1041,13 @@ object LyricsUtils {
                 preferences.romanizeOther && hasOtherRomanizableScript(lineText) -> romanizeWithIcu(word)
                 else -> null
             }
-        return normalizeRomanizedText(word, romanized)
+        val result = normalizeRomanizedText(word, romanized)
+        if (result != null) {
+            synchronized(romanizationCache) {
+                romanizationCache.put(key, result)
+            }
+        }
+        return result
     }
 
     private suspend fun romanizeWithIcu(text: String): String =
