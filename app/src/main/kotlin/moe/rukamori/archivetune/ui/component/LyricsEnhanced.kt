@@ -715,7 +715,7 @@ fun LyricsEnhanced(
                     modifier =
                         Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 24.dp),
+                            .padding(horizontal = 4.dp),
                 )
             }
 
@@ -726,7 +726,7 @@ fun LyricsEnhanced(
                             .fillMaxSize()
                             .nestedScroll(nestedScrollConnection),
                 ) {
-                    val lyricsViewportOffset = remember(maxHeight) { maxHeight * 0.18f }
+                    val lyricsViewportOffset = remember(maxHeight) { maxHeight * 0.32f }
 
                     key(lyricsSessionKey, syncedLyricsRenderVersion) {
                         KaraokeLyricsView(
@@ -764,7 +764,7 @@ fun LyricsEnhanced(
                             modifier =
                                 Modifier
                                     .fillMaxSize()
-                                    .padding(horizontal = 24.dp),
+                                    .padding(horizontal = 4.dp),
                         )
                     }
                 }
