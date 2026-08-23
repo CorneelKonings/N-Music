@@ -284,6 +284,7 @@ implementation(libs.animation.core)
     implementation(libs.coil.network.okhttp)
 
     implementation(libs.shimmer)
+    implementation(libs.lottie.compose)
 
     implementation(libs.google.material)
 
