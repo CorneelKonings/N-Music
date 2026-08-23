@@ -93,7 +93,6 @@ import moe.rukamori.archivetune.constants.LyricsRomanizeKoreanKey
 import moe.rukamori.archivetune.constants.LyricsRomanizeOtherLanguagesKey
 import moe.rukamori.archivetune.constants.LyricsScrollKey
 import moe.rukamori.archivetune.constants.LyricsTextSizeKey
-import moe.rukamori.archivetune.constants.LyricsV2GlowFactorKey
 import moe.rukamori.archivetune.constants.PreferredLyricsProvider
 import moe.rukamori.archivetune.constants.PreloadQueueLyricsEnabledKey
 import moe.rukamori.archivetune.constants.QueueLyricsPreloadCountKey
@@ -156,7 +155,6 @@ fun LyricsSettings(
     val (lyricsScroll, onLyricsScrollChange) = rememberPreference(LyricsScrollKey, defaultValue = true)
     val (lyricsTextSize, onLyricsTextSizeChange) = rememberPreference(LyricsTextSizeKey, defaultValue = 26f)
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
-    val (glowFactor, onGlowFactorChange) = rememberPreference(LyricsV2GlowFactorKey, defaultValue = 1f)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
@@ -266,73 +264,6 @@ fun LyricsSettings(
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = SettingsDimensions.ScreenBottomPadding),
             ) {
-        var showLyricsGlowDialog by rememberSaveable { mutableStateOf(false) }
-
-        if (showLyricsGlowDialog) {
-            var tempGlowFactor by remember { mutableFloatStateOf(glowFactor) }
-
-            DefaultDialog(
-                onDismiss = {
-                    tempGlowFactor = glowFactor
-                    showLyricsGlowDialog = false
-                },
-                buttons = {
-                    TextButton(
-                        onClick = { tempGlowFactor = 1.0f },
-                        shapes = ButtonDefaults.shapes(),
-                    ) {
-                        Text(stringResource(R.string.reset))
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    TextButton(
-                        onClick = {
-                            tempGlowFactor = glowFactor
-                            showLyricsGlowDialog = false
-                        },
-                        shapes = ButtonDefaults.shapes(),
-                    ) {
-                        Text(stringResource(android.R.string.cancel))
-                    }
-                    TextButton(
-                        onClick = {
-                            onGlowFactorChange(tempGlowFactor)
-                            showLyricsGlowDialog = false
-                        },
-                        shapes = ButtonDefaults.shapes(),
-                    ) {
-                        Text(stringResource(android.R.string.ok))
-                    }
-                },
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.lyrics_glow_effect),
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                    )
-
-                    Text(
-                        text = if (tempGlowFactor == 0f) stringResource(R.string.disabled) else "${(tempGlowFactor * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                    )
-
-                    Slider(
-                        value = tempGlowFactor,
-                        onValueChange = { tempGlowFactor = it },
-                        valueRange = 0f..2f,
-                        steps = 19,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-        }
-
         var showLyricsTextSizeDialog by rememberSaveable { mutableStateOf(false) }
 
         if (showLyricsTextSizeDialog) {
@@ -468,15 +399,6 @@ fun LyricsSettings(
         }
 
         PreferenceGroup(title = stringResource(R.string.display)) {
-            item {
-                PreferenceEntry(
-                    title = { Text(stringResource(R.string.lyrics_glow_effect)) },
-                    description = if (glowFactor == 0f) stringResource(R.string.disabled) else "${(glowFactor * 100).toInt()}%",
-                    icon = { Icon(painterResource(R.drawable.lyrics), null) },
-                    onClick = { showLyricsGlowDialog = true },
-                )
-            }
-
             item {
                 SwitchPreference(
                     title = { Text(stringResource(R.string.lyrics_click_change)) },

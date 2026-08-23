@@ -114,7 +114,6 @@ import moe.rukamori.archivetune.constants.LyricsScrollKey
 import moe.rukamori.archivetune.constants.LyricsTextSizeKey
 import moe.rukamori.archivetune.constants.LyricsV2BounceFactorKey
 import moe.rukamori.archivetune.constants.LyricsV2FillTransitionWidthKey
-import moe.rukamori.archivetune.constants.LyricsV2GlowFactorKey
 import moe.rukamori.archivetune.constants.LyricsV2LrcBounceEnabledKey
 import moe.rukamori.archivetune.constants.PlayerBackgroundStyle
 import moe.rukamori.archivetune.constants.PlayerBackgroundStyleKey
@@ -207,7 +206,7 @@ fun LyricsV2(
     val (lyricsLineSpacing) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
     val (lyricsLineBlurPreference) = rememberPreference(LyricsLineBlurKey, defaultValue = true)
     val (bounceFactor) = rememberPreference(LyricsV2BounceFactorKey, defaultValue = 1f)
-    val (glowFactor) = rememberPreference(LyricsV2GlowFactorKey, defaultValue = 1f)
+    val glowFactor = 1f
     val (fillTransitionWidth) = rememberPreference(LyricsV2FillTransitionWidthKey, defaultValue = 8f)
     val (lrcBounceEnabled) = rememberPreference(LyricsV2LrcBounceEnabledKey, defaultValue = true)
     val (romanizeChinese) = rememberPreference(LyricsRomanizeChineseKey, defaultValue = true)

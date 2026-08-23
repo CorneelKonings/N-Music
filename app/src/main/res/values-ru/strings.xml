@@ -318,7 +318,6 @@
     <string name="player_slider_style">Стиль ползунка плеера</string>
     <string name="misc">Разное</string>
     <string name="default_open_tab">Вкладка по умолчанию</string>
-    <string name="lyrics_glow_effect">Эффект свечения текста</string>
     <string name="lyrics_line_spacing">Интервал между строк</string>
     <string name="content">Контент</string>
     <string name="action_logout">Выйти</string>

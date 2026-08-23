@@ -701,7 +701,6 @@ val LyricsRomanizeOtherLanguagesKey = booleanPreferencesKey("lyricsRomanizeOther
 val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 
 val LyricsV2BounceFactorKey = floatPreferencesKey("lyricsV2BounceFactor")
-val LyricsV2GlowFactorKey = floatPreferencesKey("lyricsV2GlowFactor")
 val LyricsV2FillTransitionWidthKey = floatPreferencesKey("lyricsV2FillTransitionWidth")
 val LyricsV2LrcBounceEnabledKey = booleanPreferencesKey("lyricsV2LrcBounceEnabled")
 
