@@ -29,7 +29,6 @@ fun LyricsColumn(
     onMoreClick: () -> Unit,
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onPlayPauseClick: () -> Unit,
     onAction: (moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction) -> Unit,
     onLineClick: (Long) -> Unit,
     onSeek: (Float) -> Unit,
@@ -153,7 +152,6 @@ fun LyricsColumn(
             state = state,
             animateProgressProvider = animateProgressProvider,
             onCloseClick = onCloseClick,
-            onPlayPauseClick = onPlayPauseClick,
             onMoreClick = onMoreClick,
         )
     }

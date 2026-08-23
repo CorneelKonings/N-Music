@@ -148,7 +148,6 @@ internal fun UnifiedPlayerSheetLayers(
                 animateProgressProvider = lyricsFractionProvider,
                 progressMsProvider = progressMsProvider,
                 onCloseClick = onCloseLyricsClick,
-                onPlayPauseClick = { onAction(PlayerAction.PlayPause) },
                 onAction = onAction,
                 onMoreClick = onMoreLyricsClick,
                 onSearchClick = onSearchLyricsClick,

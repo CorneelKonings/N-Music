@@ -12,19 +12,14 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -43,7 +38,6 @@ fun LyricsHeader(
     state: PlayerUiState,
     animateProgressProvider: () -> Float,
     onCloseClick: () -> Unit,
-    onPlayPauseClick: () -> Unit,
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -55,10 +49,6 @@ fun LyricsHeader(
     val moreInteractionSource = remember { MutableInteractionSource() }
     val morePressed by moreInteractionSource.collectIsPressedAsState()
     val moreScale by animateFloatAsState(if (morePressed) 0.92f else 1f, spring(dampingRatio = 0.5f))
-
-    val playInteractionSource = remember { MutableInteractionSource() }
-    val playPressed by playInteractionSource.collectIsPressedAsState()
-    val playScale by animateFloatAsState(if (playPressed) 0.92f else 1f, spring(dampingRatio = 0.5f))
 
     // Изолированная анимация вращения пластинки
     val rotation = remember { Animatable(0f) }
@@ -170,26 +160,6 @@ fun LyricsHeader(
                     )
                 }
             }
-
-            // Кнопка Play/Pause
-            val playPauseIcon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
-            Box(
-                modifier = Modifier
-                    .graphicsLayer { scaleX = playScale; scaleY = playScale }
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .clickable(interactionSource = playInteractionSource, indication = null) { onPlayPauseClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = rememberVectorPainter(playPauseIcon),
-                    contentDescription = "Play/Pause",
-                    modifier = Modifier.size(24.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(4.dp))
 
             // Кнопка меню
             Box(

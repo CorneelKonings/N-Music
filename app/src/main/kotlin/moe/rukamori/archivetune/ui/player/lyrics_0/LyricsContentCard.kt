@@ -32,6 +32,7 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -178,9 +179,9 @@ fun LyricsContentCard(
                                 .clip(RoundedCornerShape(32.dp))
                                 .background(
                                     if (state.isBlurBackgroundEnabled) {
-                                        Color.Black.copy(alpha = 0.35f)
+                                        Color.Black.copy(alpha = 0.20f)
                                     } else {
-                                        Color(0x40000000)
+                                        MaterialTheme.colorScheme.surface.copy(alpha = 0.22f)
                                     },
                                 )
                                 .border(
