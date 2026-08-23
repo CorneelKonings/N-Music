@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -38,7 +39,15 @@ fun Modifier.yumaGlassCard(
         .clip(shape)
         .background(backgroundColor, shape)
     return if (borderColor.isSpecified && borderColor != Color.Transparent) {
-        mod.border(SettingsDimensions.GlassBorderThickness, borderColor, shape)
+        val borderBrush = remember(borderColor) {
+            Brush.verticalGradient(
+                colors = listOf(
+                    borderColor.copy(alpha = (borderColor.alpha * 1.25f).coerceAtMost(1f)),
+                    borderColor.copy(alpha = borderColor.alpha * 0.6f)
+                )
+            )
+        }
+        mod.border(SettingsDimensions.GlassBorderThickness, borderBrush, shape)
     } else {
         mod
     }
