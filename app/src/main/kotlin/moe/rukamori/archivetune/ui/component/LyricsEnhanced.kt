@@ -77,6 +77,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -115,6 +116,7 @@ import moe.rukamori.archivetune.constants.LyricsRomanizeJapaneseKey
 import moe.rukamori.archivetune.constants.LyricsRomanizeKoreanKey
 import moe.rukamori.archivetune.constants.LyricsRomanizeOtherLanguagesKey
 import moe.rukamori.archivetune.constants.LyricsTextSizeKey
+import moe.rukamori.archivetune.constants.LyricsV2GlowFactorKey
 import moe.rukamori.archivetune.constants.PlayerBackgroundStyle
 import moe.rukamori.archivetune.constants.PlayerBackgroundStyleKey
 import moe.rukamori.archivetune.db.entities.LyricsEntity
@@ -179,6 +181,7 @@ fun LyricsEnhanced(
     val (lyricsClick) = rememberPreference(LyricsClickKey, defaultValue = true)
     val (lyricsTextSize) = rememberPreference(LyricsTextSizeKey, defaultValue = 26f)
     val (lyricsLineBlurPreference) = rememberPreference(LyricsLineBlurKey, defaultValue = true)
+    val (glowFactor) = rememberPreference(LyricsV2GlowFactorKey, defaultValue = 1f)
     val (romanizeChinese) = rememberPreference(LyricsRomanizeChineseKey, defaultValue = true)
     val (romanizeHindi) = rememberPreference(LyricsRomanizeHindiKey, defaultValue = true)
     val (romanizeJapanese) = rememberPreference(LyricsRomanizeJapaneseKey, defaultValue = true)
@@ -522,16 +525,33 @@ fun LyricsEnhanced(
         }
     }
 
+    val textShadow =
+        remember(glowFactor, textColor) {
+            if (glowFactor > 0f) {
+                val glowAlpha = (0.45f * glowFactor).coerceIn(0f, 1f)
+                val glowRadius = (12f * glowFactor).coerceAtLeast(1f)
+                Shadow(
+                    color = textColor.copy(alpha = glowAlpha),
+                    offset = Offset.Zero,
+                    blurRadius = glowRadius,
+                )
+            } else {
+                null
+            }
+        }
+
     val normalTextStyle =
         MaterialTheme.typography.headlineMedium.copy(
             fontSize = lyricsTextSize.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = lyricsFontFamily ?: MaterialTheme.typography.headlineMedium.fontFamily,
+            shadow = textShadow,
         )
     val accompanimentTextStyle =
         MaterialTheme.typography.titleLarge.copy(
             fontSize = (lyricsTextSize * 0.82f).sp,
             fontFamily = lyricsFontFamily ?: MaterialTheme.typography.titleLarge.fontFamily,
+            shadow = textShadow,
         )
     val phoneticTextStyle =
         MaterialTheme.typography.bodyMedium.copy(
