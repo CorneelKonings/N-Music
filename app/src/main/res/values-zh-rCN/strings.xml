@@ -415,7 +415,6 @@
     <string name="audio_quality_high">高质量</string>
     <string name="audio_quality_low">低质量</string>
     <string name="mime_type">MIME类型</string>
-    <string name="lyrics_animation_style">动态歌词样式</string>
     <string name="enable_betterlyrics">启用BetterLyrics</string>
     <string name="enable_simpmusic_lyrics">启用SimpMusic lyrics</string>
     <string name="player_and_audio">播放器与音频</string>

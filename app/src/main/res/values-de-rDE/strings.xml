@@ -267,7 +267,6 @@
     <string name="player_slider_style">Player-Slider-Stil</string>
     <string name="misc">Sonstiges</string>
     <string name="default_open_tab">Standardmäßig geöffnete Registerkarte</string>
-    <string name="lyrics_animation_style">Songtext-Animationsstil</string>
     <string name="content">Inhalt</string>
     <string name="action_logout">Abmelden</string>
     <string name="action_login">Einloggen</string>
@@ -547,9 +546,6 @@
     <string name="slider_style_simple">Vereinfacht</string>
     <string name="haptics">Vibration</string>
     <string name="haptics_desc">Haptisches Feedback bei interaktiven Elementen aktivieren</string>
-    <string name="lyrics_mode">Songtextmodus</string>
-    <string name="lyrics_mode_enhanced">Erweitert</string>
-    <string name="lyrics_animation_style_v2_only">Nur verfügbar in V2 Songtextmodus</string>
     <string name="lyrics_line_spacing">Songtext Zeilenabstand</string>
     <string name="playback_confirmation_required">Wiedergabebestätigung erforderlich</string>
     <string name="playback_requires_youtube_music_confirmation">Wiedergabe in YouTube Music bestätigten, dann zu ArchiveTune zurückkehren.</string>

@@ -471,11 +471,6 @@
     <string name="haptics">バイブレーション</string>
     <string name="haptics_desc">操作要素の触覚フィードバックを有効化</string>
     <string name="default_open_tab">デフォルトで開くタブ</string>
-    <string name="lyrics_animation_style">歌詞アニメーションスタイル</string>
-    <string name="lyrics_mode">歌詞モード</string>
-    <string name="lyrics_mode_v2">V2レガシー</string>
-    <string name="lyrics_mode_enhanced">強化版</string>
-    <string name="lyrics_animation_style_v2_only">V2歌詞モードでのみ利用可</string>
     <string name="lyrics_line_spacing">歌詞の行間</string>
     <string name="content">コンテンツ</string>
     <string name="action_logout">ログアウト</string>

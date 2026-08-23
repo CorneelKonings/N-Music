@@ -462,11 +462,6 @@
     <string name="haptics">Vibração</string>
     <string name="haptics_desc">Ativar feedback tátil em elementos interativos</string>
     <string name="default_open_tab">Aba aberta padrão</string>
-    <string name="lyrics_animation_style">Estilo de animação das letras</string>
-    <string name="lyrics_mode">Modo de letras</string>
-    <string name="lyrics_mode_v2">V2 legado</string>
-    <string name="lyrics_mode_enhanced">Aprimorado</string>
-    <string name="lyrics_animation_style_v2_only">Disponível apenas no modo de letras V2</string>
     <string name="lyrics_line_spacing">Espaçamento das linhas da letra</string>
     <string name="content">Conteúdo</string>
     <string name="action_logout">Sair</string>

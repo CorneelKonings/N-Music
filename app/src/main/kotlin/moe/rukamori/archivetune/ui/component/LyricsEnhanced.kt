@@ -712,7 +712,10 @@ fun LyricsEnhanced(
                             toggleSelectedLine(lineKey)
                         }
                     },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp),
                 )
             }
 
@@ -723,7 +726,7 @@ fun LyricsEnhanced(
                             .fillMaxSize()
                             .nestedScroll(nestedScrollConnection),
                 ) {
-                    val lyricsViewportOffset = remember(maxHeight) { maxHeight * 0.38f }
+                    val lyricsViewportOffset = remember(maxHeight) { maxHeight * 0.18f }
 
                     key(lyricsSessionKey, syncedLyricsRenderVersion) {
                         KaraokeLyricsView(
@@ -758,7 +761,10 @@ fun LyricsEnhanced(
                             showPhonetic = romanizationPreferences.isEnabled,
                             offset = lyricsViewportOffset,
                             keepAliveZone = 72.dp,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 24.dp),
                         )
                     }
                 }
@@ -912,9 +918,7 @@ private fun PlainLyricsView(
     val contentPadding =
         remember {
             PaddingValues(
-                start = 12.dp,
                 top = 120.dp,
-                end = 12.dp,
                 bottom = 96.dp,
             )
         }
@@ -965,7 +969,7 @@ private fun PlainLyricLineItem(
             onClick = { onLineClicked(line.selectionId) },
             onLongClick = { onLinePressed(line.selectionId) },
         )
-        .padding(horizontal = 12.dp, vertical = 8.dp)
+        .padding(vertical = 8.dp)
 
     if (line.translation != null) {
         Column(modifier = modifier) {

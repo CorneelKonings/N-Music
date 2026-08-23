@@ -303,7 +303,6 @@
     <string name="player_slider_style">Estilo de control deslizante del reproductor</string>
     <string name="misc">Varios</string>
     <string name="default_open_tab">Pestaña abierta por defecto</string>
-    <string name="lyrics_animation_style">Estilo de animación de las letras</string>
     <string name="lyrics_line_spacing">Espaciado entre líneas de la letra</string>
     <string name="content">Contenido</string>
     <string name="action_logout">Cerrar sesión</string>
@@ -790,10 +789,6 @@
     <string name="player_background_style_v8_v9_desc">No disponible con los estilos de reproductor V8 y V9</string>
     <string name="haptics">Vibración</string>
     <string name="haptics_desc">Habilitar la retroalimentación háptica en elementos interactivos</string>
-    <string name="lyrics_mode">Modo de letras</string>
-    <string name="lyrics_mode_v2">Versión 2 heredada/obsoleta</string>
-    <string name="lyrics_mode_enhanced">Mejorado</string>
-    <string name="lyrics_animation_style_v2_only">Solo disponible en modo letra V2</string>
     <string name="could_not_open_youtube_music">No se ha podido abrir YouTube Music</string>
     <string name="proxy_connection_invalid_configuration">Host o puerto de proxy no válido</string>
     <string name="ip_rotation">Rotación de direcciones IP</string>

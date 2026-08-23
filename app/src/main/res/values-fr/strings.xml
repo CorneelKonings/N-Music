@@ -275,7 +275,6 @@
     <string name="player_slider_style">Style de curseur du lecteur</string>
     <string name="misc">Divers</string>
     <string name="default_open_tab">Onglet ouvert par défaut</string>
-    <string name="lyrics_animation_style">Style d\'animation des paroles</string>
     <string name="lyrics_line_spacing">Espacement des lignes des paroles</string>
     <string name="content">Contenu</string>
     <string name="action_logout">Déconnexion</string>
@@ -729,7 +728,6 @@
     <string name="recently_played">Joués récemment</string>
     <string name="your_playlists">Vos Playlists</string>
     <string name="see_all">Tout afficher</string>
-    <string name="lyrics_mode_enhanced">Amélioré</string>
     <string name="discord_presence_streaming">Diffusion en continu</string>
     <string name="discord_presence_do_not_disturb">Ne pas déranger</string>
     <string name="sort_ascending">Trier par ordre croissant</string>
@@ -778,7 +776,6 @@
     <string name="your_collection">Votre Collection</string>
     <string name="discord_login_description">Connectez votre compte Discord via OAuth afin qu\'YumaPlayer puisse publier des informations de présence enrichies.</string>
     <string name="personal_label">Personnel</string>
-    <string name="lyrics_animation_style_v2_only">Disponible uniquement en mode paroles V2</string>
     <string name="discord_platform_ios">iOS</string>
     <string name="font_preference_custom">Personnalisé</string>
     <string name="custom_font_invalid">Choisissez un fichier de police au format .ttf</string>
@@ -812,7 +809,6 @@
     <string name="ip_rotation_desc">Changez d\'adresse IP lorsque des problèmes de lecture ou de contenu surviennent.</string>
     <string name="discord_activity_type_competing_label">En compétition</string>
     <string name="discord_platform_embedded">Intégré</string>
-    <string name="lyrics_mode_v2">V2 Legacy</string>
     <string name="saved_accounts">Comptes enregistrés</string>
     <string name="widget_tap_to_open">Appuyez pour ouvrir ArchiveTune</string>
     <string name="discord_refresh_failed">Échec de l\'actualisation de la présence sur Discord</string>
@@ -825,7 +821,6 @@
     <string name="list_view">Affichage sous forme de liste</string>
     <string name="player_background_style_v8_v9_desc">Non disponible avec les styles de lecteur V8 et V9</string>
     <string name="account_integrations_summary">Discord, Last.fm, Libre.fm, ListenBrainz</string>
-    <string name="lyrics_mode">Mode paroles</string>
     <string name="all_artists_filter">Tous les artistes</string>
     <string name="sort_artist">Artiste</string>
     <string name="custom_font">Police personnalisée</string>

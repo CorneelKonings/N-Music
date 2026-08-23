@@ -60,7 +60,6 @@ import moe.rukamori.archivetune.ui.screens.settings.IconScreen
 import moe.rukamori.archivetune.ui.screens.settings.IntegrationScreen
 import moe.rukamori.archivetune.ui.screens.settings.InternetSettings
 import moe.rukamori.archivetune.ui.screens.settings.LastFMSettings
-import moe.rukamori.archivetune.ui.screens.settings.LyricsAnimationSettings
 import moe.rukamori.archivetune.ui.screens.settings.LyricsSettings
 import moe.rukamori.archivetune.ui.screens.settings.MusicTogetherScreen
 import moe.rukamori.archivetune.ui.screens.settings.PalettePickerScreen
@@ -378,9 +377,6 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/appearance/palette_picker") {
         PalettePickerScreen(navController)
-    }
-    composable("settings/appearance/lyrics_animations") {
-        LyricsAnimationSettings(navController)
     }
     composable("settings/appearance/theme_creator") {
         ThemeCreatorScreen(navController)

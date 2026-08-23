@@ -321,7 +321,6 @@
     <string name="slider_style_simple">Простий</string>
     <string name="misc">Різне</string>
     <string name="default_open_tab">Стандартна вкладка</string>
-    <string name="lyrics_animation_style">Стиль анімації текстів пісень</string>
     <string name="lyrics_line_spacing">Міжрядковий інтервал у тексті пісні</string>
     <string name="content">Контент</string>
     <string name="action_logout">Вийти</string>

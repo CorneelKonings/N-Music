@@ -446,11 +446,6 @@
     <string name="haptics">تھرتھرانا</string>
     <string name="haptics_desc">تفاعلی عناصر پر تھرتھرانا فیعل کریں</string>
     <string name="default_open_tab">کھلنے کے بعد کا ڈیفالٹ پنا</string>
-    <string name="lyrics_animation_style">بول کی حراکات کا طرز</string>
-    <string name="lyrics_mode">بول کا اسلوب</string>
-    <string name="lyrics_mode_v2">V2 میراث</string>
-    <string name="lyrics_mode_enhanced">ان ہینسڈ</string>
-    <string name="lyrics_animation_style_v2_only">صرف V2 بول اسلوب میں دستیاب ہے</string>
     <string name="low_data_mode_title">کم ڈیٹا اسلوب</string>
     <string name="lyrics_line_spacing">بول کی سطروں کا فاصلہ</string>
     <string name="content">مواد</string>

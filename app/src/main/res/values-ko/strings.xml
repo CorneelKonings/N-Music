@@ -311,11 +311,6 @@
     <string name="haptics">햅틱 피드백</string>
     <string name="haptics_desc">버튼이나 메뉴를 누를 때 손끝에 가벼운 진동 반응을 줍니다.</string>
     <string name="default_open_tab">기본 열릴 탭</string>
-    <string name="lyrics_animation_style">가사 애니메이션 스타일</string>
-    <string name="lyrics_mode">가사 렌더링 모드</string>
-    <string name="lyrics_mode_v2">V2 레거시</string>
-    <string name="lyrics_mode_enhanced">향상된 모드</string>
-    <string name="lyrics_animation_style_v2_only">이전 버전(V2) 가사 모드에서만 사용할 수 있는 효과입니다.</string>
     <string name="lyrics_line_spacing">가사 줄 간격</string>
     <string name="content">콘텐츠</string>
     <string name="action_logout">로그아웃</string>

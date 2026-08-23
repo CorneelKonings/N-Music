@@ -443,11 +443,6 @@
     <string name="haptics">震動</string>
     <string name="haptics_desc">為互動元素啟用觸覺回饋</string>
     <string name="default_open_tab">預設開啟頁面</string>
-    <string name="lyrics_animation_style">歌詞動畫樣式</string>
-    <string name="lyrics_mode">歌詞模式</string>
-    <string name="lyrics_mode_v2">V2 舊版</string>
-    <string name="lyrics_mode_enhanced">增強版</string>
-    <string name="lyrics_animation_style_v2_only">僅在 V2 歌詞模式下可用</string>
     <string name="lyrics_line_spacing">歌詞行距</string>
     <string name="content">內容</string>
     <string name="action_logout">登出</string>

@@ -334,7 +334,6 @@
     <string name="player_slider_style">Kiểu thanh trượt trình phát</string>
     <string name="misc">Khác</string>
     <string name="default_open_tab">Tab mặc định mở</string>
-    <string name="lyrics_animation_style">Kiểu hoạt hình lời bài hát</string>
     <string name="lyrics_line_spacing">Khoảng cách dòng lời bài hát</string>
     <string name="content">Nội dung</string>
     <string name="action_logout">Đăng xuất</string>
@@ -795,10 +794,6 @@
     <string name="ip_rotation_refreshing">Đang làm mới IP</string>
     <string name="low_data_mode_description">Giảm sử dụng dữ liệu di động bằng cách sử dụng luồng chất lượng thấp và tắt bộ nhớ đệm phát lại, canvas và tải trước lời bài hát nền trên mạng có đồng hồ</string>
     <string name="low_data_mode_title">Chế độ dữ liệu thấp</string>
-    <string name="lyrics_animation_style_v2_only">Chỉ khả dụng trong chế độ lời bài hát V2</string>
-    <string name="lyrics_mode">Chế độ lời bài hát</string>
-    <string name="lyrics_mode_enhanced">Nâng cao</string>
-    <string name="lyrics_mode_v2">V2 kế thừa</string>
     <string name="lyrics_word_sync">Đồng bộ từ</string>
     <string name="no_saved_accounts">Chưa có tài khoản nào được lưu</string>
     <string name="paxsenix_stats_failed">Không thể tải thống kê API</string>

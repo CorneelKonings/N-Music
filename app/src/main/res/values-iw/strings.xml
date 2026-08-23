@@ -102,7 +102,6 @@
     <string name="recently_played_artists">אמנים שהושמעו לאחרונה</string>
     <string name="newest_year">שנה חדשה</string>
     <string name="oldest_year">שנה ישנה</string>
-    <string name="lyrics_mode_enhanced">משופר</string>
     <string name="remove_from_speed_dial">מחיקה מהפעלה מהירה</string>
     <string name="together_requesting_song_change">מבקש מהמארח לשנות את השיר…</string>
     <string name="palette_youtube_red">Youtube</string>
@@ -243,7 +242,6 @@
     <string name="codecs">קודקים</string>
     <string name="together_participants">משתתפים</string>
     <string name="show_button2_description">הפעלת כפתור 2 ב- Discord Rich Presence</string>
-    <string name="lyrics_animation_style_v2_only">זמין רק בגרסה ״2 מדור קודם״ במצב מילות השיר</string>
     <string name="auto_start_on_bluetooth_desc">חידוש ההפעלה אוטומטית כאשר מכשיר שמע Bluetooth מתחבר</string>
     <string name="duplicates_description_multiple">%d שירים כבר נמצאים בפלייליסט שלך</string>
     <string name="add_to_playlist">הוספה לפלייליסט</string>
@@ -351,11 +349,9 @@
     <string name="pause_on_device_mute">השהה כאשר עוצמת הקול של המכשיר היא 0</string>
     <string name="remove_download_playlist_confirm">האם אתה באמת רוצה להסיר את כל \"%s\" השירים מהפלייליסט מאחסון השירים שהורדו?</string>
     <string name="eq_imported_profile">מיובא</string>
-    <string name="lyrics_mode_v2">גרסה 2 מדור קודם</string>
     <string name="proxy_auth">אישור פרוקסי (אופציונלי)</string>
     <string name="add_to_library">הוסף לספרייה</string>
     <string name="palette_pastel_pink">ורוד פסטל</string>
-    <string name="lyrics_animation_style">סגנון הנפשת מילות השיר</string>
     <string name="action_shuffle_off">ערבוב כבוי</string>
     <string name="sort_by_name">שם</string>
     <string name="stream_bypass_proxy">עקיפת פרוקסי עבור סטרימים</string>
@@ -402,7 +398,6 @@
     <string name="palette_lavender_dream">לוונדר</string>
     <string name="file_size">גודל קובץ</string>
     <string name="pin_to_speed_dial">הצמדה להפעלה מהירה</string>
-    <string name="lyrics_mode">מצב מילות השיר</string>
     <string name="pause_on_device_mute_desc">השהה בעוצמת קול אפס, הסבר על ניסיונות השמעה וחידוש השמעה כאשר עוצמת הקול עולה</string>
     <string name="enable_simpmusic_lyrics">הפעלת SimpMusic lyrics</string>
     <string name="palette_charcoal">פחם</string>
