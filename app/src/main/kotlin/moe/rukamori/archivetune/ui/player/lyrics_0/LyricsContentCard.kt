@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
@@ -38,7 +39,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.ui.state.PlayerUiState
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
+import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.lyrics.LyricsEntry
 import moe.rukamori.archivetune.constants.LyricsLineBlurKey
 import moe.rukamori.archivetune.utils.rememberPreference
@@ -57,7 +62,40 @@ fun LyricsContentCard(
     val screenHeightPx = remember { context.resources.displayMetrics.heightPixels.toFloat() }
 
     val (lyricsLineBlur) = rememberPreference(LyricsLineBlurKey, defaultValue = true)
-    val isManualScrolling = lazyListState.isScrollInProgress
+    
+    var isManualScrolling by remember { mutableStateOf(false) }
+    val MANUAL_SCROLL_TIMEOUT_MS = 3000L
+    val coroutineScope = rememberCoroutineScope()
+    var manualScrollJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                if (source == NestedScrollSource.UserInput || source == NestedScrollSource.Drag) {
+                    isManualScrolling = true
+                    manualScrollJob?.cancel()
+                    manualScrollJob = coroutineScope.launch {
+                        kotlinx.coroutines.delay(MANUAL_SCROLL_TIMEOUT_MS)
+                        isManualScrolling = false
+                    }
+                }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+        }
+    }
+
+    LaunchedEffect(state.currentLineIndex, state.isLyricsVisible) {
+        if (state.isLyricsVisible && state.isSynced && state.currentLineIndex >= 0 && state.currentLineIndex < state.lyricsList.size) {
+            if (!isManualScrolling) {
+                val viewportHeight = lazyListState.layoutInfo.viewportSize.height
+                val targetOffset = (viewportHeight * 0.35f).toInt()
+                lazyListState.animateScrollToItem(
+                    index = state.currentLineIndex,
+                    scrollOffset = -targetOffset
+                )
+            }
+        }
+    }
 
     // Анимируем базовые цвета палитры
     val animatedDarkMuted by animateColorAsState(
@@ -186,6 +224,7 @@ fun LyricsContentCard(
                             state = lazyListState,
                             modifier = Modifier
                                 .fillMaxSize()
+                                .nestedScroll(nestedScrollConnection)
                                 .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                                 .drawWithContent {
                                     drawContent()
@@ -244,19 +283,78 @@ fun LyricsContentCard(
                                 if (line == LyricsEntry.HEAD_LYRICS_ENTRY) {
                                     Spacer(modifier = Modifier.height(100.dp))
                                 } else if (line.isInstrumental) {
-                                    InstrumentalBreakItem(
-                                        durationMs = line.durationMs,
-                                        currentPositionMs = currentMsState.value + syncOffset,
-                                        startTimeMs = line.time,
-                                        textColor = Color.White,
-                                        inactiveAlpha = 0.35f,
-                                        modifier = Modifier.clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null
-                                        ) {
-                                            if (line.time >= 0L) onLineClick(line.time)
+                                    val instrAlpha = when {
+                                        isActive -> 1f
+                                        isManualScrolling -> when {
+                                            distanceFromActive == 1 -> 0.72f
+                                            distanceFromActive == 2 -> 0.56f
+                                            distanceFromActive == 3 -> 0.40f
+                                            else -> 0.28f
                                         }
+                                        distanceFromActive == 1 -> 0.52f
+                                        distanceFromActive == 2 -> 0.30f
+                                        distanceFromActive == 3 -> 0.18f
+                                        else -> 0.35f
+                                    }
+
+                                    val targetInstrBlur = when {
+                                        isActive || !lyricsLineBlur || isManualScrolling -> 0f
+                                        distanceFromActive == 1 -> 2f
+                                        distanceFromActive == 2 -> 5f
+                                        else -> 12f
+                                    }
+
+                                    val animatedInstrBlur by animateFloatAsState(
+                                        targetValue = targetInstrBlur,
+                                        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                                        label = "instrBlur"
                                     )
+
+                                    val animatedInstrScale by animateFloatAsState(
+                                        targetValue = if (isActive) 1f else 0.95f,
+                                        animationSpec = tween(durationMillis = 166, easing = FastOutSlowInEasing),
+                                        label = "instrScale"
+                                    )
+
+                                    val animatedInstrAlpha by animateFloatAsState(
+                                        targetValue = instrAlpha,
+                                        animationSpec = tween(durationMillis = if (isActive) 330 else 500, easing = FastOutSlowInEasing),
+                                        label = "instrAlpha"
+                                    )
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+                                            .then(
+                                                if (animatedInstrBlur > 0f) {
+                                                    Modifier.blur(radiusX = animatedInstrBlur.dp, radiusY = animatedInstrBlur.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
+                                                } else {
+                                                    Modifier
+                                                }
+                                            )
+                                            .graphicsLayer {
+                                                scaleX = animatedInstrScale
+                                                scaleY = animatedInstrScale
+                                                alpha = animatedInstrAlpha
+                                            }
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null
+                                            ) {
+                                                if (line.time >= 0L) onLineClick(line.time)
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        InstrumentalBreakItem(
+                                            durationMs = line.durationMs,
+                                            currentPositionMs = currentMsState.value + syncOffset,
+                                            startTimeMs = line.time,
+                                            textColor = Color.White,
+                                            inactiveAlpha = 1f,
+                                            modifier = Modifier
+                                        )
+                                    }
                                 } else {
                                     LyricsLineItem(
                                         item = line,

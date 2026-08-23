@@ -73,20 +73,6 @@ fun LyricsColumn(
         }
     }
 
-    // УЛУЧШЕННЫЙ АВТОСКРОЛЛ (YT Music style):
-    // Теперь он срабатывает не только при смене индекса строки,
-    // но и при повторном открытии экрана (isLyricsVisible), возвращая фокус на активную строку.
-    LaunchedEffect(state.currentLineIndex, state.isLyricsVisible) {
-        if (state.isLyricsVisible && state.isSynced && state.currentLineIndex >= 0 && state.currentLineIndex < state.lyricsList.size) {
-            if (!lazyListState.isScrollInProgress) {
-                lazyListState.animateScrollToItem(
-                    index = state.currentLineIndex,
-                    scrollOffset = viewportOffset
-                )
-            }
-        }
-    }
-
     Box(
         modifier = modifier
             .fillMaxSize()

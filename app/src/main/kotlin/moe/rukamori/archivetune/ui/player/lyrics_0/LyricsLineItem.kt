@@ -135,8 +135,8 @@ fun LyricsLineItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = if (isAllBackground) 24.dp else 12.dp,
-                end = 12.dp,
+                start = if (isAllBackground) 32.dp else 24.dp,
+                end = 24.dp,
                 top = 8.dp,
                 bottom = 8.dp
             )
