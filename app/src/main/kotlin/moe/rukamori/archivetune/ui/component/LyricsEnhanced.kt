@@ -539,7 +539,7 @@ fun LyricsEnhanced(
             fontWeight = FontWeight.Normal,
         )
     val plainLyrics =
-        remember(lyricsEntries, isSynced) {
+        remember(lyricsEntries, isSynced, showTranslations) {
             PlainLyrics(
                 items =
                     if (isSynced) {
@@ -551,10 +551,12 @@ fun LyricsEnhanced(
                                 null
                             } else {
                                 val selectionId = "plain:$index:${text.hashCode()}"
+                                val translation = if (showTranslations) providedTranslationTextForEntry(entry) else null
                                 PlainLyricLine(
                                     itemId = "$selectionId#$index",
                                     selectionId = selectionId,
                                     text = text,
+                                    translation = translation,
                                 )
                             }
                         }
@@ -866,6 +868,7 @@ private data class PlainLyricLine(
     val itemId: String,
     val selectionId: String,
     val text: String,
+    val translation: String? = null,
 )
 
 @Immutable
@@ -935,19 +938,41 @@ private fun PlainLyricLineItem(
             textColor
         }
 
-    Text(
-        text = line.text,
-        style = textStyle,
-        color = contentColor,
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .combinedClickable(
-                    onClick = { onLineClicked(line.selectionId) },
-                    onLongClick = { onLinePressed(line.selectionId) },
-                ).padding(horizontal = 12.dp, vertical = 8.dp),
-    )
+    val modifier = Modifier
+        .fillMaxWidth()
+        .heightIn(min = 48.dp)
+        .combinedClickable(
+            onClick = { onLineClicked(line.selectionId) },
+            onLongClick = { onLinePressed(line.selectionId) },
+        )
+        .padding(horizontal = 12.dp, vertical = 8.dp)
+
+    if (line.translation != null) {
+        Column(modifier = modifier) {
+            Text(
+                text = line.text,
+                style = textStyle,
+                color = contentColor,
+            )
+            Text(
+                text = line.translation,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = (textStyle.fontSize.value * 0.55f).sp,
+                    lineHeight = (textStyle.fontSize.value * 0.75f).sp,
+                    fontWeight = FontWeight.Normal,
+                ),
+                color = contentColor.copy(alpha = 0.76f),
+                modifier = Modifier.padding(top = (textStyle.fontSize.value * 0.3f).dp),
+            )
+        }
+    } else {
+        Text(
+            text = line.text,
+            style = textStyle,
+            color = contentColor,
+            modifier = modifier,
+        )
+    }
 }
 
 @Composable
