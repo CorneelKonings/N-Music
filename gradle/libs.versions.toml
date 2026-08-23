@@ -48,6 +48,8 @@ accompanist-core = "0.4.7"
 androidsvg = "1.4"
 aboutLibraries = "15.0.3"
 lottie = "6.6.2"
+haze = "1.5.3"
+graphicsShapes = "1.0.1"
 
 googleMaterial = "1.12.0"
 appUpdateKtx = "2.1.0"
@@ -165,6 +167,9 @@ androidsvg = { module = "com.caverock:androidsvg-aar", version.ref = "androidsvg
 aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
 foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
+graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 
 
 [plugins]

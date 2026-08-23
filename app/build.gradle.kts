@@ -285,6 +285,9 @@ implementation(libs.animation.core)
 
     implementation(libs.shimmer)
     implementation(libs.lottie.compose)
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
+    implementation(libs.graphics.shapes)
 
     implementation(libs.google.material)
 
