@@ -140,6 +140,16 @@ class PlayerViewModel @Inject constructor(
                                 currentLineIndex = targetIndex
                             )
                         }
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                lyricsList = emptyList(),
+                                isSynced = false,
+                                isLoadingLyrics = false,
+                                lyricsError = null,
+                                currentLineIndex = -1
+                            )
+                        }
                     }
                 }
         }
@@ -175,6 +185,22 @@ class PlayerViewModel @Inject constructor(
 
                     val coverUrl = metadata.thumbnailUrl ?: ""
                     val cachedPalette = paletteCache.get(coverUrl)
+
+                    val oldId = _uiState.value.trackUrl
+                    val newId = metadata.id
+                    if (oldId != newId && oldId.isNotEmpty()) {
+                        lyricsFetchGeneration.incrementAndGet()
+                        lyricsJob?.cancel()
+                        _uiState.update {
+                            it.copy(
+                                lyricsList = emptyList(),
+                                isSynced = false,
+                                currentLineIndex = -1,
+                                lyricsError = null,
+                                isLoadingLyrics = false
+                            )
+                        }
+                    }
 
                     _uiState.update { currentUi ->
                         currentUi.copy(
