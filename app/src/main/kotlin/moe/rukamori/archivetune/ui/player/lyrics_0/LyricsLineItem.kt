@@ -55,7 +55,9 @@ fun LyricsLineItem(
     currentPositionMs: Long,
     textColor: Color,
     inactiveAlpha: Float,
-    baseFontSize: Float,
+    lyricsTextSize: Float,
+    lyricsLineSpacing: Float,
+    lyricsClick: Boolean,
     lyricsFontFamily: FontFamily?,
     bounceFactor: Float,
     glowFactor: Float,
@@ -137,8 +139,8 @@ fun LyricsLineItem(
             .padding(
                 start = if (isAllBackground) 32.dp else 24.dp,
                 end = 24.dp,
-                top = 3.dp,
-                bottom = 3.dp
+                top = (lyricsLineSpacing * 4).dp,
+                bottom = (lyricsLineSpacing * 4).dp
             )
             .then(
                 if (animatedBlur > 0f) {
@@ -154,7 +156,7 @@ fun LyricsLineItem(
                 transformOrigin = lineTransformOrigin
             }
             .clickable {
-                if (item.time >= 0L) onLineClick(item.time)
+                if (lyricsClick && item.time >= 0L) onLineClick(item.time)
             },
         horizontalAlignment = horizontalAlignment
     ) {
@@ -162,10 +164,10 @@ fun LyricsLineItem(
         val translationText = item.providerTranslationText
 
         val supplementaryBaseTextStyle = MaterialTheme.typography.bodyMedium
-        val supplementaryTextStyle = remember(supplementaryBaseTextStyle, baseFontSize, lyricsFontFamily, isAllBackground) {
+        val supplementaryTextStyle = remember(supplementaryBaseTextStyle, lyricsTextSize, lyricsFontFamily, isAllBackground) {
             supplementaryBaseTextStyle.copy(
-                fontSize = (baseFontSize * 0.55f).sp,
-                lineHeight = (baseFontSize * 0.75f).sp,
+                fontSize = (lyricsTextSize * 0.55f).sp,
+                lineHeight = (lyricsTextSize * 0.75f).sp,
                 fontWeight = FontWeight.Normal,
                 fontStyle = if (isAllBackground) FontStyle.Italic else FontStyle.Normal,
                 fontFamily = lyricsFontFamily ?: supplementaryBaseTextStyle.fontFamily
@@ -193,7 +195,7 @@ fun LyricsLineItem(
                 textAlign = textAlign,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = (baseFontSize * 0.18f).dp)
+                    .padding(bottom = (lyricsTextSize * 0.18f).dp)
             )
         }
 
@@ -214,7 +216,7 @@ fun LyricsLineItem(
                             Text(
                                 text = " ",
                                 style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontSize = if (isAllBackground) (baseFontSize * 0.82f).sp else baseFontSize.sp,
+                                    fontSize = if (isAllBackground) (lyricsTextSize * 0.82f).sp else lyricsTextSize.sp,
                                     fontFamily = lyricsFontFamily ?: MaterialTheme.typography.headlineMedium.fontFamily
                                 ),
                                 color = Color.Transparent
@@ -244,7 +246,7 @@ fun LyricsLineItem(
                                     currentPositionMs = currentPositionMs,
                                     textColor = textColor,
                                     inactiveAlpha = inactiveAlpha,
-                                    fontSize = if (isAllBackground) baseFontSize * 0.82f else baseFontSize,
+                                    fontSize = if (isAllBackground) lyricsTextSize * 0.82f else lyricsTextSize,
                                     isBackground = isAllBackground,
                                     lyricsFontFamily = lyricsFontFamily,
                                     bounceFactor = bounceFactor,
@@ -260,7 +262,7 @@ fun LyricsLineItem(
                                 currentPositionMs = currentPositionMs,
                                 textColor = textColor,
                                 inactiveAlpha = inactiveAlpha,
-                                fontSize = if (isAllBackground) baseFontSize * 0.82f else baseFontSize,
+                                    fontSize = if (isAllBackground) lyricsTextSize * 0.82f else lyricsTextSize,
                                 isBackground = isAllBackground,
                                 lyricsFontFamily = lyricsFontFamily,
                                 bounceFactor = bounceFactor,
@@ -287,7 +289,7 @@ fun LyricsLineItem(
                             Text(
                                 text = " ",
                                 style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontSize = (baseFontSize * 0.65f).sp,
+                                    fontSize = (lyricsTextSize * 0.65f).sp,
                                     fontFamily = lyricsFontFamily ?: MaterialTheme.typography.headlineMedium.fontFamily
                                 ),
                                 color = Color.Transparent
@@ -302,7 +304,7 @@ fun LyricsLineItem(
                             currentPositionMs = currentPositionMs,
                             textColor = textColor,
                             inactiveAlpha = inactiveAlpha,
-                            fontSize = baseFontSize * 0.65f,
+                            fontSize = lyricsTextSize * 0.65f,
                             isBackground = true,
                             lyricsFontFamily = lyricsFontFamily,
                             bounceFactor = bounceFactor,
@@ -316,10 +318,10 @@ fun LyricsLineItem(
             Text(
                 text = item.text,
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    fontSize = if (isAllBackground) (baseFontSize * 0.82f).sp else baseFontSize.sp,
+                    fontSize = if (isAllBackground) (lyricsTextSize * 0.82f).sp else lyricsTextSize.sp,
                     fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
                     fontStyle = if (isAllBackground) FontStyle.Italic else FontStyle.Normal,
-                    lineHeight = (baseFontSize * 1.2f).sp,
+                    lineHeight = (lyricsTextSize * 1.2f).sp,
                     fontFamily = lyricsFontFamily ?: MaterialTheme.typography.headlineMedium.fontFamily
                 ),
                 color = textColor.copy(alpha = if (isActive) 1f else 0.52f),
@@ -336,7 +338,7 @@ fun LyricsLineItem(
                 textAlign = textAlign,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = (baseFontSize * 0.3f).dp)
+                    .padding(top = (lyricsTextSize * 0.3f).dp)
             )
         }
     }

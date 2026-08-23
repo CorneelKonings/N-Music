@@ -46,6 +46,15 @@ import androidx.compose.ui.layout.layout
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.lyrics.LyricsEntry
 import moe.rukamori.archivetune.constants.LyricsLineBlurKey
+import moe.rukamori.archivetune.constants.LyricsClickKey
+import moe.rukamori.archivetune.constants.LyricsScrollKey
+import moe.rukamori.archivetune.constants.LyricsTextSizeKey
+import moe.rukamori.archivetune.constants.LyricsLineSpacingKey
+import moe.rukamori.archivetune.constants.LyricsV2BounceFactorKey
+import moe.rukamori.archivetune.constants.LyricsV2GlowFactorKey
+import moe.rukamori.archivetune.constants.LyricsV2FillTransitionWidthKey
+import moe.rukamori.archivetune.constants.ShowLyricsPlayerControlsKey
+import moe.rukamori.archivetune.ui.theme.rememberArchiveTuneLyricsFontFamily
 import moe.rukamori.archivetune.utils.rememberPreference
 
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
@@ -83,7 +92,16 @@ fun LyricsContentCard(
     val context = LocalContext.current
     val screenHeightPx = remember { context.resources.displayMetrics.heightPixels.toFloat() }
 
+    val (lyricsClick) = rememberPreference(LyricsClickKey, defaultValue = true)
+    val (lyricsScroll) = rememberPreference(LyricsScrollKey, defaultValue = true)
+    val (lyricsTextSize) = rememberPreference(LyricsTextSizeKey, defaultValue = 26f)
+    val (lyricsLineSpacing) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
     val (lyricsLineBlur) = rememberPreference(LyricsLineBlurKey, defaultValue = true)
+    val (bounceFactor) = rememberPreference(LyricsV2BounceFactorKey, defaultValue = 1f)
+    val (glowFactor) = rememberPreference(LyricsV2GlowFactorKey, defaultValue = 1f)
+    val (fillTransitionWidth) = rememberPreference(LyricsV2FillTransitionWidthKey, defaultValue = 8f)
+    val (showPlayerControls) = rememberPreference(ShowLyricsPlayerControlsKey, defaultValue = true)
+    val lyricsFontFamily = rememberArchiveTuneLyricsFontFamily()
     
     var isManualScrolling by remember { mutableStateOf(false) }
     val MANUAL_SCROLL_TIMEOUT_MS = 3000L
@@ -108,7 +126,7 @@ fun LyricsContentCard(
 
     LaunchedEffect(state.currentLineIndex, state.isLyricsVisible) {
         if (state.isLyricsVisible && state.isSynced && state.currentLineIndex >= 0 && state.currentLineIndex < state.lyricsList.size) {
-            if (!isManualScrolling) {
+            if (lyricsScroll && !isManualScrolling) {
                 val viewportHeight = lazyListState.layoutInfo.viewportSize.height
                 val targetOffset = (viewportHeight * 0.35f).toInt()
                 lazyListState.animateScrollToItem(
@@ -364,7 +382,7 @@ fun LyricsContentCard(
                                                 interactionSource = remember { MutableInteractionSource() },
                                                 indication = null
                                             ) {
-                                                if (line.time >= 0L) onLineClick(line.time)
+                                                if (lyricsClick && line.time >= 0L) onLineClick(line.time)
                                             },
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -385,11 +403,13 @@ fun LyricsContentCard(
                                         currentPositionMs = currentMsState.value + syncOffset,
                                         textColor = Color.White,
                                         inactiveAlpha = 0.35f,
-                                        baseFontSize = 24f,
-                                        lyricsFontFamily = null,
-                                        bounceFactor = 1f,
-                                        glowFactor = 1f,
-                                        fillTransitionWidth = 8f,
+                                        lyricsTextSize = lyricsTextSize,
+                                        lyricsLineSpacing = lyricsLineSpacing,
+                                        lyricsClick = lyricsClick,
+                                        lyricsFontFamily = lyricsFontFamily,
+                                        bounceFactor = bounceFactor,
+                                        glowFactor = glowFactor,
+                                        fillTransitionWidth = fillTransitionWidth,
                                         onLineClick = onLineClick,
                                         distanceFromActive = distanceFromActive,
                                         isManualScrolling = isManualScrolling,
@@ -409,20 +429,21 @@ fun LyricsContentCard(
                             )
                         }
                         
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 32.dp)
-                                .fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
+                        if (showPlayerControls) {
+                            Box(
                                 modifier = Modifier
-                                    .height(56.dp)
-                                    .clip(RoundedCornerShape(28.dp))
-                                    .background(Color(0x20FFFFFF))
-                                    .border(BorderStroke(1.dp, Color(0x33FFFFFF)), RoundedCornerShape(28.dp))
-                                    .padding(horizontal = 16.dp),
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 32.dp)
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .height(56.dp)
+                                        .clip(RoundedCornerShape(28.dp))
+                                        .background(Color(0x20FFFFFF))
+                                        .border(BorderStroke(1.dp, Color(0x33FFFFFF)), RoundedCornerShape(28.dp))
+                                        .padding(horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
@@ -522,6 +543,7 @@ fun LyricsContentCard(
                                     modifier = Modifier.width(100.dp)
                                 )
                             }
+                        }
                         }
                     }
                 }
