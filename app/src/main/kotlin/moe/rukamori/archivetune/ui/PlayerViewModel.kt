@@ -113,6 +113,7 @@ class PlayerViewModel @Inject constructor(
     private var isUserSeeking = false
     private var tickerJob: Job? = null
     private var lyricsJob: Job? = null
+    private var romanizationJob: Job? = null
     private val lyricsFetchGeneration = AtomicLong(0)
     private var likeJob: Job? = null
     private var paletteJob: Job? = null
@@ -131,6 +132,7 @@ class PlayerViewModel @Inject constructor(
                         val durationMs = audioPlayer?.duration?.takeIf { it > 0L && it != androidx.media3.common.C.TIME_UNSET } ?: 0L
                         val parsedLines = parseLyrics(cached.lyrics, durationMs)
                         val isSynced = parsedLines.any { line -> line.time > 0 }
+                        startRomanizationJob(parsedLines, lyricsFetchGeneration.get())
                         _uiState.update {
                             val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, it.progressMs, it.lyricsSyncOffset) else -1
                             it.copy(
@@ -192,6 +194,7 @@ class PlayerViewModel @Inject constructor(
                     if (oldId != newId && oldId.isNotEmpty()) {
                         lyricsFetchGeneration.incrementAndGet()
                         lyricsJob?.cancel()
+                        romanizationJob?.cancel()
                         _uiState.update {
                             it.copy(
                                 lyricsList = emptyList(),
@@ -478,6 +481,7 @@ class PlayerViewModel @Inject constructor(
 
         lyricsFetchGeneration.incrementAndGet()
         lyricsJob?.cancel()
+        romanizationJob?.cancel()
 
         _uiState.update {
             it.copy(
@@ -723,6 +727,7 @@ class PlayerViewModel @Inject constructor(
                 )
             }
             val parsedLines = parseLyrics(text, durationMs)
+            startRomanizationJob(parsedLines, lyricsFetchGeneration.get())
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
             }
@@ -784,6 +789,7 @@ class PlayerViewModel @Inject constructor(
                         settings[AiApiValidationStatusKey] = AiApiValidationStatus.SUCCESS.name
                     }
                     val parsedLines = parseLyrics(translatedLyrics, durationMs)
+                    startRomanizationJob(parsedLines, lyricsFetchGeneration.get())
                     withContext(Dispatchers.Main) {
                         _uiState.update { it.copy(isAiTranslating = false, lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
                     }
@@ -835,6 +841,7 @@ class PlayerViewModel @Inject constructor(
                         )
                     }
                     val parsedLines = parseLyrics(translatedLyrics, durationMs)
+                    startRomanizationJob(parsedLines, lyricsFetchGeneration.get())
                     withContext(Dispatchers.Main) {
                         _uiState.update { it.copy(isStandardTranslating = false, lyricsList = parsedLines, isSynced = parsedLines.any { line -> line.time > 0 }) }
                     }
@@ -914,6 +921,7 @@ class PlayerViewModel @Inject constructor(
 
         val generation = lyricsFetchGeneration.incrementAndGet()
         lyricsJob?.cancel()
+        romanizationJob?.cancel()
 
         _uiState.update { it.copy(isLoadingLyrics = true, lyricsError = null) }
 
@@ -1075,6 +1083,40 @@ class PlayerViewModel @Inject constructor(
         val shareUrl = "https://music.youtube.com/watch?v=$trackId"
         viewModelScope.launch {
             _event.send(PlayerEvent.ShareTrack(shareUrl))
+        }
+    }
+
+    private fun startRomanizationJob(entries: List<moe.rukamori.archivetune.lyrics.LyricsEntry>, generation: Long) {
+        romanizationJob?.cancel()
+        if (entries.isEmpty()) return
+
+        val prefs = _uiState.value.lyricsRomanizationPrefs ?: moe.rukamori.archivetune.lyrics.LyricsRomanizationPreferences()
+        if (!prefs.isEnabled) {
+            entries.forEach { it.romanizedTextFlow.value = null }
+            return
+        }
+
+        romanizationJob = viewModelScope.launch(Dispatchers.Default) {
+            for (entry in entries) {
+                ensureActive()
+                if (lyricsFetchGeneration.get() != generation) return@launch
+
+                val provided = moe.rukamori.archivetune.lyrics.LyricsUtils.providedRomanizedTextForEntry(entry, prefs)
+                if (provided != null) {
+                    entry.romanizedTextFlow.value = provided
+                    continue
+                }
+
+                if (!moe.rukamori.archivetune.lyrics.LyricsUtils.shouldRomanizeLyricsLine(entry.text, prefs)) {
+                    entry.romanizedTextFlow.value = null
+                    continue
+                }
+
+                val romanized = moe.rukamori.archivetune.lyrics.LyricsUtils.romanizeLyricsLine(entry.text, prefs)
+                if (lyricsFetchGeneration.get() == generation) {
+                    entry.romanizedTextFlow.value = romanized
+                }
+            }
         }
     }
 }
