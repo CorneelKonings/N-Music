@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -18,12 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
@@ -56,8 +53,6 @@ fun PlayerTransportControls(
     modifier: Modifier = Modifier,
     isLarge: Boolean = true,
 ) {
-    val isLightTheme = MaterialTheme.colorScheme.surface.luminance() > 0.5f
-
     val animatedAccentColor by animateColorAsState(
         targetValue = vibrantColor,
         animationSpec = tween(500),
@@ -79,33 +74,17 @@ fun PlayerTransportControls(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(CapsuleHeight)
-                .shadow(elevation = if (isLightTheme) 8.dp else 0.dp, shape = CircleShape)
                 .clip(CircleShape)
-                .background(
-                    if (isLightTheme) {
-                        Color.White.copy(alpha = 0.65f)
-                    } else {
-                        animatedAccentColor.copy(alpha = 0.12f)
-                    },
-                )
+                .background(animatedAccentColor.copy(alpha = 0.12f))
                 .border(
                     BorderStroke(
                         CapsuleBorderWidth,
-                        if (isLightTheme) {
-                            Brush.verticalGradient(
-                                listOf(
-                                    Color.White.copy(alpha = 0.85f),
-                                    Color.White.copy(alpha = 0.35f),
-                                ),
-                            )
-                        } else {
-                            Brush.verticalGradient(
-                                listOf(
-                                    animatedAccentColor.copy(alpha = 0.28f),
-                                    animatedAccentColor.copy(alpha = 0.08f),
-                                ),
-                            )
-                        },
+                        Brush.verticalGradient(
+                            listOf(
+                                animatedAccentColor.copy(alpha = 0.18f),
+                                animatedAccentColor.copy(alpha = 0.08f),
+                            ),
+                        ),
                     ),
                     CircleShape,
                 )
