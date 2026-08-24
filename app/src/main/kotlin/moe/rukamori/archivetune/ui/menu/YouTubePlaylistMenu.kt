@@ -94,6 +94,7 @@ import moe.rukamori.archivetune.ui.component.ListDialog
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
+import moe.rukamori.archivetune.ui.component.NewMenuItem
 import moe.rukamori.archivetune.ui.component.YouTubeListItem
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadItem
 import moe.rukamori.archivetune.ui.utils.sendAddMissingDownloads
@@ -558,7 +559,7 @@ fun YouTubePlaylistMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 NewActionGrid(
                     actions = primaryActions,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
@@ -571,9 +572,9 @@ fun YouTubePlaylistMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = playNextText) },
                         leadingContent = {
                             Icon(
@@ -581,26 +582,24 @@ fun YouTubePlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                coroutineScope.launch {
-                                    songs
-                                        .ifEmpty {
-                                            withContext(Dispatchers.IO) {
-                                                YouTube
-                                                    .playlist(playlist.id)
-                                                    .completed()
-                                                    .getOrNull()
-                                                    ?.songs
-                                                    .orEmpty()
-                                            }
-                                        }.let { list ->
-                                            playerConnection.playNext(list.map { it.toMediaItem() })
+                        onClick = {
+                            coroutineScope.launch {
+                                songs
+                                    .ifEmpty {
+                                        withContext(Dispatchers.IO) {
+                                            YouTube
+                                                .playlist(playlist.id)
+                                                .completed()
+                                                .getOrNull()
+                                                ?.songs
+                                                .orEmpty()
                                         }
-                                }
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                    }.let { list ->
+                                        playerConnection.playNext(list.map { it.toMediaItem() })
+                                    }
+                            }
+                            onDismiss()
+                        },
                     )
 
                     HorizontalDivider(
@@ -608,7 +607,7 @@ fun YouTubePlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = addToQueueText) },
                         leadingContent = {
                             Icon(
@@ -616,26 +615,24 @@ fun YouTubePlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                coroutineScope.launch {
-                                    songs
-                                        .ifEmpty {
-                                            withContext(Dispatchers.IO) {
-                                                YouTube
-                                                    .playlist(playlist.id)
-                                                    .completed()
-                                                    .getOrNull()
-                                                    ?.songs
-                                                    .orEmpty()
-                                            }
-                                        }.let { list ->
-                                            playerConnection.addToQueue(list.map { it.toMediaItem() })
+                        onClick = {
+                            coroutineScope.launch {
+                                songs
+                                    .ifEmpty {
+                                        withContext(Dispatchers.IO) {
+                                            YouTube
+                                                .playlist(playlist.id)
+                                                .completed()
+                                                .getOrNull()
+                                                ?.songs
+                                                .orEmpty()
                                         }
-                                }
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                    }.let { list ->
+                                        playerConnection.addToQueue(list.map { it.toMediaItem() })
+                                    }
+                            }
+                            onDismiss()
+                        },
                     )
 
                     HorizontalDivider(
@@ -643,7 +640,7 @@ fun YouTubePlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = addToPlaylistText) },
                         leadingContent = {
                             Icon(
@@ -651,11 +648,9 @@ fun YouTubePlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                showChoosePlaylistDialog = true
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            showChoosePlaylistDialog = true
+                        },
                     )
 
                     HorizontalDivider(
@@ -663,7 +658,7 @@ fun YouTubePlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -682,52 +677,50 @@ fun YouTubePlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                coroutineScope.launch {
-                                    val pin =
-                                        if (isInSpeedDial) {
-                                            playlistPin
-                                        } else {
-                                            val localPlaylistId =
-                                                withContext(Dispatchers.IO) {
-                                                    database
-                                                        .playlistByBrowseId(playlist.id)
-                                                        .first()
-                                                        ?.playlist
-                                                        ?.id
-                                                        ?: run {
-                                                            val playlistEntity =
-                                                                PlaylistEntity(
-                                                                    name = playlist.title,
-                                                                    browseId = playlist.id,
-                                                                    thumbnailUrl = playlist.thumbnail,
-                                                                    isEditable = false,
-                                                                    remoteSongCount =
-                                                                        playlist.songCountText?.let {
-                                                                            Regex("""\d+""").find(it)?.value?.toIntOrNull()
-                                                                        },
-                                                                    playEndpointParams = playlist.playEndpoint?.params,
-                                                                    shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                                                                    radioEndpointParams = playlist.radioEndpoint?.params,
-                                                                )
-                                                            database.transaction {
-                                                                insert(playlistEntity)
-                                                            }
-                                                            playlistEntity.id
+                        onClick = {
+                            coroutineScope.launch {
+                                val pin =
+                                    if (isInSpeedDial) {
+                                        playlistPin
+                                    } else {
+                                        val localPlaylistId =
+                                            withContext(Dispatchers.IO) {
+                                                database
+                                                    .playlistByBrowseId(playlist.id)
+                                                    .first()
+                                                    ?.playlist
+                                                    ?.id
+                                                    ?: run {
+                                                        val playlistEntity =
+                                                            PlaylistEntity(
+                                                                name = playlist.title,
+                                                                browseId = playlist.id,
+                                                                thumbnailUrl = playlist.thumbnail,
+                                                                isEditable = false,
+                                                                remoteSongCount =
+                                                                    playlist.songCountText?.let {
+                                                                        Regex("""\d+""").find(it)?.value?.toIntOrNull()
+                                                                    },
+                                                                playEndpointParams = playlist.playEndpoint?.params,
+                                                                shuffleEndpointParams = playlist.shuffleEndpoint?.params,
+                                                                radioEndpointParams = playlist.radioEndpoint?.params,
+                                                            )
+                                                        database.transaction {
+                                                            insert(playlistEntity)
                                                         }
-                                                }
-                                            SpeedDialPin(type = SpeedDialPinType.PLAYLIST, id = localPlaylistId)
-                                        }
+                                                        playlistEntity.id
+                                                    }
+                                            }
+                                        SpeedDialPin(type = SpeedDialPinType.PLAYLIST, id = localPlaylistId)
+                                    }
 
-                                    if (pin == null) return@launch
+                                if (pin == null) return@launch
 
-                                    val updatedPins = toggleSpeedDialPin(speedDialPins, pin)
-                                    onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                                    onDismiss()
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                val updatedPins = toggleSpeedDialPin(speedDialPins, pin)
+                                onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                                onDismiss()
+                            }
+                        },
                     )
 
                     HorizontalDivider(
@@ -735,7 +728,7 @@ fun YouTubePlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = importPlaylistText) },
                         leadingContent = {
                             Icon(
@@ -743,11 +736,9 @@ fun YouTubePlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                showImportPlaylistDialog = true
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            showImportPlaylistDialog = true
+                        },
                     )
 
                     HorizontalDivider(
@@ -755,7 +746,7 @@ fun YouTubePlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = ytSyncText) },
                         leadingContent = {
                             Icon(
@@ -877,7 +868,6 @@ fun YouTubePlaylistMenu(
                                 },
                             )
                         },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     )
                 }
             }
@@ -888,10 +878,10 @@ fun YouTubePlaylistMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 when (downloadState) {
                     Download.STATE_COMPLETED -> {
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = {
                                 Text(
                                     text = stringResource(R.string.remove_download),
@@ -905,32 +895,28 @@ fun YouTubePlaylistMenu(
                                     tint = MaterialTheme.colorScheme.error,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    showRemoveDownloadDialog = true
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                showRemoveDownloadDialog = true
+                            },
                         )
                     }
 
                     Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.downloading)) },
                             leadingContent = {
                                 CircularWavyProgressIndicator(
                                     modifier = Modifier.size(24.dp),
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    showRemoveDownloadDialog = true
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                showRemoveDownloadDialog = true
+                            },
                         )
                     }
 
                     else -> {
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.action_download)) },
                             leadingContent = {
                                 Icon(
@@ -938,35 +924,33 @@ fun YouTubePlaylistMenu(
                                     contentDescription = null,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    coroutineScope.launch {
-                                        songs
-                                            .ifEmpty {
-                                                withContext(Dispatchers.IO) {
-                                                    YouTube
-                                                        .playlist(playlist.id)
-                                                        .completed()
-                                                        .getOrNull()
-                                                        ?.songs
-                                                        .orEmpty()
-                                                }
-                                            }.let { playlistSongs ->
-                                                sendAddMissingDownloads(
-                                                    context = context,
-                                                    songs =
-                                                        playlistSongs.map { song ->
-                                                            HeaderDownloadItem(
-                                                                id = song.id,
-                                                                title = song.title,
-                                                            )
-                                                        },
-                                                    downloads = downloadUtil.downloads.value,
-                                                )
+                            onClick = {
+                                coroutineScope.launch {
+                                    songs
+                                        .ifEmpty {
+                                            withContext(Dispatchers.IO) {
+                                                YouTube
+                                                    .playlist(playlist.id)
+                                                    .completed()
+                                                    .getOrNull()
+                                                    ?.songs
+                                                    .orEmpty()
                                             }
-                                    }
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        }.let { playlistSongs ->
+                                            sendAddMissingDownloads(
+                                                context = context,
+                                                songs =
+                                                    playlistSongs.map { song ->
+                                                        HeaderDownloadItem(
+                                                            id = song.id,
+                                                            title = song.title,
+                                                        )
+                                                    },
+                                                downloads = downloadUtil.downloads.value,
+                                            )
+                                        }
+                                }
+                            },
                         )
                     }
                 }
@@ -978,9 +962,9 @@ fun YouTubePlaylistMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = shareText) },
                         leadingContent = {
                             Icon(
@@ -988,18 +972,16 @@ fun YouTubePlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                val intent =
-                                    Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        type = "text/plain"
-                                        putExtra(Intent.EXTRA_TEXT, playlist.shareLink)
-                                    }
-                                context.startActivity(Intent.createChooser(intent, null))
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            val intent =
+                                Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, playlist.shareLink)
+                                }
+                            context.startActivity(Intent.createChooser(intent, null))
+                            onDismiss()
+                        },
                     )
 
                     if (canSelect) {
@@ -1008,7 +990,7 @@ fun YouTubePlaylistMenu(
                             color = MaterialTheme.colorScheme.outlineVariant,
                         )
 
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = selectText) },
                             leadingContent = {
                                 Icon(
@@ -1016,12 +998,10 @@ fun YouTubePlaylistMenu(
                                     contentDescription = null,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    onDismiss()
-                                    selectAction()
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                onDismiss()
+                                selectAction()
+                            },
                         )
                     }
                 }

@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
@@ -64,7 +65,7 @@ fun NewActionButton(
             modifier
                 .fillMaxWidth()
                 .heightIn(min = 84.dp)
-                .yumaClickable(enabled = enabled, onClick = onClick)
+                .yumaClickable(enabled = enabled, pressedScale = 0.96f, onClick = onClick)
                 .yumaGlassCard(
                     shape = RoundedCornerShape(14.dp),
                     backgroundColor = containerColor,
@@ -158,7 +159,7 @@ fun NewMenuItem(
             modifier =
                 modifier
                     .fillMaxWidth()
-                    .yumaClickable(enabled = enabled, onClick = onClick),
+                    .yumaClickable(enabled = enabled, pressedScale = 0.97f, onClick = onClick),
         ) {
             content()
         }
@@ -313,6 +314,7 @@ fun MenuSurfaceSection(
                     shape = RoundedCornerShape(20.dp),
                     backgroundColor = colors.glassBackground,
                     borderColor = colors.glassBorder,
+                    strokeWidth = SettingsDimensions.GlassBorderThickness,
                 ),
     ) {
         Column(content = content)

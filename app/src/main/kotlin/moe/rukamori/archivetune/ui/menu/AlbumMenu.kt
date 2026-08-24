@@ -94,6 +94,7 @@ import moe.rukamori.archivetune.ui.component.ListItem
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
+import moe.rukamori.archivetune.ui.component.NewMenuItem
 import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadItem
 import moe.rukamori.archivetune.ui.utils.resize
@@ -374,7 +375,7 @@ fun AlbumMenu(
             ),
     ) {
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 NewActionGrid(
                     actions =
                         buildList {
@@ -465,9 +466,9 @@ fun AlbumMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.play_next)) },
                         leadingContent = {
                             Icon(
@@ -475,12 +476,10 @@ fun AlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                onDismiss()
-                                playerConnection.playNext(songs.map { it.toMediaItem() })
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            onDismiss()
+                            playerConnection.playNext(songs.map { it.toMediaItem() })
+                        },
                     )
 
                     HorizontalDivider(
@@ -488,7 +487,7 @@ fun AlbumMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
                         leadingContent = {
                             Icon(
@@ -496,12 +495,10 @@ fun AlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                onDismiss()
-                                playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            onDismiss()
+                            playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                        },
                     )
 
                     HorizontalDivider(
@@ -509,7 +506,7 @@ fun AlbumMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.add_to_playlist)) },
                         leadingContent = {
                             Icon(
@@ -517,11 +514,9 @@ fun AlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                showChoosePlaylistDialog = true
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            showChoosePlaylistDialog = true
+                        },
                     )
 
                     HorizontalDivider(
@@ -529,7 +524,7 @@ fun AlbumMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -548,13 +543,11 @@ fun AlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                val updatedPins = toggleSpeedDialPin(speedDialPins, albumPin)
-                                onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            val updatedPins = toggleSpeedDialPin(speedDialPins, albumPin)
+                            onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                            onDismiss()
+                        },
                     )
                 }
             }
@@ -566,10 +559,10 @@ fun AlbumMenu(
             }
 
             item {
-                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+                MenuSurfaceSection {
                     when (downloadState) {
                         STATE_COMPLETED -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = {
                                     Text(
                                         text = stringResource(R.string.remove_download),
@@ -583,46 +576,42 @@ fun AlbumMenu(
                                         tint = MaterialTheme.colorScheme.error,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        songs.forEach { song ->
-                                            DownloadService.sendRemoveDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                song.id,
-                                                false,
-                                            )
-                                        }
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    songs.forEach { song ->
+                                        DownloadService.sendRemoveDownload(
+                                            context,
+                                            ExoDownloadService::class.java,
+                                            song.id,
+                                            false,
+                                        )
+                                    }
+                                },
                             )
                         }
 
                         STATE_QUEUED, STATE_DOWNLOADING -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = { Text(text = stringResource(R.string.downloading)) },
                                 leadingContent = {
                                     CircularWavyProgressIndicator(
                                         modifier = Modifier.size(24.dp),
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        songs.forEach { song ->
-                                            DownloadService.sendRemoveDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                song.id,
-                                                false,
-                                            )
-                                        }
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    songs.forEach { song ->
+                                        DownloadService.sendRemoveDownload(
+                                            context,
+                                            ExoDownloadService::class.java,
+                                            song.id,
+                                            false,
+                                        )
+                                    }
+                                },
                             )
                         }
 
                         else -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = { Text(text = stringResource(R.string.action_download)) },
                                 leadingContent = {
                                     Icon(
@@ -630,21 +619,19 @@ fun AlbumMenu(
                                         contentDescription = null,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        sendAddMissingDownloads(
-                                            context = context,
-                                            songs =
-                                                songs.map { song ->
-                                                    HeaderDownloadItem(
-                                                        id = song.id,
-                                                        title = song.song.title,
-                                                    )
-                                                },
-                                            downloads = downloadUtil.downloads.value,
-                                        )
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    sendAddMissingDownloads(
+                                        context = context,
+                                        songs =
+                                            songs.map { song ->
+                                                HeaderDownloadItem(
+                                                    id = song.id,
+                                                    title = song.song.title,
+                                                )
+                                            },
+                                        downloads = downloadUtil.downloads.value,
+                                    )
+                                },
                             )
                         }
                     }
@@ -657,9 +644,9 @@ fun AlbumMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.view_artist)) },
                         leadingContent = {
                             Icon(
@@ -667,16 +654,14 @@ fun AlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
-                                    navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
-                                    onDismiss()
-                                } else {
-                                    showSelectArtistDialog = true
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
+                                navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
+                                onDismiss()
+                            } else {
+                                showSelectArtistDialog = true
+                            }
+                        },
                     )
 
                     if (!isLocalAlbum) {
@@ -685,7 +670,7 @@ fun AlbumMenu(
                             color = MaterialTheme.colorScheme.outlineVariant,
                         )
 
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.refetch)) },
                             leadingContent = {
                                 Icon(
@@ -694,18 +679,16 @@ fun AlbumMenu(
                                     modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    refetchIconDegree -= 360
-                                    scope.launch(Dispatchers.IO) {
-                                        YouTube.album(album.id).onSuccess {
-                                            database.transaction {
-                                                update(album.album, it, album.artists)
-                                            }
+                            onClick = {
+                                refetchIconDegree -= 360
+                                scope.launch(Dispatchers.IO) {
+                                    YouTube.album(album.id).onSuccess {
+                                        database.transaction {
+                                            update(album.album, it, album.artists)
                                         }
                                     }
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                }
+                            },
                         )
                     }
                 }

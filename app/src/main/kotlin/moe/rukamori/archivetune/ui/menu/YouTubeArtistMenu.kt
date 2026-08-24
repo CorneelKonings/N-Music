@@ -51,6 +51,7 @@ import moe.rukamori.archivetune.playback.queues.YouTubeQueue
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
+import moe.rukamori.archivetune.ui.component.NewMenuItem
 import moe.rukamori.archivetune.ui.component.YouTubeListItem
 import moe.rukamori.archivetune.utils.SpeedDialPin
 import moe.rukamori.archivetune.utils.SpeedDialPinType
@@ -101,7 +102,11 @@ fun YouTubeArtistMenu(
             ),
     ) {
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        item {
+            MenuSurfaceSection {
                 NewActionGrid(
                     actions =
                         buildList {
@@ -179,9 +184,9 @@ fun YouTubeArtistMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -207,25 +212,23 @@ fun YouTubeArtistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                database.query {
-                                    val libraryArtist = libraryArtist
-                                    if (libraryArtist != null) {
-                                        update(libraryArtist.artist.toggleLike())
-                                    } else {
-                                        insert(
-                                            ArtistEntity(
-                                                id = artist.id,
-                                                name = artist.title,
-                                                channelId = artist.channelId,
-                                                thumbnailUrl = artist.thumbnail,
-                                            ).toggleLike(),
-                                        )
-                                    }
+                        onClick = {
+                            database.query {
+                                val libraryArtist = libraryArtist
+                                if (libraryArtist != null) {
+                                    update(libraryArtist.artist.toggleLike())
+                                } else {
+                                    insert(
+                                        ArtistEntity(
+                                            id = artist.id,
+                                            name = artist.title,
+                                            channelId = artist.channelId,
+                                            thumbnailUrl = artist.thumbnail,
+                                        ).toggleLike(),
+                                    )
                                 }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            }
+                        },
                     )
 
                     HorizontalDivider(
@@ -233,7 +236,7 @@ fun YouTubeArtistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -252,30 +255,28 @@ fun YouTubeArtistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                coroutineScope.launch {
-                                    if (!isInSpeedDial) {
-                                        withContext(Dispatchers.IO) {
-                                            database.transaction {
-                                                insert(
-                                                    ArtistEntity(
-                                                        id = artist.id,
-                                                        name = artist.title,
-                                                        channelId = artist.channelId,
-                                                        thumbnailUrl = artist.thumbnail,
-                                                    ),
-                                                )
-                                            }
+                        onClick = {
+                            coroutineScope.launch {
+                                if (!isInSpeedDial) {
+                                    withContext(Dispatchers.IO) {
+                                        database.transaction {
+                                            insert(
+                                                ArtistEntity(
+                                                    id = artist.id,
+                                                    name = artist.title,
+                                                    channelId = artist.channelId,
+                                                    thumbnailUrl = artist.thumbnail,
+                                                ),
+                                            )
                                         }
                                     }
-
-                                    val updatedPins = toggleSpeedDialPin(speedDialPins, artistPin)
-                                    onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                                    onDismiss()
                                 }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+
+                                val updatedPins = toggleSpeedDialPin(speedDialPins, artistPin)
+                                onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                                onDismiss()
+                            }
+                        },
                     )
                 }
             }

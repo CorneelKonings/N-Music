@@ -84,6 +84,7 @@ import moe.rukamori.archivetune.ui.component.ListDialog
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
+import moe.rukamori.archivetune.ui.component.NewMenuItem
 import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.YouTubeListItem
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadItem
@@ -347,7 +348,7 @@ fun YouTubeAlbumMenu(
             ),
     ) {
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 NewActionGrid(
                     actions =
                         listOf(
@@ -421,9 +422,9 @@ fun YouTubeAlbumMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.play_next)) },
                         leadingContent = {
                             Icon(
@@ -431,15 +432,13 @@ fun YouTubeAlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                album
-                                    ?.songs
-                                    ?.map { it.toMediaItem() }
-                                    ?.let(playerConnection::playNext)
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            album
+                                ?.songs
+                                ?.map { it.toMediaItem() }
+                                ?.let(playerConnection::playNext)
+                            onDismiss()
+                        },
                     )
 
                     HorizontalDivider(
@@ -447,7 +446,7 @@ fun YouTubeAlbumMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
                         leadingContent = {
                             Icon(
@@ -455,15 +454,13 @@ fun YouTubeAlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                album
-                                    ?.songs
-                                    ?.map { it.toMediaItem() }
-                                    ?.let(playerConnection::addToQueue)
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            album
+                                ?.songs
+                                ?.map { it.toMediaItem() }
+                                ?.let(playerConnection::addToQueue)
+                            onDismiss()
+                        },
                     )
 
                     HorizontalDivider(
@@ -471,7 +468,7 @@ fun YouTubeAlbumMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.add_to_playlist)) },
                         leadingContent = {
                             Icon(
@@ -479,11 +476,9 @@ fun YouTubeAlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                showChoosePlaylistDialog = true
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            showChoosePlaylistDialog = true
+                        },
                     )
 
                     HorizontalDivider(
@@ -491,7 +486,7 @@ fun YouTubeAlbumMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -510,37 +505,35 @@ fun YouTubeAlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                coroutineScope.launch {
-                                    val shouldTogglePin =
-                                        if (isInSpeedDial) {
-                                            true
-                                        } else {
-                                            withContext(Dispatchers.IO) {
-                                                if (album != null) {
-                                                    true
-                                                } else {
-                                                    val result = YouTube.album(albumItem.id)
-                                                    result
-                                                        .onSuccess { albumPage ->
-                                                            database.transaction {
-                                                                insert(albumPage)
-                                                            }
-                                                        }.onFailure(::reportException)
-                                                    result.isSuccess
-                                                }
+                        onClick = {
+                            coroutineScope.launch {
+                                val shouldTogglePin =
+                                    if (isInSpeedDial) {
+                                        true
+                                    } else {
+                                        withContext(Dispatchers.IO) {
+                                            if (album != null) {
+                                                true
+                                            } else {
+                                                val result = YouTube.album(albumItem.id)
+                                                result
+                                                    .onSuccess { albumPage ->
+                                                        database.transaction {
+                                                            insert(albumPage)
+                                                        }
+                                                    }.onFailure(::reportException)
+                                                result.isSuccess
                                             }
                                         }
+                                    }
 
-                                    if (!shouldTogglePin) return@launch
+                                if (!shouldTogglePin) return@launch
 
-                                    val updatedPins = toggleSpeedDialPin(speedDialPins, albumPin)
-                                    onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                                    onDismiss()
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                val updatedPins = toggleSpeedDialPin(speedDialPins, albumPin)
+                                onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                                onDismiss()
+                            }
+                        },
                     )
                 }
             }
@@ -551,10 +544,10 @@ fun YouTubeAlbumMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 when (downloadState) {
                     Download.STATE_COMPLETED -> {
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = {
                                 Text(
                                     text = stringResource(R.string.remove_download),
@@ -568,46 +561,42 @@ fun YouTubeAlbumMenu(
                                     tint = MaterialTheme.colorScheme.error,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    album?.songs?.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
-                                    }
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                album?.songs?.forEach { song ->
+                                    DownloadService.sendRemoveDownload(
+                                        context,
+                                        ExoDownloadService::class.java,
+                                        song.id,
+                                        false,
+                                    )
+                                }
+                            },
                         )
                     }
 
                     Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.downloading)) },
                             leadingContent = {
                                 CircularWavyProgressIndicator(
                                     modifier = Modifier.size(24.dp),
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    album?.songs?.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
-                                    }
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                album?.songs?.forEach { song ->
+                                    DownloadService.sendRemoveDownload(
+                                        context,
+                                        ExoDownloadService::class.java,
+                                        song.id,
+                                        false,
+                                    )
+                                }
+                            },
                         )
                     }
 
                     else -> {
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.action_download)) },
                             leadingContent = {
                                 Icon(
@@ -615,23 +604,21 @@ fun YouTubeAlbumMenu(
                                     contentDescription = null,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    album?.songs?.let { songs ->
-                                        sendAddMissingDownloads(
-                                            context = context,
-                                            songs =
-                                                songs.map { song ->
-                                                    HeaderDownloadItem(
-                                                        id = song.id,
-                                                        title = song.song.title,
-                                                    )
-                                                },
-                                            downloads = downloadUtil.downloads.value,
-                                        )
-                                    }
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                album?.songs?.let { songs ->
+                                    sendAddMissingDownloads(
+                                        context = context,
+                                        songs =
+                                            songs.map { song ->
+                                                HeaderDownloadItem(
+                                                    id = song.id,
+                                                    title = song.song.title,
+                                                )
+                                            },
+                                        downloads = downloadUtil.downloads.value,
+                                    )
+                                }
+                            },
                         )
                     }
                 }
@@ -644,8 +631,8 @@ fun YouTubeAlbumMenu(
             }
 
             item {
-                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                    ListItem(
+                MenuSurfaceSection {
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.view_artist)) },
                         leadingContent = {
                             Icon(
@@ -653,16 +640,14 @@ fun YouTubeAlbumMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
-                                    navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
-                                    onDismiss()
-                                } else {
-                                    showSelectArtistDialog = true
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
+                                navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
+                                onDismiss()
+                            } else {
+                                showSelectArtistDialog = true
+                            }
+                        },
                     )
                 }
             }

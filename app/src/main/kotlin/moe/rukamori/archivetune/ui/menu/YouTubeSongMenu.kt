@@ -437,7 +437,7 @@ fun YouTubeSongMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 NewActionGrid(
                     actions = primaryActions,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
@@ -450,7 +450,7 @@ fun YouTubeSongMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 4.dp)) {
+            MenuSurfaceSection {
                 Column {
                     NewMenuItem(
                         headlineContent = {
@@ -552,19 +552,15 @@ fun YouTubeSongMenu(
         }
 
         item {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        item {
             Spacer(modifier = Modifier.height(12.dp))
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = {
                                     Text(
                                         text = stringResource(R.string.remove_download),
@@ -578,42 +574,38 @@ fun YouTubeSongMenu(
                                         tint = MaterialTheme.colorScheme.error,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    DownloadService.sendRemoveDownload(
+                                        context,
+                                        ExoDownloadService::class.java,
+                                        song.id,
+                                        false,
+                                    )
+                                },
                             )
                         }
 
                         Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = { Text(text = stringResource(R.string.downloading)) },
                                 leadingContent = {
                                     CircularWavyProgressIndicator(
                                         modifier = Modifier.size(24.dp),
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    DownloadService.sendRemoveDownload(
+                                        context,
+                                        ExoDownloadService::class.java,
+                                        song.id,
+                                        false,
+                                    )
+                                },
                             )
                         }
 
                         else -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = { Text(text = stringResource(R.string.action_download)) },
                                 leadingContent = {
                                     Icon(
@@ -621,25 +613,23 @@ fun YouTubeSongMenu(
                                         contentDescription = null,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        database.transaction {
-                                            insert(song.toMediaMetadata())
-                                        }
-                                        val downloadRequest =
-                                            DownloadRequest
-                                                .Builder(song.id, song.id.toUri())
-                                                .setCustomCacheKey(song.id)
-                                                .setData(song.title.toByteArray())
-                                                .build()
-                                        DownloadService.sendAddDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            downloadRequest,
-                                            false,
-                                        )
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    database.transaction {
+                                        insert(song.toMediaMetadata())
+                                    }
+                                    val downloadRequest =
+                                        DownloadRequest
+                                            .Builder(song.id, song.id.toUri())
+                                            .setCustomCacheKey(song.id)
+                                            .setData(song.title.toByteArray())
+                                            .build()
+                                    DownloadService.sendAddDownload(
+                                        context,
+                                        ExoDownloadService::class.java,
+                                        downloadRequest,
+                                        false,
+                                    )
+                                },
                             )
                         }
                     }
@@ -650,7 +640,7 @@ fun YouTubeSongMenu(
                             color = MaterialTheme.colorScheme.outlineVariant,
                         )
 
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.open_with_downloader)) },
                             leadingContent = {
                                 Icon(
@@ -658,37 +648,35 @@ fun YouTubeSongMenu(
                                     contentDescription = null,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    onDismiss()
-                                    val url = "https://music.youtube.com/watch?v=${song.id}"
-                                    if (externalDownloaderPackage.isBlank()) {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                context.getString(R.string.external_downloader_not_configured),
-                                                Toast.LENGTH_LONG,
-                                            ).show()
-                                        return@clickable
+                            onClick = {
+                                onDismiss()
+                                val url = "https://music.youtube.com/watch?v=${song.id}"
+                                if (externalDownloaderPackage.isBlank()) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            context.getString(R.string.external_downloader_not_configured),
+                                            Toast.LENGTH_LONG,
+                                        ).show()
+                                    return@NewMenuItem
+                                }
+                                val intent =
+                                    Intent(Intent.ACTION_VIEW).apply {
+                                        setPackage(externalDownloaderPackage)
+                                        data = android.net.Uri.parse(url)
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     }
-                                    val intent =
-                                        Intent(Intent.ACTION_VIEW).apply {
-                                            setPackage(externalDownloaderPackage)
-                                            data = android.net.Uri.parse(url)
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        }
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: android.content.ActivityNotFoundException) {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                context.getString(R.string.external_downloader_not_installed),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                    }
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: android.content.ActivityNotFoundException) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            context.getString(R.string.external_downloader_not_installed),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                }
+                            },
                         )
                     }
                 }
@@ -701,10 +689,10 @@ fun YouTubeSongMenu(
             }
 
             item {
-                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+                MenuSurfaceSection {
                     Column {
                         if (splitArtists.isNotEmpty()) {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = { Text(text = stringResource(R.string.view_artist)) },
                                 leadingContent = {
                                     Icon(
@@ -712,16 +700,14 @@ fun YouTubeSongMenu(
                                         contentDescription = null,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
-                                            navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
-                                            onDismiss()
-                                        } else {
-                                            showSelectArtistDialog = true
-                                        }
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
+                                        navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
+                                        onDismiss()
+                                    } else {
+                                        showSelectArtistDialog = true
+                                    }
+                                },
                             )
                         }
 
@@ -733,7 +719,7 @@ fun YouTubeSongMenu(
                         }
 
                         song.album?.let { album ->
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = { Text(text = stringResource(R.string.view_album)) },
                                 leadingContent = {
                                     Icon(
@@ -741,12 +727,10 @@ fun YouTubeSongMenu(
                                         contentDescription = null,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        navController.navigate("album/${album.id}")
-                                        onDismiss()
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    navController.navigate("album/${album.id}")
+                                    onDismiss()
+                                },
                             )
                         }
                     }
@@ -759,8 +743,8 @@ fun YouTubeSongMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                ListItem(
+            MenuSurfaceSection {
+                NewMenuItem(
                     headlineContent = { Text(text = stringResource(R.string.details)) },
                     leadingContent = {
                         Icon(
@@ -768,14 +752,12 @@ fun YouTubeSongMenu(
                             contentDescription = null,
                         )
                     },
-                    modifier =
-                        Modifier.clickable {
-                            onDismiss()
-                            bottomSheetPageState.show {
-                                ShowMediaInfo(song.id)
-                            }
-                        },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    onClick = {
+                        onDismiss()
+                        bottomSheetPageState.show {
+                            ShowMediaInfo(song.id)
+                        }
+                    },
                 )
             }
         }

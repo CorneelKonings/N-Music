@@ -52,6 +52,7 @@ import moe.rukamori.archivetune.ui.component.ArtistListItem
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
+import moe.rukamori.archivetune.ui.component.NewMenuItem
 import moe.rukamori.archivetune.utils.SpeedDialPin
 import moe.rukamori.archivetune.utils.SpeedDialPinType
 import moe.rukamori.archivetune.utils.parseSpeedDialPins
@@ -103,7 +104,7 @@ fun ArtistMenu(
             ),
     ) {
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 NewActionGrid(
                     actions =
                         buildList {
@@ -213,9 +214,9 @@ fun ArtistMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -243,13 +244,11 @@ fun ArtistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                database.transaction {
-                                    update(artist.artist.toggleLike())
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            database.transaction {
+                                update(artist.artist.toggleLike())
+                            }
+                        },
                     )
 
                     HorizontalDivider(
@@ -257,7 +256,7 @@ fun ArtistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -276,13 +275,11 @@ fun ArtistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                val updatedPins = toggleSpeedDialPin(speedDialPins, artistPin)
-                                onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            val updatedPins = toggleSpeedDialPin(speedDialPins, artistPin)
+                            onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                            onDismiss()
+                        },
                     )
                 }
             }

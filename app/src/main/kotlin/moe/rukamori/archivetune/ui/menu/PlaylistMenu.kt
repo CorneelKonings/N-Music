@@ -81,6 +81,7 @@ import moe.rukamori.archivetune.ui.component.EditPlaylistDialog
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
+import moe.rukamori.archivetune.ui.component.NewMenuItem
 import moe.rukamori.archivetune.ui.component.PlaylistListItem
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadItem
 import moe.rukamori.archivetune.ui.utils.sendAddMissingDownloads
@@ -612,7 +613,7 @@ fun PlaylistMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 NewActionGrid(
                     actions = primaryActions,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
@@ -625,10 +626,10 @@ fun PlaylistMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
                     playlist.playlist.browseId?.let { browseId ->
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = startRadioText) },
                             leadingContent = {
                                 Icon(
@@ -636,20 +637,18 @@ fun PlaylistMenu(
                                     contentDescription = null,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    coroutineScope.launch(Dispatchers.IO) {
-                                        YouTube.playlist(browseId).getOrNull()?.playlist?.let { playlistItem ->
-                                            playlistItem.radioEndpoint?.let { radioEndpoint ->
-                                                withContext(Dispatchers.Main) {
-                                                    playerConnection.playQueue(YouTubeQueue(radioEndpoint))
-                                                }
+                            onClick = {
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    YouTube.playlist(browseId).getOrNull()?.playlist?.let { playlistItem ->
+                                        playlistItem.radioEndpoint?.let { radioEndpoint ->
+                                            withContext(Dispatchers.Main) {
+                                                playerConnection.playQueue(YouTubeQueue(radioEndpoint))
                                             }
                                         }
                                     }
-                                    onDismiss()
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                }
+                                onDismiss()
+                            },
                         )
 
                         HorizontalDivider(
@@ -658,7 +657,7 @@ fun PlaylistMenu(
                         )
                     }
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = playNextText) },
                         leadingContent = {
                             Icon(
@@ -666,14 +665,12 @@ fun PlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                coroutineScope.launch {
-                                    playerConnection.playNext(songs.map { it.toMediaItem() })
-                                }
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            coroutineScope.launch {
+                                playerConnection.playNext(songs.map { it.toMediaItem() })
+                            }
+                            onDismiss()
+                        },
                     )
 
                     HorizontalDivider(
@@ -681,7 +678,7 @@ fun PlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = addToQueueText) },
                         leadingContent = {
                             Icon(
@@ -689,12 +686,10 @@ fun PlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                onDismiss()
-                                playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            onDismiss()
+                            playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                        },
                     )
 
                     HorizontalDivider(
@@ -702,7 +697,7 @@ fun PlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -721,13 +716,11 @@ fun PlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                val updatedPins = toggleSpeedDialPin(speedDialPins, playlistPin)
-                                onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            val updatedPins = toggleSpeedDialPin(speedDialPins, playlistPin)
+                            onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                            onDismiss()
+                        },
                     )
 
                     if (editable && autoPlaylist != true) {
@@ -736,7 +729,7 @@ fun PlaylistMenu(
                             color = MaterialTheme.colorScheme.outlineVariant,
                         )
 
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.edit)) },
                             leadingContent = {
                                 Icon(
@@ -744,11 +737,9 @@ fun PlaylistMenu(
                                     contentDescription = null,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    showEditDialog = true
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                showEditDialog = true
+                            },
                         )
                     }
 
@@ -758,7 +749,7 @@ fun PlaylistMenu(
                             color = MaterialTheme.colorScheme.outlineVariant,
                         )
 
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.manage_tags)) },
                             leadingContent = {
                                 Icon(
@@ -766,11 +757,9 @@ fun PlaylistMenu(
                                     contentDescription = null,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    showAssignTagsDialog = true
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                showAssignTagsDialog = true
+                            },
                         )
                     }
                 }
@@ -783,10 +772,10 @@ fun PlaylistMenu(
             }
 
             item {
-                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+                MenuSurfaceSection {
                     when (downloadState) {
                         Download.STATE_COMPLETED -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = {
                                     Text(
                                         text = stringResource(R.string.remove_download),
@@ -800,32 +789,28 @@ fun PlaylistMenu(
                                         tint = MaterialTheme.colorScheme.error,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        showRemoveDownloadDialog = true
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    showRemoveDownloadDialog = true
+                                },
                             )
                         }
 
                         Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = { Text(text = stringResource(R.string.downloading)) },
                                 leadingContent = {
                                     CircularWavyProgressIndicator(
                                         modifier = Modifier.size(24.dp),
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        showRemoveDownloadDialog = true
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    showRemoveDownloadDialog = true
+                                },
                             )
                         }
 
                         else -> {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = { Text(text = stringResource(R.string.action_download)) },
                                 leadingContent = {
                                     Icon(
@@ -833,21 +818,19 @@ fun PlaylistMenu(
                                         contentDescription = null,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        sendAddMissingDownloads(
-                                            context = context,
-                                            songs =
-                                                songs.map { song ->
-                                                    HeaderDownloadItem(
-                                                        id = song.id,
-                                                        title = song.song.title,
-                                                    )
-                                                },
-                                            downloads = downloadUtil.downloads.value,
-                                        )
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    sendAddMissingDownloads(
+                                        context = context,
+                                        songs =
+                                            songs.map { song ->
+                                                HeaderDownloadItem(
+                                                    id = song.id,
+                                                    title = song.song.title,
+                                                )
+                                            },
+                                        downloads = downloadUtil.downloads.value,
+                                    )
+                                },
                             )
                         }
                     }
@@ -861,8 +844,8 @@ fun PlaylistMenu(
             }
 
             item {
-                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                    ListItem(
+                MenuSurfaceSection {
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.sync_playlist)) },
                         leadingContent = {
                             Icon(
@@ -870,13 +853,11 @@ fun PlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                if (syncProgress == null) {
-                                    syncPlaylistToYouTube()
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            if (syncProgress == null) {
+                                syncPlaylistToYouTube()
+                            }
+                        },
                     )
 
                     HorizontalDivider(
@@ -884,7 +865,7 @@ fun PlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text =
@@ -903,18 +884,16 @@ fun PlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                if (playlist.playlist.isHidden) {
-                                    onDismiss()
-                                    database.query {
-                                        update(playlist.playlist.copy(isHidden = false))
-                                    }
-                                } else {
-                                    showHidePlaylistDialog = true
+                        onClick = {
+                            if (playlist.playlist.isHidden) {
+                                onDismiss()
+                                database.query {
+                                    update(playlist.playlist.copy(isHidden = false))
                                 }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            } else {
+                                showHidePlaylistDialog = true
+                            }
+                        },
                     )
 
                     HorizontalDivider(
@@ -922,7 +901,7 @@ fun PlaylistMenu(
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = {
                             Text(
                                 text = stringResource(R.string.delete),
@@ -936,11 +915,9 @@ fun PlaylistMenu(
                                 tint = MaterialTheme.colorScheme.error,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                showDeletePlaylistDialog = true
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            showDeletePlaylistDialog = true
+                        },
                     )
                 }
             }
@@ -952,8 +929,8 @@ fun PlaylistMenu(
             }
 
             item {
-                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                    ListItem(
+                MenuSurfaceSection {
+                    NewMenuItem(
                         headlineContent = { Text(text = shareText) },
                         leadingContent = {
                             Icon(
@@ -961,18 +938,16 @@ fun PlaylistMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                val intent =
-                                    Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        type = "text/plain"
-                                        putExtra(Intent.EXTRA_TEXT, shareLink)
-                                    }
-                                context.startActivity(Intent.createChooser(intent, null))
-                                onDismiss()
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            val intent =
+                                Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, shareLink)
+                                }
+                            context.startActivity(Intent.createChooser(intent, null))
+                            onDismiss()
+                        },
                     )
                 }
             }

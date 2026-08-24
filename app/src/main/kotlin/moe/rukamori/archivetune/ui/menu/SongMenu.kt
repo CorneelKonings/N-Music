@@ -551,7 +551,7 @@ fun SongMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 NewActionGrid(
                     actions = primaryActions,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
@@ -564,7 +564,7 @@ fun SongMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 4.dp)) {
+            MenuSurfaceSection {
                 Column {
                     if (!isLocalSong) {
                         NewMenuItem(
@@ -636,17 +636,17 @@ fun SongMenu(
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
         if (showMutationSection) {
             item {
-                MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            item {
+                MenuSurfaceSection {
                     val dividerModifier = Modifier.padding(start = 56.dp)
                     Column {
                         if (event != null) {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = {
                                     Text(
                                         text = stringResource(R.string.remove_from_history),
@@ -660,14 +660,12 @@ fun SongMenu(
                                         contentDescription = null,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        onDismiss()
-                                        database.query {
-                                            delete(event)
-                                        }
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    onDismiss()
+                                    database.query {
+                                        delete(event)
+                                    }
+                                },
                             )
                         }
 
@@ -679,7 +677,7 @@ fun SongMenu(
                         }
 
                         if (playlistSong != null) {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = {
                                     Text(
                                         text = stringResource(R.string.remove_from_playlist),
@@ -693,39 +691,37 @@ fun SongMenu(
                                         contentDescription = null,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        val map = playlistSong.map
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            val browseId = playlistBrowseId
-                                            if (browseId != null) {
-                                                val remoteResult = removeSongFromRemotePlaylist(browseId, map)
-                                                if (remoteResult.isFailure) {
-                                                    withContext(Dispatchers.Main) {
-                                                        Toast
-                                                            .makeText(
-                                                                context,
-                                                                context.getString(R.string.error_unknown),
-                                                                Toast.LENGTH_SHORT,
-                                                            ).show()
-                                                        onDismiss()
-                                                    }
-                                                    return@launch
+                                onClick = {
+                                    val map = playlistSong.map
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        val browseId = playlistBrowseId
+                                        if (browseId != null) {
+                                            val remoteResult = removeSongFromRemotePlaylist(browseId, map)
+                                            if (remoteResult.isFailure) {
+                                                withContext(Dispatchers.Main) {
+                                                    Toast
+                                                        .makeText(
+                                                            context,
+                                                            context.getString(R.string.error_unknown),
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
+                                                    onDismiss()
                                                 }
-                                            }
-                                            database.withTransaction {
-                                                val maxPosition = maxPlaylistSongPosition(map.playlistId) ?: map.position
-                                                if (map.position < maxPosition) {
-                                                    move(map.playlistId, map.position, maxPosition)
-                                                }
-                                                delete(map)
-                                            }
-                                            withContext(Dispatchers.Main) {
-                                                onDismiss()
+                                                return@launch
                                             }
                                         }
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        database.withTransaction {
+                                            val maxPosition = maxPlaylistSongPosition(map.playlistId) ?: map.position
+                                            if (map.position < maxPosition) {
+                                                move(map.playlistId, map.position, maxPosition)
+                                            }
+                                            delete(map)
+                                        }
+                                        withContext(Dispatchers.Main) {
+                                            onDismiss()
+                                        }
+                                    }
+                                },
                             )
 
                             HorizontalDivider(
@@ -735,7 +731,7 @@ fun SongMenu(
                         }
 
                         if (isFromCache) {
-                            ListItem(
+                            NewMenuItem(
                                 headlineContent = {
                                     Text(
                                         text = stringResource(R.string.remove_from_cache),
@@ -749,12 +745,10 @@ fun SongMenu(
                                         contentDescription = null,
                                     )
                                 },
-                                modifier =
-                                    Modifier.clickable {
-                                        onDismiss()
-                                        cacheViewModel.removeSongFromCache(song.id)
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                onClick = {
+                                    onDismiss()
+                                    cacheViewModel.removeSongFromCache(song.id)
+                                },
                             )
 
                             HorizontalDivider(
@@ -766,7 +760,7 @@ fun SongMenu(
                         if (!isLocalSong) {
                             when (download?.state) {
                                 Download.STATE_COMPLETED -> {
-                                    ListItem(
+                                    NewMenuItem(
                                         headlineContent = {
                                             Text(
                                                 text = stringResource(R.string.remove_download),
@@ -780,42 +774,38 @@ fun SongMenu(
                                                 contentDescription = null,
                                             )
                                         },
-                                        modifier =
-                                            Modifier.clickable {
-                                                DownloadService.sendRemoveDownload(
-                                                    context,
-                                                    ExoDownloadService::class.java,
-                                                    song.id,
-                                                    false,
-                                                )
-                                            },
-                                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        onClick = {
+                                            DownloadService.sendRemoveDownload(
+                                                context,
+                                                ExoDownloadService::class.java,
+                                                song.id,
+                                                false,
+                                            )
+                                        },
                                     )
                                 }
 
                                 Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                    ListItem(
+                                    NewMenuItem(
                                         headlineContent = { Text(text = stringResource(R.string.downloading)) },
                                         leadingContent = {
                                             CircularWavyProgressIndicator(
                                                 modifier = Modifier.size(24.dp),
                                             )
                                         },
-                                        modifier =
-                                            Modifier.clickable {
-                                                DownloadService.sendRemoveDownload(
-                                                    context,
-                                                    ExoDownloadService::class.java,
-                                                    song.id,
-                                                    false,
-                                                )
-                                            },
-                                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        onClick = {
+                                            DownloadService.sendRemoveDownload(
+                                                context,
+                                                ExoDownloadService::class.java,
+                                                song.id,
+                                                false,
+                                            )
+                                        },
                                     )
                                 }
 
                                 else -> {
-                                    ListItem(
+                                    NewMenuItem(
                                         headlineContent = { Text(text = stringResource(R.string.action_download)) },
                                         leadingContent = {
                                             Icon(
@@ -823,22 +813,20 @@ fun SongMenu(
                                                 contentDescription = null,
                                             )
                                         },
-                                        modifier =
-                                            Modifier.clickable {
-                                                val downloadRequest =
-                                                    DownloadRequest
-                                                        .Builder(song.id, song.id.toUri())
-                                                        .setCustomCacheKey(song.id)
-                                                        .setData(song.song.title.toByteArray())
-                                                        .build()
-                                                DownloadService.sendAddDownload(
-                                                    context,
-                                                    ExoDownloadService::class.java,
-                                                    downloadRequest,
-                                                    false,
-                                                )
-                                            },
-                                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        onClick = {
+                                            val downloadRequest =
+                                                DownloadRequest
+                                                    .Builder(song.id, song.id.toUri())
+                                                    .setCustomCacheKey(song.id)
+                                                    .setData(song.song.title.toByteArray())
+                                                    .build()
+                                            DownloadService.sendAddDownload(
+                                                context,
+                                                ExoDownloadService::class.java,
+                                                downloadRequest,
+                                                false,
+                                            )
+                                        },
                                     )
                                 }
                             }
@@ -854,21 +842,20 @@ fun SongMenu(
 
                                 when (flacWorkState) {
                                     WorkInfo.State.RUNNING, WorkInfo.State.ENQUEUED -> {
-                                        ListItem(
+                                        NewMenuItem(
                                             headlineContent = { Text(text = stringResource(R.string.downloading)) },
                                             leadingContent = {
                                                 CircularWavyProgressIndicator(
                                                     modifier = Modifier.size(24.dp),
                                                 )
                                             },
-                                            modifier = Modifier.clickable {
+                                            onClick = {
                                                 WorkManager.getInstance(context).cancelUniqueWork("flac_download_${song.id}")
                                             },
-                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                         )
                                     }
                                     WorkInfo.State.SUCCEEDED -> {
-                                        ListItem(
+                                        NewMenuItem(
                                             headlineContent = { Text(text = stringResource(R.string.remove_download)) },
                                             leadingContent = {
                                                 Icon(
@@ -876,7 +863,7 @@ fun SongMenu(
                                                     contentDescription = null,
                                                 )
                                             },
-                                            modifier = Modifier.clickable {
+                                            onClick = {
                                                 FlacDownloader.deleteFlac(
                                                     context,
                                                     song.id,
@@ -885,11 +872,10 @@ fun SongMenu(
                                                     song.song.albumName.orEmpty(),
                                                 )
                                             },
-                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                         )
                                     }
                                     else -> {
-                                        ListItem(
+                                        NewMenuItem(
                                             headlineContent = { Text(text = stringResource(R.string.download_flac)) },
                                             leadingContent = {
                                                 Icon(
@@ -897,17 +883,15 @@ fun SongMenu(
                                                     contentDescription = null,
                                                 )
                                             },
-                                            modifier =
-                                                Modifier.clickable {
-                                                    FlacDownloader.downloadFlac(
-                                                        context,
-                                                        song.id,
-                                                        song.song.title,
-                                                        song.artists.mapNotNull { it.name.takeIf(String::isNotBlank) }.joinToString(", "),
-                                                        song.song.albumName.orEmpty(),
-                                                    )
-                                                },
-                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                            onClick = {
+                                                FlacDownloader.downloadFlac(
+                                                    context,
+                                                    song.id,
+                                                    song.song.title,
+                                                    song.artists.mapNotNull { it.name.takeIf(String::isNotBlank) }.joinToString(", "),
+                                                    song.song.albumName.orEmpty(),
+                                                )
+                                            },
                                         )
                                     }
                                 }
@@ -917,7 +901,7 @@ fun SongMenu(
                                     modifier = Modifier.padding(start = 56.dp),
                                     color = MaterialTheme.colorScheme.outlineVariant,
                                 )
-                                ListItem(
+                                NewMenuItem(
                                     headlineContent = { Text(text = stringResource(R.string.open_with_downloader)) },
                                     leadingContent = {
                                         Icon(
@@ -925,53 +909,51 @@ fun SongMenu(
                                             contentDescription = null,
                                         )
                                     },
-                                    modifier =
-                                        Modifier.clickable {
-                                            onDismiss()
-                                            val url = "https://music.youtube.com/watch?v=${song.id}"
-                                            if (externalDownloaderPackage.isBlank()) {
-                                                Toast
-                                                    .makeText(
-                                                        context,
-                                                        context.getString(R.string.external_downloader_not_configured),
-                                                        Toast.LENGTH_LONG,
-                                                    ).show()
-                                                return@clickable
+                                    onClick = {
+                                        onDismiss()
+                                        val url = "https://music.youtube.com/watch?v=${song.id}"
+                                        if (externalDownloaderPackage.isBlank()) {
+                                            Toast
+                                                .makeText(
+                                                    context,
+                                                    context.getString(R.string.external_downloader_not_configured),
+                                                    Toast.LENGTH_LONG,
+                                                ).show()
+                                            return@NewMenuItem
+                                        }
+                                        val intent =
+                                            android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                                setPackage(externalDownloaderPackage)
+                                                data = android.net.Uri.parse(url)
+                                                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                                             }
-                                            val intent =
-                                                android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                                                    setPackage(externalDownloaderPackage)
-                                                    data = android.net.Uri.parse(url)
-                                                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                }
-                                            try {
-                                                context.startActivity(intent)
-                                            } catch (e: android.content.ActivityNotFoundException) {
-                                                Toast
-                                                    .makeText(
-                                                        context,
-                                                        context.getString(R.string.external_downloader_not_installed),
-                                                        Toast.LENGTH_SHORT,
-                                                    ).show()
-                                            }
-                                        },
-                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (e: android.content.ActivityNotFoundException) {
+                                            Toast
+                                                .makeText(
+                                                    context,
+                                                    context.getString(R.string.external_downloader_not_installed),
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                        }
+                                    },
                                 )
                             }
                         }
                     }
                 }
             }
-
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
-            }
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        item {
+            MenuSurfaceSection {
                 Column {
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.view_artist)) },
                         leadingContent = {
                             Icon(
@@ -979,16 +961,14 @@ fun SongMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
-                                    navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
-                                    onDismiss()
-                                } else {
-                                    showSelectArtistDialog = true
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
+                                navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
+                                onDismiss()
+                            } else {
+                                showSelectArtistDialog = true
+                            }
+                        },
                     )
 
                     if (song.song.albumId != null) {
@@ -997,7 +977,7 @@ fun SongMenu(
                             color = MaterialTheme.colorScheme.outlineVariant,
                         )
 
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.view_album)) },
                             leadingContent = {
                                 Icon(
@@ -1005,12 +985,10 @@ fun SongMenu(
                                     contentDescription = null,
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    onDismiss()
-                                    navController.navigate("album/${song.song.albumId}")
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            onClick = {
+                                onDismiss()
+                                navController.navigate("album/${song.song.albumId}")
+                            },
                         )
                     }
                 }
@@ -1022,10 +1000,10 @@ fun SongMenu(
         }
 
         item {
-            MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
+            MenuSurfaceSection {
                 Column {
                     if (!isLocalSong) {
-                        ListItem(
+                        NewMenuItem(
                             headlineContent = { Text(text = stringResource(R.string.refetch)) },
                             leadingContent = {
                                 Icon(
@@ -1034,21 +1012,19 @@ fun SongMenu(
                                     modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
                                 )
                             },
-                            modifier =
-                                Modifier.clickable {
-                                    refetchIconDegree -= 360
-                                    coroutineScope.launch(Dispatchers.IO) {
-                                        YouTube.queue(listOf(song.id)).onSuccess {
-                                            val newSong = it.firstOrNull()
-                                            if (newSong != null) {
-                                                database.transaction {
-                                                    update(song, newSong.toMediaMetadata())
-                                                }
+                            onClick = {
+                                refetchIconDegree -= 360
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    YouTube.queue(listOf(song.id)).onSuccess {
+                                        val newSong = it.firstOrNull()
+                                        if (newSong != null) {
+                                            database.transaction {
+                                                update(song, newSong.toMediaMetadata())
                                             }
                                         }
                                     }
-                                },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                }
+                            },
                         )
 
                         HorizontalDivider(
@@ -1057,7 +1033,7 @@ fun SongMenu(
                         )
                     }
 
-                    ListItem(
+                    NewMenuItem(
                         headlineContent = { Text(text = stringResource(R.string.details)) },
                         leadingContent = {
                             Icon(
@@ -1065,14 +1041,12 @@ fun SongMenu(
                                 contentDescription = null,
                             )
                         },
-                        modifier =
-                            Modifier.clickable {
-                                onDismiss()
-                                bottomSheetPageState.show {
-                                    ShowMediaInfo(song.id)
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        onClick = {
+                            onDismiss()
+                            bottomSheetPageState.show {
+                                ShowMediaInfo(song.id)
+                            }
+                        },
                     )
                 }
             }
