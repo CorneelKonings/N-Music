@@ -15,16 +15,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -80,7 +79,7 @@ fun SettingsScreen(
 
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val listState = rememberLazyListState()
+    val scrollState = rememberScrollState()
 
     val storagePermission =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -139,9 +138,8 @@ fun SettingsScreen(
                         modifier = Modifier
                             .matchParentSize()
                             .drawBehind {
-                                val offset = listState.firstVisibleItemScrollOffset
-                                val index = listState.firstVisibleItemIndex
-                                val alpha = if (index > 0) 0.85f else (offset / 100f).coerceIn(0f, 0.85f)
+                                val offset = scrollState.value
+                                val alpha = (offset / 100f).coerceIn(0f, 0.85f)
                                 drawRect(
                                     brush = Brush.verticalGradient(
                                         colors = listOf(
@@ -180,80 +178,64 @@ fun SettingsScreen(
                 }
             },
         ) { innerPadding ->
-        LazyColumn(
-            state = listState,
+        Column(
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
                     .windowInsetsPadding(
                         LocalPlayerAwareWindowInsets.current.only(
                             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom,
                         ),
-                    ),
-            contentPadding =
-                PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = SettingsDimensions.ScreenBottomPadding,
-                ),
+                    )
+                    .verticalScroll(scrollState)
+                    .padding(bottom = SettingsDimensions.ScreenBottomPadding),
         ) {
             if (hasUpdate && !isUpdateDismissed) {
-                item(key = "update", contentType = "settings_banner") {
-                    SettingsUpdateBanner(
-                        latestVersion = latestVersionName,
-                        onClick = { navController.navigate("settings/update") },
-                        onDismiss = { isUpdateDismissed = true },
-                        modifier =
-                            Modifier
-                                .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding)
-                                .padding(bottom = SettingsDimensions.SectionSpacing),
-                    )
-                }
+                SettingsUpdateBanner(
+                    latestVersion = latestVersionName,
+                    onClick = { navController.navigate("settings/update") },
+                    onDismiss = { isUpdateDismissed = true },
+                    modifier =
+                        Modifier
+                            .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding)
+                            .padding(bottom = SettingsDimensions.SectionSpacing),
+                )
             }
 
             if (shouldShowPermissionHint) {
-                item(key = "permission", contentType = "settings_banner") {
-                    SettingsPermissionBanner(
-                        onRequestPermission = {
-                            val toRequest =
-                                buildList {
-                                    if (!isStorageGranted) add(storagePermission)
-                                    if (!isNotificationGranted && notificationPermission != null) {
-                                        add(notificationPermission)
-                                    }
+                SettingsPermissionBanner(
+                    onRequestPermission = {
+                        val toRequest =
+                            buildList {
+                                if (!isStorageGranted) add(storagePermission)
+                                if (!isNotificationGranted && notificationPermission != null) {
+                                    add(notificationPermission)
                                 }
-                            if (toRequest.isNotEmpty()) {
-                                permissionLauncher.launch(toRequest.toTypedArray())
                             }
-                        },
-                        modifier =
-                            Modifier
-                                .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding)
-                                .padding(bottom = SettingsDimensions.SectionSpacing),
-                    )
-                }
+                        if (toRequest.isNotEmpty()) {
+                            permissionLauncher.launch(toRequest.toTypedArray())
+                        }
+                    },
+                    modifier =
+                        Modifier
+                            .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding)
+                            .padding(bottom = SettingsDimensions.SectionSpacing),
+                )
             }
 
             settingsGroups.forEachIndexed { groupIndex, group ->
-                item(
-                    key = "settings_group_label_$groupIndex",
-                    contentType = "settings_group_label",
-                ) {
-                    SettingsSectionLabel(
-                        text = group.title,
-                        modifier = Modifier
-                            .padding(
-                                top = if (groupIndex == 0) 0.dp else SettingsDimensions.SectionSpacing,
-                                bottom = SettingsDimensions.SectionHeaderBottomPadding
-                            )
-                            .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
-                    )
-                }
+                SettingsSectionLabel(
+                    text = group.title,
+                    modifier = Modifier
+                        .padding(
+                            top = if (groupIndex == 0) 0.dp else SettingsDimensions.SectionSpacing,
+                            bottom = SettingsDimensions.SectionHeaderBottomPadding
+                        )
+                        .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
+                )
 
-                itemsIndexed(
-                    items = group.items,
-                    key = { _, item -> item.key },
-                    contentType = { _, _ -> "settings_segment" },
-                ) { index, settingsItem ->
+                group.items.forEachIndexed { index, settingsItem ->
                     SettingsSegmentedItem(
                         item = settingsItem,
                         index = index,
