@@ -546,17 +546,6 @@ private fun <T> PreferenceSelectionBottomSheet(
                     }
                 }
 
-            val glassShape = RoundedCornerShape(SettingsDimensions.BottomSheetListCornerRadius)
-            val colors = LocalYumaColors.current
-
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(glassShape)
-                        .background(colors.glassBackground)
-                        .border(SettingsDimensions.GlassBorderThickness, colors.glassBorder, glassShape),
-            ) {
                 LazyColumn(
                     modifier =
                         Modifier
@@ -568,22 +557,19 @@ private fun <T> PreferenceSelectionBottomSheet(
                         key = { index, value -> preferenceOptionKey(index, value) },
                         contentType = { _, _ -> "preference_option" },
                     ) { index, value ->
+                        val shape = segmentedPreferenceItemShape(index, values.size)
+                        val isLast = index == values.lastIndex
                         PreferenceSelectionOption(
                             text = valueText(value),
                             description = valueDescription?.invoke(value),
                             selected = value == selectedValue,
+                            shape = shape,
+                            modifier = Modifier.padding(bottom = if (isLast) 0.dp else SettingsDimensions.SegmentedItemGap),
                             onClick = { onValueSelected(value) },
                         )
-                        if (index < values.size - 1) {
-                            HorizontalDivider(
-                                thickness = SettingsDimensions.DividerThickness,
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f),
-                            )
+                    }
                 }
             }
-        }
-    }
-}
         }
     }
 }
@@ -593,22 +579,37 @@ private fun PreferenceSelectionOption(
     text: String,
     description: String? = null,
     selected: Boolean,
+    shape: Shape,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val containerColor =
-        if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent
+    val colors = LocalYumaColors.current
     val contentColor =
         if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
     val descriptionColor =
         if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
 
+    val backgroundColor =
+        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else colors.glassBackground
+    val borderColor =
+        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.35f) else colors.glassBorder
+
     Box(
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
-                .background(containerColor)
+                .yumaGlassCard(
+                    shape = shape,
+                    backgroundColor = backgroundColor,
+                    borderColor = borderColor,
+                    strokeWidth = SettingsDimensions.GlassBorderThickness,
+                )
+                .clip(shape)
                 .yumaClickable(pressedScale = 0.97f, onClick = onClick)
-                .padding(horizontal = SettingsDimensions.BottomSheetOptionPaddingH, vertical = SettingsDimensions.BottomSheetOptionPaddingV),
+                .padding(
+                    horizontal = 18.dp,
+                    vertical = 14.dp,
+                ),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
