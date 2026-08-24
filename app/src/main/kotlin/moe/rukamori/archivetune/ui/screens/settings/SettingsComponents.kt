@@ -88,6 +88,7 @@ import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
+import moe.rukamori.archivetune.ui.theme.yumaSegmentPosition
 import moe.rukamori.archivetune.ui.settings.SettingsAnimations
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
@@ -446,6 +447,7 @@ fun SettingsSegmentedItem(
             MaterialTheme.colorScheme.surface
         }
     val shape = remember(index, count) { segmentedSettingsItemShape(index, count) }
+    val position = remember(index, count) { yumaSegmentPosition(index, count) }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -467,6 +469,7 @@ fun SettingsSegmentedItem(
                     shape = shape,
                     backgroundColor = colors.glassBackground,
                     borderColor = colors.glassBorder,
+                    position = position,
                 )
                 .clip(shape)
                 .focusable()

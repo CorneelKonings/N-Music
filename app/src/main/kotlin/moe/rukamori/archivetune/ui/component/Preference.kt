@@ -103,8 +103,10 @@ import moe.rukamori.archivetune.constants.HISTORY_DURATION_DEFAULT
 import moe.rukamori.archivetune.constants.HISTORY_DURATION_RANGE
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.YumaSegmentPosition
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
+import moe.rukamori.archivetune.ui.theme.yumaSegmentPosition
 import kotlin.math.roundToInt
 
 val LocalPreferenceInGroup = compositionLocalOf { false }
@@ -202,6 +204,12 @@ fun PreferenceEntry(
     val colors = LocalYumaColors.current
     val isInGroup = LocalPreferenceInGroup.current
     val groupPosition = LocalPreferenceGroupPosition.current
+    val segmentPosition = when (if (isInGroup) groupPosition else PreferenceGroupPosition.Single) {
+        null, PreferenceGroupPosition.Single -> YumaSegmentPosition.Single
+        PreferenceGroupPosition.First -> YumaSegmentPosition.First
+        PreferenceGroupPosition.Middle -> YumaSegmentPosition.Middle
+        PreferenceGroupPosition.Last -> YumaSegmentPosition.Last
+    }
 
     val resolvedShape = shape ?: preferenceItemShapeForPosition(if (isInGroup) groupPosition else PreferenceGroupPosition.Single)
 
@@ -215,6 +223,7 @@ fun PreferenceEntry(
             shape = resolvedShape,
             backgroundColor = colors.glassBackground,
             borderColor = colors.glassBorder,
+            position = segmentPosition,
         )
         .clip(resolvedShape)
         .then(
@@ -558,12 +567,14 @@ private fun <T> PreferenceSelectionBottomSheet(
                         contentType = { _, _ -> "preference_option" },
                     ) { index, value ->
                         val shape = segmentedPreferenceItemShape(index, values.size)
+                        val position = yumaSegmentPosition(index, values.size)
                         val isLast = index == values.lastIndex
                         PreferenceSelectionOption(
                             text = valueText(value),
                             description = valueDescription?.invoke(value),
                             selected = value == selectedValue,
                             shape = shape,
+                            position = position,
                             modifier = Modifier.padding(bottom = if (isLast) 0.dp else SettingsDimensions.SegmentedItemGap),
                             onClick = { onValueSelected(value) },
                         )
@@ -580,6 +591,7 @@ private fun PreferenceSelectionOption(
     description: String? = null,
     selected: Boolean,
     shape: Shape,
+    position: YumaSegmentPosition = YumaSegmentPosition.Single,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
@@ -603,6 +615,7 @@ private fun PreferenceSelectionOption(
                     backgroundColor = backgroundColor,
                     borderColor = borderColor,
                     strokeWidth = SettingsDimensions.GlassBorderThickness,
+                    position = position,
                 )
                 .clip(shape)
                 .yumaClickable(pressedScale = 0.97f, onClick = onClick)

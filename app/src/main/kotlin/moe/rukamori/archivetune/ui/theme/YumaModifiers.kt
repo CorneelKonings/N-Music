@@ -30,6 +30,22 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import moe.rukamori.archivetune.ui.settings.SettingsAnimations
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
+enum class YumaSegmentPosition { Single, First, Middle, Last }
+
+fun yumaSegmentPosition(index: Int, count: Int): YumaSegmentPosition = when {
+    count <= 1 -> YumaSegmentPosition.Single
+    index == 0 -> YumaSegmentPosition.First
+    index == count - 1 -> YumaSegmentPosition.Last
+    else -> YumaSegmentPosition.Middle
+}
+
+fun yumaSegmentAlphas(position: YumaSegmentPosition): Pair<Float, Float> = when (position) {
+    YumaSegmentPosition.Single -> 0.20f to 0.04f
+    YumaSegmentPosition.First -> 0.20f to 0.08f
+    YumaSegmentPosition.Middle -> 0.08f to 0.08f
+    YumaSegmentPosition.Last -> 0.08f to 0.04f
+}
+
 fun Modifier.glassBorder(
     shape: Shape,
     strokeWidth: Dp = SettingsDimensions.GlassBorderThickness,
@@ -55,18 +71,25 @@ fun Modifier.yumaGlassCard(
     backgroundColor: Color = LocalYumaColors.current.glassBackground,
     borderColor: Color = LocalYumaColors.current.glassBorder,
     strokeWidth: Dp = SettingsDimensions.GlassBorderThickness,
-    topAlpha: Float = 0.20f,
-    bottomAlpha: Float = 0.04f
-): Modifier = this
-    .clip(shape)
-    .background(backgroundColor, shape)
-    .glassBorder(
-        shape = shape,
-        strokeWidth = strokeWidth,
-        topAlpha = topAlpha,
-        bottomAlpha = bottomAlpha,
-        baseColor = borderColor
-    )
+    position: YumaSegmentPosition = YumaSegmentPosition.Single,
+    topAlpha: Float? = null,
+    bottomAlpha: Float? = null,
+): Modifier {
+    val defaultAlphas = yumaSegmentAlphas(position)
+    val resolvedTopAlpha = topAlpha ?: defaultAlphas.first
+    val resolvedBottomAlpha = bottomAlpha ?: defaultAlphas.second
+
+    return this
+        .clip(shape)
+        .background(backgroundColor, shape)
+        .glassBorder(
+            shape = shape,
+            strokeWidth = strokeWidth,
+            topAlpha = resolvedTopAlpha,
+            bottomAlpha = resolvedBottomAlpha,
+            baseColor = borderColor
+        )
+}
 @Composable
 fun Modifier.yumaClickable(
     enabled: Boolean = true,
