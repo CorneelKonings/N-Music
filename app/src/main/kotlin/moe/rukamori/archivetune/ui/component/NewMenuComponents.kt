@@ -16,19 +16,20 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.text.font.FontWeight
@@ -119,35 +120,6 @@ fun NewMenuItem(
     }
     val position = remember(index, count) { yumaSegmentPosition(index, count) }
     val colors = LocalYumaColors.current
-
-    val sizedLeadingContent: @Composable (() -> Unit)? =
-        if (leadingContent != null) {
-            {
-                Box(
-                    modifier = Modifier.size(24.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    leadingContent()
-                }
-            }
-        } else {
-            null
-        }
-
-    val sizedTrailingContent: @Composable (() -> Unit)? =
-        if (trailingContent != null) {
-            {
-                Box(
-                    modifier = Modifier.size(24.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    trailingContent()
-                }
-            }
-        } else {
-            null
-        }
-
     val isLast = index == count - 1
 
     Box(
@@ -162,16 +134,44 @@ fun NewMenuItem(
                 strokeWidth = SettingsDimensions.GlassBorderThickness,
                 position = position,
             )
-            .padding(horizontal = 14.dp, vertical = 6.dp)
+            .clip(shape)
+            .padding(horizontal = 18.dp, vertical = 14.dp)
     ) {
-        ListItem(
-            headlineContent = headlineContent,
-            leadingContent = sizedLeadingContent,
-            trailingContent = sizedTrailingContent,
-            supportingContent = supportingContent,
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            tonalElevation = 0.dp,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (leadingContent != null) {
+                Box(
+                    modifier = Modifier.size(24.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    leadingContent()
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                headlineContent()
+                if (supportingContent != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    supportingContent()
+                }
+            }
+
+            if (trailingContent != null) {
+                Spacer(modifier = Modifier.width(12.dp))
+                Box(
+                    modifier = Modifier.size(24.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    trailingContent()
+                }
+            }
+        }
     }
 }
 
