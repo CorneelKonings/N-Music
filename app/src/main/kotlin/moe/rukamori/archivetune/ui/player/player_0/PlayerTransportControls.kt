@@ -31,7 +31,7 @@ import moe.rukamori.archivetune.ui.utils.bounceClick
 private val CapsuleHorizontalPad  = 20.dp
 private val CapsuleHeight         = 96.dp
 private val CapsulePadHorizontal  = 32.dp
-private val CapsuleBorderWidth    = 1.dp
+private val CapsuleBorderWidth    = 0.5.dp
 
 private val SideButtonSize        = 48.dp
 private val SideIconSize          = 36.dp

@@ -114,7 +114,7 @@ object SettingsDimensions {
 
     // -- Yuma glass preferences --------------------------------------------
     val GlassCornerRadius = 18.dp
-    val GlassBorderThickness = 1.dp
+    val GlassBorderThickness = 0.5.dp
     val GlassStartColor = Color(0x1AFFFFFF)
     val GlassEndColor = Color(0x08FFFFFF)
 

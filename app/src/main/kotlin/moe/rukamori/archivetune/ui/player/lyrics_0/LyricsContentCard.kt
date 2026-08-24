@@ -185,7 +185,7 @@ fun LyricsContentCard(
                                 .background(animatedAccentColor.copy(alpha = 0.12f))
                                 .border(
                                     BorderStroke(
-                                        1.dp,
+                                        0.5.dp,
                                         Brush.verticalGradient(
                                             listOf(
                                                 animatedAccentColor.copy(alpha = 0.18f),

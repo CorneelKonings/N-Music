@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -29,29 +30,43 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import moe.rukamori.archivetune.ui.settings.SettingsAnimations
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
+fun Modifier.glassBorder(
+    shape: Shape,
+    strokeWidth: Dp = SettingsDimensions.GlassBorderThickness,
+    topAlpha: Float = 0.20f,
+    bottomAlpha: Float = 0.04f,
+    baseColor: Color = Color.White
+): Modifier = if (baseColor.isSpecified && baseColor != Color.Transparent) {
+    this.border(
+        width = strokeWidth,
+        brush = Brush.verticalGradient(
+            0.0f to baseColor.copy(alpha = topAlpha),
+            1.0f to baseColor.copy(alpha = bottomAlpha)
+        ),
+        shape = shape
+    )
+} else {
+    this
+}
+
 @Composable
 fun Modifier.yumaGlassCard(
     shape: Shape = RoundedCornerShape(SettingsDimensions.GlassCornerRadius),
     backgroundColor: Color = LocalYumaColors.current.glassBackground,
-    borderColor: Color = LocalYumaColors.current.glassBorder
-): Modifier {
-    val mod = this
-        .clip(shape)
-        .background(backgroundColor, shape)
-    return if (borderColor.isSpecified && borderColor != Color.Transparent) {
-        val borderBrush = remember(borderColor) {
-            Brush.verticalGradient(
-                colors = listOf(
-                    borderColor.copy(alpha = (borderColor.alpha * 1.25f).coerceAtMost(1f)),
-                    borderColor.copy(alpha = borderColor.alpha * 0.6f)
-                )
-            )
-        }
-        mod.border(SettingsDimensions.GlassBorderThickness, borderBrush, shape)
-    } else {
-        mod
-    }
-}
+    borderColor: Color = LocalYumaColors.current.glassBorder,
+    strokeWidth: Dp = SettingsDimensions.GlassBorderThickness,
+    topAlpha: Float = 0.20f,
+    bottomAlpha: Float = 0.04f
+): Modifier = this
+    .clip(shape)
+    .background(backgroundColor, shape)
+    .glassBorder(
+        shape = shape,
+        strokeWidth = strokeWidth,
+        topAlpha = topAlpha,
+        bottomAlpha = bottomAlpha,
+        baseColor = borderColor
+    )
 @Composable
 fun Modifier.yumaClickable(
     enabled: Boolean = true,
