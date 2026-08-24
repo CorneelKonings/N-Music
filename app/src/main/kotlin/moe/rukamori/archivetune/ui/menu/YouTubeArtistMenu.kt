@@ -181,7 +181,6 @@ fun YouTubeArtistMenu(
 
         item {
             val actionCount = 2
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = {
@@ -226,7 +225,7 @@ fun YouTubeArtistMenu(
                             }
                         }
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = actionCount,
                 )
 
@@ -271,7 +270,7 @@ fun YouTubeArtistMenu(
                             onDismiss()
                         }
                     },
-                    index = itemIndex++,
+                    index = 1,
                     count = actionCount,
                 )
             }

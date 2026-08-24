@@ -630,7 +630,7 @@ fun PlaylistMenu(
                     1 +
                     (if (editable && autoPlaylist != true) 1 else 0) +
                     (if (autoPlaylist != true && downloadPlaylist != true) 1 else 0)
-            var itemIndex = 0
+            val browseIdOffset = if (playlist.playlist.browseId != null) 1 else 0
             MenuSurfaceSection {
                 playlist.playlist.browseId?.let { browseId ->
                     NewMenuItem(
@@ -653,7 +653,7 @@ fun PlaylistMenu(
                             }
                             onDismiss()
                         },
-                        index = itemIndex++,
+                        index = 0,
                         count = actionItemCount,
                     )
                 }
@@ -672,7 +672,7 @@ fun PlaylistMenu(
                         }
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = browseIdOffset,
                     count = actionItemCount,
                 )
 
@@ -688,7 +688,7 @@ fun PlaylistMenu(
                         onDismiss()
                         playerConnection.addToQueue(songs.map { it.toMediaItem() })
                     },
-                    index = itemIndex++,
+                    index = browseIdOffset + 1,
                     count = actionItemCount,
                 )
 
@@ -716,7 +716,7 @@ fun PlaylistMenu(
                         onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = browseIdOffset + 2,
                     count = actionItemCount,
                 )
 
@@ -732,7 +732,7 @@ fun PlaylistMenu(
                         onClick = {
                             showEditDialog = true
                         },
-                        index = itemIndex++,
+                        index = browseIdOffset + 3,
                         count = actionItemCount,
                     )
                 }
@@ -749,7 +749,7 @@ fun PlaylistMenu(
                         onClick = {
                             showAssignTagsDialog = true
                         },
-                        index = itemIndex++,
+                        index = browseIdOffset + 3 + (if (editable && autoPlaylist != true) 1 else 0),
                         count = actionItemCount,
                     )
                 }

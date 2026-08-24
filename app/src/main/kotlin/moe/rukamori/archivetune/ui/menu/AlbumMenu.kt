@@ -462,7 +462,6 @@ fun AlbumMenu(
 
         item {
             val actionCount = 4
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = { Text(text = stringResource(R.string.play_next)) },
@@ -476,7 +475,7 @@ fun AlbumMenu(
                         onDismiss()
                         playerConnection.playNext(songs.map { it.toMediaItem() })
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = actionCount,
                 )
 
@@ -492,7 +491,7 @@ fun AlbumMenu(
                         onDismiss()
                         playerConnection.addToQueue(songs.map { it.toMediaItem() })
                     },
-                    index = itemIndex++,
+                    index = 1,
                     count = actionCount,
                 )
 
@@ -507,7 +506,7 @@ fun AlbumMenu(
                     onClick = {
                         showChoosePlaylistDialog = true
                     },
-                    index = itemIndex++,
+                    index = 2,
                     count = actionCount,
                 )
 
@@ -535,7 +534,7 @@ fun AlbumMenu(
                         onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = 3,
                     count = actionCount,
                 )
             }
@@ -639,7 +638,6 @@ fun AlbumMenu(
 
         item {
             val navItemCount = if (!isLocalAlbum) 2 else 1
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = { Text(text = stringResource(R.string.view_artist)) },
@@ -657,7 +655,7 @@ fun AlbumMenu(
                             showSelectArtistDialog = true
                         }
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = navItemCount,
                 )
 
@@ -681,7 +679,7 @@ fun AlbumMenu(
                                 }
                             }
                         },
-                        index = itemIndex++,
+                        index = 1,
                         count = navItemCount,
                     )
                 }

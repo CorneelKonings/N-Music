@@ -210,7 +210,6 @@ fun ArtistMenu(
 
         item {
             val actionCount = 2
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = {
@@ -245,7 +244,7 @@ fun ArtistMenu(
                             update(artist.artist.toggleLike())
                         }
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = actionCount,
                 )
 
@@ -273,7 +272,7 @@ fun ArtistMenu(
                         onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = 1,
                     count = actionCount,
                 )
             }

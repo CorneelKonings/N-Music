@@ -308,7 +308,6 @@ fun SelectionSongMenu(
 
         item {
             val actionCount = 3
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
@@ -323,7 +322,7 @@ fun SelectionSongMenu(
                         playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
                         clearAction()
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = actionCount,
                 )
 
@@ -382,7 +381,7 @@ fun SelectionSongMenu(
                             }
                         }
                     },
-                    index = itemIndex++,
+                    index = 1,
                     count = actionCount,
                 )
 
@@ -425,7 +424,7 @@ fun SelectionSongMenu(
                             syncUtils.likeSongs(updatedSongs)
                         }
                     },
-                    index = itemIndex++,
+                    index = 2,
                     count = actionCount,
                 )
             }
@@ -853,7 +852,9 @@ fun SelectionMediaMetadataMenu(
                     (if (currentItems.isNotEmpty()) 1 else 0) +
                     1 +
                     1
-            var itemIndex = 0
+            val removeHistoryOffset = if (onRemoveFromHistory != null) 1 else 0
+            val removeQueueOffset = removeHistoryOffset + (if (currentItems.isNotEmpty()) 1 else 0)
+
             MenuSurfaceSection {
                 if (onRemoveFromHistory != null) {
                     NewMenuItem(
@@ -875,7 +876,7 @@ fun SelectionMediaMetadataMenu(
                             onRemoveFromHistory()
                             clearAction()
                         },
-                        index = itemIndex++,
+                        index = 0,
                         count = actionCount,
                     )
                 }
@@ -909,7 +910,7 @@ fun SelectionMediaMetadataMenu(
                             }
                             clearAction()
                         },
-                        index = itemIndex++,
+                        index = removeHistoryOffset,
                         count = actionCount,
                     )
                 }
@@ -927,7 +928,7 @@ fun SelectionMediaMetadataMenu(
                         playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
                         clearAction()
                     },
-                    index = itemIndex++,
+                    index = removeQueueOffset,
                     count = actionCount,
                 )
 
@@ -968,7 +969,7 @@ fun SelectionMediaMetadataMenu(
                             syncUtils.likeSongs(updatedSongs)
                         }
                     },
-                    index = itemIndex++,
+                    index = removeQueueOffset + 1,
                     count = actionCount,
                 )
             }

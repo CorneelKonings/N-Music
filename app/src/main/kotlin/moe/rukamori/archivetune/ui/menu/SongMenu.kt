@@ -563,7 +563,6 @@ fun SongMenu(
 
         item {
             val sectionCount = if (!isLocalSong) 2 else 1
-            var itemIndex = 0
             MenuSurfaceSection {
                 if (!isLocalSong) {
                     NewMenuItem(
@@ -598,7 +597,7 @@ fun SongMenu(
                                 update(song.song.toggleLibrary())
                             }
                         },
-                        index = itemIndex++,
+                        index = 0,
                         count = sectionCount,
                     )
                 }
@@ -627,7 +626,7 @@ fun SongMenu(
                         onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = if (!isLocalSong) 1 else 0,
                     count = sectionCount,
                 )
             }
@@ -647,7 +646,13 @@ fun SongMenu(
                             1 + (if (playbackSource == PlaybackSource.FLAC) 1 else 0) + (if (externalDownloaderEnabled) 1 else 0)
                         } else 0)
 
-                var itemIndex = 0
+                val eventIndex = 0
+                val playlistSongIndex = if (event != null) 1 else 0
+                val cacheIndex = (if (event != null) 1 else 0) + (if (playlistSong != null) 1 else 0)
+                val downloadIndex = cacheIndex + (if (isFromCache) 1 else 0)
+                val flacIndex = downloadIndex + 1
+                val externalDownloaderIndex = flacIndex + (if (playbackSource == PlaybackSource.FLAC) 1 else 0)
+
                 MenuSurfaceSection {
                     if (event != null) {
                         NewMenuItem(
@@ -670,12 +675,10 @@ fun SongMenu(
                                     delete(event)
                                 }
                             },
-                            index = itemIndex++,
+                            index = eventIndex,
                             count = mutationItemCount,
                         )
                     }
-
-
 
                     if (playlistSong != null) {
                         NewMenuItem(
@@ -723,7 +726,7 @@ fun SongMenu(
                                     }
                                 }
                             },
-                            index = itemIndex++,
+                            index = playlistSongIndex,
                             count = mutationItemCount,
                         )
                     }
@@ -747,7 +750,7 @@ fun SongMenu(
                                 onDismiss()
                                 cacheViewModel.removeSongFromCache(song.id)
                             },
-                            index = itemIndex++,
+                            index = cacheIndex,
                             count = mutationItemCount,
                         )
                     }
@@ -777,7 +780,7 @@ fun SongMenu(
                                             false,
                                         )
                                     },
-                                    index = itemIndex++,
+                                    index = downloadIndex,
                                     count = mutationItemCount,
                                 )
                             }
@@ -798,7 +801,7 @@ fun SongMenu(
                                             false,
                                         )
                                     },
-                                    index = itemIndex++,
+                                    index = downloadIndex,
                                     count = mutationItemCount,
                                 )
                             }
@@ -826,7 +829,7 @@ fun SongMenu(
                                             false,
                                         )
                                     },
-                                    index = itemIndex++,
+                                    index = downloadIndex,
                                     count = mutationItemCount,
                                 )
                             }
@@ -850,7 +853,7 @@ fun SongMenu(
                                         onClick = {
                                             WorkManager.getInstance(context).cancelUniqueWork("flac_download_${song.id}")
                                         },
-                                        index = itemIndex++,
+                                        index = flacIndex,
                                         count = mutationItemCount,
                                     )
                                 }
@@ -872,7 +875,7 @@ fun SongMenu(
                                                 song.song.albumName.orEmpty(),
                                             )
                                         },
-                                        index = itemIndex++,
+                                        index = flacIndex,
                                         count = mutationItemCount,
                                     )
                                 }
@@ -894,7 +897,7 @@ fun SongMenu(
                                                 song.song.albumName.orEmpty(),
                                             )
                                         },
-                                        index = itemIndex++,
+                                        index = flacIndex,
                                         count = mutationItemCount,
                                     )
                                 }
@@ -939,7 +942,7 @@ fun SongMenu(
                                             ).show()
                                     }
                                 },
-                                index = itemIndex++,
+                                index = externalDownloaderIndex,
                                 count = mutationItemCount,
                             )
                         }
@@ -954,7 +957,6 @@ fun SongMenu(
 
         item {
             val navItemCount = 1 + (if (song.song.albumId != null) 1 else 0)
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = { Text(text = stringResource(R.string.view_artist)) },
@@ -972,7 +974,7 @@ fun SongMenu(
                             showSelectArtistDialog = true
                         }
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = navItemCount,
                 )
 
@@ -989,7 +991,7 @@ fun SongMenu(
                             onDismiss()
                             navController.navigate("album/${song.song.albumId}")
                         },
-                        index = itemIndex++,
+                        index = 1,
                         count = navItemCount,
                     )
                 }
@@ -1002,7 +1004,6 @@ fun SongMenu(
 
         item {
             val infoItemCount = (if (!isLocalSong) 1 else 0) + 1
-            var itemIndex = 0
             MenuSurfaceSection {
                 if (!isLocalSong) {
                     NewMenuItem(
@@ -1027,7 +1028,7 @@ fun SongMenu(
                                 }
                             }
                         },
-                        index = itemIndex++,
+                        index = 0,
                         count = infoItemCount,
                     )
                 }
@@ -1046,7 +1047,7 @@ fun SongMenu(
                             ShowMediaInfo(song.id)
                         }
                     },
-                    index = itemIndex++,
+                    index = if (!isLocalSong) 1 else 0,
                     count = infoItemCount,
                 )
             }

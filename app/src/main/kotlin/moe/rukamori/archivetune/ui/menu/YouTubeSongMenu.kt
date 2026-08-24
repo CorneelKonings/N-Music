@@ -448,7 +448,6 @@ fun YouTubeSongMenu(
 
         item {
             val sectionCount = 2
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = {
@@ -503,7 +502,7 @@ fun YouTubeSongMenu(
                             }
                         }
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = sectionCount,
                 )
 
@@ -541,7 +540,7 @@ fun YouTubeSongMenu(
                             onDismiss()
                         }
                     },
-                    index = itemIndex++,
+                    index = 1,
                     count = sectionCount,
                 )
             }
@@ -553,7 +552,6 @@ fun YouTubeSongMenu(
 
         item {
             val downloadItemCount = 1 + (if (externalDownloaderEnabled) 1 else 0)
-            var itemIndex = 0
             MenuSurfaceSection {
                 when (download?.state) {
                     Download.STATE_COMPLETED -> {
@@ -579,7 +577,7 @@ fun YouTubeSongMenu(
                                     false,
                                 )
                             },
-                            index = itemIndex++,
+                            index = 0,
                             count = downloadItemCount,
                         )
                     }
@@ -600,7 +598,7 @@ fun YouTubeSongMenu(
                                     false,
                                 )
                             },
-                            index = itemIndex++,
+                            index = 0,
                             count = downloadItemCount,
                         )
                     }
@@ -631,7 +629,7 @@ fun YouTubeSongMenu(
                                     false,
                                 )
                             },
-                            index = itemIndex++,
+                            index = 0,
                             count = downloadItemCount,
                         )
                     }
@@ -675,7 +673,7 @@ fun YouTubeSongMenu(
                                     ).show()
                             }
                         },
-                        index = itemIndex++,
+                        index = 1,
                         count = downloadItemCount,
                     )
                 }
@@ -689,7 +687,6 @@ fun YouTubeSongMenu(
 
             item {
                 val artistAlbumCount = (if (splitArtists.isNotEmpty()) 1 else 0) + (if (song.album != null) 1 else 0)
-                var itemIndex = 0
                 MenuSurfaceSection {
                     if (splitArtists.isNotEmpty()) {
                         NewMenuItem(
@@ -708,7 +705,7 @@ fun YouTubeSongMenu(
                                     showSelectArtistDialog = true
                                 }
                             },
-                            index = itemIndex++,
+                            index = 0,
                             count = artistAlbumCount,
                         )
                     }
@@ -726,7 +723,7 @@ fun YouTubeSongMenu(
                                 navController.navigate("album/${album.id}")
                                 onDismiss()
                             },
-                            index = itemIndex++,
+                            index = if (splitArtists.isNotEmpty()) 1 else 0,
                             count = artistAlbumCount,
                         )
                     }

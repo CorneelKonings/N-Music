@@ -418,7 +418,6 @@ fun YouTubeAlbumMenu(
 
         item {
             val actionCount = 4
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = { Text(text = stringResource(R.string.play_next)) },
@@ -435,7 +434,7 @@ fun YouTubeAlbumMenu(
                             ?.let(playerConnection::playNext)
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = actionCount,
                 )
 
@@ -454,7 +453,7 @@ fun YouTubeAlbumMenu(
                             ?.let(playerConnection::addToQueue)
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = 1,
                     count = actionCount,
                 )
 
@@ -469,7 +468,7 @@ fun YouTubeAlbumMenu(
                     onClick = {
                         showChoosePlaylistDialog = true
                     },
-                    index = itemIndex++,
+                    index = 2,
                     count = actionCount,
                 )
 
@@ -521,7 +520,7 @@ fun YouTubeAlbumMenu(
                             onDismiss()
                         }
                     },
-                    index = itemIndex++,
+                    index = 3,
                     count = actionCount,
                 )
             }

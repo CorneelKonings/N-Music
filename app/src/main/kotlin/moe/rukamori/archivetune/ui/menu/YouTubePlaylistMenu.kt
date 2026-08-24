@@ -570,7 +570,6 @@ fun YouTubePlaylistMenu(
 
         item {
             val actionCount = 6
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = { Text(text = playNextText) },
@@ -598,7 +597,7 @@ fun YouTubePlaylistMenu(
                         }
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = actionCount,
                 )
 
@@ -628,7 +627,7 @@ fun YouTubePlaylistMenu(
                         }
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = 1,
                     count = actionCount,
                 )
 
@@ -643,7 +642,7 @@ fun YouTubePlaylistMenu(
                     onClick = {
                         showChoosePlaylistDialog = true
                     },
-                    index = itemIndex++,
+                    index = 2,
                     count = actionCount,
                 )
 
@@ -710,7 +709,7 @@ fun YouTubePlaylistMenu(
                             onDismiss()
                         }
                     },
-                    index = itemIndex++,
+                    index = 3,
                     count = actionCount,
                 )
 
@@ -725,7 +724,7 @@ fun YouTubePlaylistMenu(
                     onClick = {
                         showImportPlaylistDialog = true
                     },
-                    index = itemIndex++,
+                    index = 4,
                     count = actionCount,
                 )
 
@@ -851,7 +850,7 @@ fun YouTubePlaylistMenu(
                             },
                         )
                     },
-                    index = itemIndex++,
+                    index = 5,
                     count = actionCount,
                 )
             }
@@ -953,7 +952,6 @@ fun YouTubePlaylistMenu(
 
         item {
             val shareSelectCount = 1 + (if (canSelect) 1 else 0)
-            var itemIndex = 0
             MenuSurfaceSection {
                 NewMenuItem(
                     headlineContent = { Text(text = shareText) },
@@ -973,7 +971,7 @@ fun YouTubePlaylistMenu(
                         context.startActivity(Intent.createChooser(intent, null))
                         onDismiss()
                     },
-                    index = itemIndex++,
+                    index = 0,
                     count = shareSelectCount,
                 )
 
@@ -990,7 +988,7 @@ fun YouTubePlaylistMenu(
                             onDismiss()
                             selectAction()
                         },
-                        index = itemIndex++,
+                        index = 1,
                         count = shareSelectCount,
                     )
                 }
