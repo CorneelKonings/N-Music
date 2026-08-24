@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -31,11 +30,12 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
+import coil3.request.transformations
 import moe.rukamori.archivetune.ui.state.PlayerUiState
+import moe.rukamori.archivetune.utils.FastBlurTransformation
 
 @Composable
 fun PlayerBackgroundLayers(
@@ -102,7 +102,8 @@ fun PlayerBackgroundLayers(
     val blurImageRequest = remember(targetUrl) {
         ImageRequest.Builder(context)
             .data(targetUrl)
-            .size(64)
+            .size(96)
+            .transformations(FastBlurTransformation(radius = 25, sampling = 1f))
             .build()
     }
 
@@ -185,8 +186,7 @@ fun PlayerBackgroundLayers(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
-                            .graphicsLayer { alpha = blurOverlayAlpha }
-                            .blur(56.dp),
+                            .graphicsLayer { alpha = blurOverlayAlpha },
                         contentScale = ContentScale.Crop
                     )
                 }
