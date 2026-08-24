@@ -511,7 +511,7 @@ private fun <T> PreferenceSelectionBottomSheet(
             shape = RoundedCornerShape(SettingsDimensions.BottomSheetCornerRadius),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             border = BorderStroke(
-                width = 1.dp,
+                width = SettingsDimensions.GlassBorderThickness,
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
             ),
             tonalElevation = 6.dp,
@@ -555,7 +555,7 @@ private fun <T> PreferenceSelectionBottomSheet(
                         .fillMaxWidth()
                         .clip(glassShape)
                         .background(colors.glassBackground)
-                        .border(1.dp, colors.glassBorder, glassShape),
+                        .border(SettingsDimensions.GlassBorderThickness, colors.glassBorder, glassShape),
             ) {
                 LazyColumn(
                     modifier =
@@ -576,7 +576,7 @@ private fun <T> PreferenceSelectionBottomSheet(
                         )
                         if (index < values.size - 1) {
                             HorizontalDivider(
-                                thickness = 1.dp,
+                                thickness = SettingsDimensions.DividerThickness,
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f),
                             )
                 }

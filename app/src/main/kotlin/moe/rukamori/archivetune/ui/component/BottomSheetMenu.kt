@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 
 val LocalMenuState = compositionLocalOf { MenuState() }
 
@@ -80,10 +81,10 @@ fun BottomSheetMenu(
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 20.dp)
                     .navigationBarsPadding(),
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(SettingsDimensions.BottomSheetCornerRadius),
                 color = background,
                 border = BorderStroke(
-                    width = 1.dp,
+                    width = SettingsDimensions.GlassBorderThickness,
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
                 ),
                 tonalElevation = 6.dp,

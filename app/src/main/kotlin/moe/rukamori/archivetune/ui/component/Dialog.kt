@@ -8,6 +8,7 @@
 
 package moe.rukamori.archivetune.ui.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -68,6 +70,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
+import moe.rukamori.archivetune.ui.theme.yumaClickable
 
 @Composable
 fun DefaultDialog(
@@ -95,8 +99,12 @@ fun DefaultDialog(
         ) {
             Surface(
                 modifier = Modifier.heightIn(max = maxHeight),
-                shape = AlertDialogDefaults.shape,
+                shape = RoundedCornerShape(SettingsDimensions.BottomSheetCornerRadius),
                 color = AlertDialogDefaults.containerColor,
+                border = BorderStroke(
+                    width = SettingsDimensions.GlassBorderThickness,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                ),
                 tonalElevation = AlertDialogDefaults.TonalElevation,
             ) {
                 Column(
@@ -191,8 +199,12 @@ fun ActionPromptDialog(
         ) {
             Surface(
                 modifier = Modifier.heightIn(max = maxHeight),
-                shape = AlertDialogDefaults.shape,
+                shape = RoundedCornerShape(SettingsDimensions.BottomSheetCornerRadius),
                 color = AlertDialogDefaults.containerColor,
+                border = BorderStroke(
+                    width = SettingsDimensions.GlassBorderThickness,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                ),
                 tonalElevation = AlertDialogDefaults.TonalElevation,
             ) {
                 Column(
@@ -226,6 +238,7 @@ fun ActionPromptDialog(
                                 TextButton(
                                     onClick = { onReset() },
                                     shapes = ButtonDefaults.shapes(),
+                                    modifier = Modifier.yumaClickable(pressedScale = 0.96f, onClick = { onReset() }),
                                 ) {
                                     Text(stringResource(R.string.reset))
                                 }
@@ -236,6 +249,7 @@ fun ActionPromptDialog(
                             TextButton(
                                 onClick = { onCancel() },
                                 shapes = ButtonDefaults.shapes(),
+                                modifier = Modifier.yumaClickable(pressedScale = 0.96f, onClick = { onCancel() }),
                             ) {
                                 Text(stringResource(android.R.string.cancel))
                             }
@@ -244,6 +258,7 @@ fun ActionPromptDialog(
                         TextButton(
                             onClick = { onConfirm() },
                             shapes = ButtonDefaults.shapes(),
+                            modifier = Modifier.yumaClickable(pressedScale = 0.96f, onClick = { onConfirm() }),
                         ) {
                             Text(stringResource(android.R.string.ok))
                         }
@@ -275,8 +290,12 @@ fun ListDialog(
         ) {
             Surface(
                 modifier = Modifier.heightIn(max = maxHeight),
-                shape = AlertDialogDefaults.shape,
+                shape = RoundedCornerShape(SettingsDimensions.BottomSheetCornerRadius),
                 color = AlertDialogDefaults.containerColor,
+                border = BorderStroke(
+                    width = SettingsDimensions.GlassBorderThickness,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                ),
                 tonalElevation = AlertDialogDefaults.TonalElevation,
             ) {
                 Column(
@@ -347,7 +366,11 @@ fun TextFieldDialog(
         title = title,
         contentScrollable = true,
         buttons = {
-            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
+            TextButton(
+                onClick = onDismiss,
+                shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.yumaClickable(pressedScale = 0.96f, onClick = onDismiss),
+            ) {
                 Text(text = stringResource(android.R.string.cancel))
             }
 
@@ -366,6 +389,18 @@ fun TextFieldDialog(
                     onDismiss()
                 },
                 shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.yumaClickable(
+                    enabled = isValid,
+                    pressedScale = 0.96f,
+                    onClick = {
+                        if (textFields != null && onDoneMultiple != null) {
+                            onDoneMultiple(textFields.map { it.second.text })
+                        } else {
+                            onDone(legacyFieldState.value.text)
+                        }
+                        onDismiss()
+                    },
+                ),
             ) {
                 Text(text = stringResource(android.R.string.ok))
             }
@@ -448,7 +483,11 @@ fun EditPlaylistDialog(
         title = { Text(text = stringResource(R.string.edit_playlist)) },
         contentScrollable = true,
         buttons = {
-            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
+            TextButton(
+                onClick = onDismiss,
+                shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.yumaClickable(pressedScale = 0.96f, onClick = onDismiss),
+            ) {
                 Text(text = stringResource(android.R.string.cancel))
             }
             TextButton(
@@ -459,6 +498,15 @@ fun EditPlaylistDialog(
                     onDismiss()
                 },
                 shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.yumaClickable(
+                    enabled = canSave,
+                    pressedScale = 0.96f,
+                    onClick = {
+                        keyboardController?.hide()
+                        onSave(nameField.text.trim())
+                        onDismiss()
+                    },
+                ),
             ) {
                 Text(text = stringResource(R.string.save))
             }
