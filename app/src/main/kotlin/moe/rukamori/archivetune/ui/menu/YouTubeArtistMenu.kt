@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -84,13 +83,11 @@ fun YouTubeArtistMenu(
         trailingContent = {},
     )
 
-    HorizontalDivider()
-
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val dividerModifier = Modifier.padding(start = 56.dp)
+
     LazyColumn(
         userScrollEnabled = true,
         contentPadding =
@@ -174,7 +171,6 @@ fun YouTubeArtistMenu(
                                 ),
                             )
                         },
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 )
             }
         }
@@ -184,101 +180,100 @@ fun YouTubeArtistMenu(
         }
 
         item {
+            val actionCount = 2
+            var itemIndex = 0
             MenuSurfaceSection {
-                Column {
-                    NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
-                                    if (libraryArtist?.artist?.bookmarkedAt !=
-                                        null
-                                    ) {
-                                        stringResource(R.string.subscribed)
-                                    } else {
-                                        stringResource(R.string.subscribe)
-                                    },
-                            )
-                        },
-                        leadingContent = {
-                            Icon(
-                                painter =
-                                    painterResource(
-                                        if (libraryArtist?.artist?.bookmarkedAt != null) {
-                                            R.drawable.subscribed
-                                        } else {
-                                            R.drawable.subscribe
-                                        },
-                                    ),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            database.query {
-                                val libraryArtist = libraryArtist
-                                if (libraryArtist != null) {
-                                    update(libraryArtist.artist.toggleLike())
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                if (libraryArtist?.artist?.bookmarkedAt !=
+                                    null
+                                ) {
+                                    stringResource(R.string.subscribed)
                                 } else {
-                                    insert(
-                                        ArtistEntity(
-                                            id = artist.id,
-                                            name = artist.title,
-                                            channelId = artist.channelId,
-                                            thumbnailUrl = artist.thumbnail,
-                                        ).toggleLike(),
-                                    )
-                                }
+                                    stringResource(R.string.subscribe)
+                                },
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter =
+                                painterResource(
+                                    if (libraryArtist?.artist?.bookmarkedAt != null) {
+                                        R.drawable.subscribed
+                                    } else {
+                                        R.drawable.subscribe
+                                    },
+                                ),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        database.query {
+                            val libraryArtist = libraryArtist
+                            if (libraryArtist != null) {
+                                update(libraryArtist.artist.toggleLike())
+                            } else {
+                                insert(
+                                    ArtistEntity(
+                                        id = artist.id,
+                                        name = artist.title,
+                                        channelId = artist.channelId,
+                                        thumbnailUrl = artist.thumbnail,
+                                    ).toggleLike(),
+                                )
                             }
-                        },
-                    )
+                        }
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
-                                    stringResource(
-                                        if (isInSpeedDial) {
-                                            R.string.remove_from_speed_dial
-                                        } else {
-                                            R.string.pin_to_speed_dial
-                                        },
-                                    ),
-                            )
-                        },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            coroutineScope.launch {
-                                if (!isInSpeedDial) {
-                                    withContext(Dispatchers.IO) {
-                                        database.transaction {
-                                            insert(
-                                                ArtistEntity(
-                                                    id = artist.id,
-                                                    name = artist.title,
-                                                    channelId = artist.channelId,
-                                                    thumbnailUrl = artist.thumbnail,
-                                                ),
-                                            )
-                                        }
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                stringResource(
+                                    if (isInSpeedDial) {
+                                        R.string.remove_from_speed_dial
+                                    } else {
+                                        R.string.pin_to_speed_dial
+                                    },
+                                ),
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        coroutineScope.launch {
+                            if (!isInSpeedDial) {
+                                withContext(Dispatchers.IO) {
+                                    database.transaction {
+                                        insert(
+                                            ArtistEntity(
+                                                id = artist.id,
+                                                name = artist.title,
+                                                channelId = artist.channelId,
+                                                thumbnailUrl = artist.thumbnail,
+                                            ),
+                                        )
                                     }
                                 }
-
-                                val updatedPins = toggleSpeedDialPin(speedDialPins, artistPin)
-                                onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                                onDismiss()
                             }
-                        },
-                    )
-                }
+
+                            val updatedPins = toggleSpeedDialPin(speedDialPins, artistPin)
+                            onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                            onDismiss()
+                        }
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
             }
         }
     }

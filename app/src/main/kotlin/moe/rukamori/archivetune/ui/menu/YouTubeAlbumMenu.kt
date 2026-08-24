@@ -30,7 +30,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -329,13 +328,10 @@ fun YouTubeAlbumMenu(
         },
     )
 
-    HorizontalDivider()
-
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val dividerModifier = Modifier.padding(start = 56.dp)
 
     LazyColumn(
         userScrollEnabled = true,
@@ -412,7 +408,6 @@ fun YouTubeAlbumMenu(
                                 },
                             ),
                         ),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 )
             }
         }
@@ -422,120 +417,113 @@ fun YouTubeAlbumMenu(
         }
 
         item {
+            val actionCount = 4
+            var itemIndex = 0
             MenuSurfaceSection {
-                Column {
-                    NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.play_next)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.playlist_play),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            album
-                                ?.songs
-                                ?.map { it.toMediaItem() }
-                                ?.let(playerConnection::playNext)
-                            onDismiss()
-                        },
-                    )
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.play_next)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.playlist_play),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        album
+                            ?.songs
+                            ?.map { it.toMediaItem() }
+                            ?.let(playerConnection::playNext)
+                        onDismiss()
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        album
+                            ?.songs
+                            ?.map { it.toMediaItem() }
+                            ?.let(playerConnection::addToQueue)
+                        onDismiss()
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.queue_music),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            album
-                                ?.songs
-                                ?.map { it.toMediaItem() }
-                                ?.let(playerConnection::addToQueue)
-                            onDismiss()
-                        },
-                    )
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.add_to_playlist)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.playlist_add),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        showChoosePlaylistDialog = true
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.add_to_playlist)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.playlist_add),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            showChoosePlaylistDialog = true
-                        },
-                    )
-
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
-                                    stringResource(
-                                        if (isInSpeedDial) {
-                                            R.string.remove_from_speed_dial
-                                        } else {
-                                            R.string.pin_to_speed_dial
-                                        },
-                                    ),
-                            )
-                        },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            coroutineScope.launch {
-                                val shouldTogglePin =
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                stringResource(
                                     if (isInSpeedDial) {
-                                        true
+                                        R.string.remove_from_speed_dial
                                     } else {
-                                        withContext(Dispatchers.IO) {
-                                            if (album != null) {
-                                                true
-                                            } else {
-                                                val result = YouTube.album(albumItem.id)
-                                                result
-                                                    .onSuccess { albumPage ->
-                                                        database.transaction {
-                                                            insert(albumPage)
-                                                        }
-                                                    }.onFailure(::reportException)
-                                                result.isSuccess
-                                            }
+                                        R.string.pin_to_speed_dial
+                                    },
+                                ),
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        coroutineScope.launch {
+                            val shouldTogglePin =
+                                if (isInSpeedDial) {
+                                    true
+                                } else {
+                                    withContext(Dispatchers.IO) {
+                                        if (album != null) {
+                                            true
+                                        } else {
+                                            val result = YouTube.album(albumItem.id)
+                                            result
+                                                .onSuccess { albumPage ->
+                                                    database.transaction {
+                                                        insert(albumPage)
+                                                    }
+                                                }.onFailure(::reportException)
+                                            result.isSuccess
                                         }
                                     }
+                                }
 
-                                if (!shouldTogglePin) return@launch
+                            if (!shouldTogglePin) return@launch
 
-                                val updatedPins = toggleSpeedDialPin(speedDialPins, albumPin)
-                                onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                                onDismiss()
-                            }
-                        },
-                    )
-                }
+                            val updatedPins = toggleSpeedDialPin(speedDialPins, albumPin)
+                            onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                            onDismiss()
+                        }
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
             }
         }
 
@@ -571,6 +559,8 @@ fun YouTubeAlbumMenu(
                                     )
                                 }
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
 
@@ -592,6 +582,8 @@ fun YouTubeAlbumMenu(
                                     )
                                 }
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
 
@@ -619,6 +611,8 @@ fun YouTubeAlbumMenu(
                                     )
                                 }
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
                 }
@@ -648,6 +642,8 @@ fun YouTubeAlbumMenu(
                                 showSelectArtistDialog = true
                             }
                         },
+                        index = 0,
+                        count = 1,
                     )
                 }
             }

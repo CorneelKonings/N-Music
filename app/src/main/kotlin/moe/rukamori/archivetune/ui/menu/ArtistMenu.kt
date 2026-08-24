@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -85,13 +84,10 @@ fun ArtistMenu(
         trailingContent = {},
     )
 
-    HorizontalDivider()
-
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val dividerModifier = Modifier.padding(start = 56.dp)
 
     LazyColumn(
         userScrollEnabled = true,
@@ -204,7 +200,6 @@ fun ArtistMenu(
                                 )
                             }
                         },
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 )
             }
         }
@@ -214,74 +209,73 @@ fun ArtistMenu(
         }
 
         item {
+            val actionCount = 2
+            var itemIndex = 0
             MenuSurfaceSection {
-                Column {
-                    NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                if (artist.artist.bookmarkedAt !=
+                                    null
+                                ) {
+                                    stringResource(R.string.subscribed)
+                                } else {
+                                    stringResource(R.string.subscribe)
+                                },
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter =
+                                painterResource(
                                     if (artist.artist.bookmarkedAt !=
                                         null
                                     ) {
-                                        stringResource(R.string.subscribed)
+                                        R.drawable.subscribed
                                     } else {
-                                        stringResource(R.string.subscribe)
+                                        R.drawable.subscribe
                                     },
-                            )
-                        },
-                        leadingContent = {
-                            Icon(
-                                painter =
-                                    painterResource(
-                                        if (artist.artist.bookmarkedAt !=
-                                            null
-                                        ) {
-                                            R.drawable.subscribed
-                                        } else {
-                                            R.drawable.subscribe
-                                        },
-                                    ),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            database.transaction {
-                                update(artist.artist.toggleLike())
-                            }
-                        },
-                    )
+                                ),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        database.transaction {
+                            update(artist.artist.toggleLike())
+                        }
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
-                                    stringResource(
-                                        if (isInSpeedDial) {
-                                            R.string.remove_from_speed_dial
-                                        } else {
-                                            R.string.pin_to_speed_dial
-                                        },
-                                    ),
-                            )
-                        },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            val updatedPins = toggleSpeedDialPin(speedDialPins, artistPin)
-                            onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                            onDismiss()
-                        },
-                    )
-                }
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                stringResource(
+                                    if (isInSpeedDial) {
+                                        R.string.remove_from_speed_dial
+                                    } else {
+                                        R.string.pin_to_speed_dial
+                                    },
+                                ),
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        val updatedPins = toggleSpeedDialPin(speedDialPins, artistPin)
+                        onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                        onDismiss()
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
             }
         }
     }

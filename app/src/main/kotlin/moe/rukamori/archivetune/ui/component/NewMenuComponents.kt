@@ -13,25 +13,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,11 +35,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
+import moe.rukamori.archivetune.ui.theme.yumaSegmentPosition
 
 @Composable
 fun NewActionButton(
@@ -108,13 +103,28 @@ fun NewMenuItem(
     supportingContent: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
+    index: Int = 0,
+    count: Int = 1,
     modifier: Modifier = Modifier,
 ) {
+    val shape = remember(index, count) {
+        val large = SettingsDimensions.SegmentedCornerLarge
+        val small = SettingsDimensions.SegmentedCornerSmall
+        when {
+            count <= 1 -> RoundedCornerShape(large)
+            index == 0 -> RoundedCornerShape(topStart = large, topEnd = large, bottomEnd = small, bottomStart = small)
+            index == count - 1 -> RoundedCornerShape(topStart = small, topEnd = small, bottomEnd = large, bottomStart = large)
+            else -> RoundedCornerShape(small)
+        }
+    }
+    val position = remember(index, count) { yumaSegmentPosition(index, count) }
+    val colors = LocalYumaColors.current
+
     val sizedLeadingContent: @Composable (() -> Unit)? =
         if (leadingContent != null) {
             {
                 Box(
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(24.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     leadingContent()
@@ -128,7 +138,7 @@ fun NewMenuItem(
         if (trailingContent != null) {
             {
                 Box(
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(24.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     trailingContent()
@@ -138,31 +148,30 @@ fun NewMenuItem(
             null
         }
 
-    val content: @Composable () -> Unit = {
+    val isLast = index == count - 1
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = if (isLast) 0.dp else SettingsDimensions.SegmentedItemGap)
+            .yumaClickable(enabled = enabled && onClick != null, pressedScale = 0.96f, onClick = onClick ?: {})
+            .yumaGlassCard(
+                shape = shape,
+                backgroundColor = colors.glassBackground,
+                borderColor = colors.glassBorder,
+                strokeWidth = SettingsDimensions.GlassBorderThickness,
+                position = position,
+            )
+            .padding(horizontal = 14.dp, vertical = 6.dp)
+    ) {
         ListItem(
             headlineContent = headlineContent,
             leadingContent = sizedLeadingContent,
             trailingContent = sizedTrailingContent,
             supportingContent = supportingContent,
-            modifier = Modifier.padding(horizontal = 4.dp),
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             tonalElevation = 0.dp,
         )
-    }
-
-    if (onClick == null) {
-        Box(modifier = modifier.fillMaxWidth()) {
-            content()
-        }
-    } else {
-        Box(
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .yumaClickable(enabled = enabled, pressedScale = 0.97f, onClick = onClick),
-        ) {
-            content()
-        }
     }
 }
 
@@ -189,32 +198,46 @@ fun NewActionGrid(
 ) {
     if (actions.isEmpty()) return
 
+    val colors = LocalYumaColors.current
     val columnCount = columns.coerceAtLeast(1)
     val rows = actions.chunked(columnCount)
 
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(SettingsDimensions.SegmentedCornerLarge),
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                    strokeWidth = SettingsDimensions.GlassBorderThickness,
+                )
+                .padding(horizontal = 12.dp, vertical = 12.dp),
     ) {
-        rows.forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                row.forEach { action ->
-                    NewActionButton(
-                        icon = action.icon,
-                        text = action.text,
-                        onClick = action.onClick,
-                        modifier = Modifier.weight(1f),
-                        enabled = action.enabled,
-                        backgroundColor = action.backgroundColor,
-                        contentColor = action.contentColor,
-                    )
-                }
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            rows.forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    row.forEach { action ->
+                        NewActionButton(
+                            icon = action.icon,
+                            text = action.text,
+                            onClick = action.onClick,
+                            modifier = Modifier.weight(1f),
+                            enabled = action.enabled,
+                            backgroundColor = action.backgroundColor,
+                            contentColor = action.contentColor,
+                        )
+                    }
 
-                repeat(columnCount - row.size) {
-                    Spacer(modifier = Modifier.weight(1f))
+                    repeat(columnCount - row.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -237,21 +260,12 @@ fun NewMenuContent(
     menuItems: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalYumaColors.current
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         headerContent?.invoke()
         actionGrid?.invoke()
-
-        if (actionGrid != null && menuItems != null) {
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 12.dp),
-                color = colors.glassBorder,
-            )
-        }
-
         menuItems?.invoke()
     }
 }
@@ -305,18 +319,8 @@ fun MenuSurfaceSection(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val colors = LocalYumaColors.current
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .yumaGlassCard(
-                    shape = RoundedCornerShape(20.dp),
-                    backgroundColor = colors.glassBackground,
-                    borderColor = colors.glassBorder,
-                    strokeWidth = SettingsDimensions.GlassBorderThickness,
-                ),
-    ) {
-        Column(content = content)
-    }
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        content = content,
+    )
 }

@@ -27,7 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -510,7 +509,6 @@ fun PlaylistMenu(
 
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val dividerModifier = Modifier.padding(start = 56.dp)
     val startRadioText = stringResource(R.string.start_radio)
     val playText = stringResource(R.string.play)
     val shuffleText = stringResource(R.string.shuffle)
@@ -616,7 +614,6 @@ fun PlaylistMenu(
             MenuSurfaceSection {
                 NewActionGrid(
                     actions = primaryActions,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 )
             }
         }
@@ -626,142 +623,135 @@ fun PlaylistMenu(
         }
 
         item {
+            val actionItemCount =
+                (if (playlist.playlist.browseId != null) 1 else 0) +
+                    1 +
+                    1 +
+                    1 +
+                    (if (editable && autoPlaylist != true) 1 else 0) +
+                    (if (autoPlaylist != true && downloadPlaylist != true) 1 else 0)
+            var itemIndex = 0
             MenuSurfaceSection {
-                Column {
-                    playlist.playlist.browseId?.let { browseId ->
-                        NewMenuItem(
-                            headlineContent = { Text(text = startRadioText) },
-                            leadingContent = {
-                                Icon(
-                                    painter = painterResource(R.drawable.radio),
-                                    contentDescription = null,
-                                )
-                            },
-                            onClick = {
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    YouTube.playlist(browseId).getOrNull()?.playlist?.let { playlistItem ->
-                                        playlistItem.radioEndpoint?.let { radioEndpoint ->
-                                            withContext(Dispatchers.Main) {
-                                                playerConnection.playQueue(YouTubeQueue(radioEndpoint))
-                                            }
+                playlist.playlist.browseId?.let { browseId ->
+                    NewMenuItem(
+                        headlineContent = { Text(text = startRadioText) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.radio),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                YouTube.playlist(browseId).getOrNull()?.playlist?.let { playlistItem ->
+                                    playlistItem.radioEndpoint?.let { radioEndpoint ->
+                                        withContext(Dispatchers.Main) {
+                                            playerConnection.playQueue(YouTubeQueue(radioEndpoint))
                                         }
                                     }
                                 }
-                                onDismiss()
-                            },
-                        )
-
-                        HorizontalDivider(
-                            modifier = dividerModifier,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
-                    }
-
-                    NewMenuItem(
-                        headlineContent = { Text(text = playNextText) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.playlist_play),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            coroutineScope.launch {
-                                playerConnection.playNext(songs.map { it.toMediaItem() })
                             }
                             onDismiss()
                         },
+                        index = itemIndex++,
+                        count = actionItemCount,
                     )
+                }
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
+                NewMenuItem(
+                    headlineContent = { Text(text = playNextText) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.playlist_play),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        coroutineScope.launch {
+                            playerConnection.playNext(songs.map { it.toMediaItem() })
+                        }
+                        onDismiss()
+                    },
+                    index = itemIndex++,
+                    count = actionItemCount,
+                )
 
+                NewMenuItem(
+                    headlineContent = { Text(text = addToQueueText) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        onDismiss()
+                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                    },
+                    index = itemIndex++,
+                    count = actionItemCount,
+                )
+
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                stringResource(
+                                    if (isInSpeedDial) {
+                                        R.string.remove_from_speed_dial
+                                    } else {
+                                        R.string.pin_to_speed_dial
+                                    },
+                                ),
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        val updatedPins = toggleSpeedDialPin(speedDialPins, playlistPin)
+                        onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                        onDismiss()
+                    },
+                    index = itemIndex++,
+                    count = actionItemCount,
+                )
+
+                if (editable && autoPlaylist != true) {
                     NewMenuItem(
-                        headlineContent = { Text(text = addToQueueText) },
+                        headlineContent = { Text(text = stringResource(R.string.edit)) },
                         leadingContent = {
                             Icon(
-                                painter = painterResource(R.drawable.queue_music),
+                                painter = painterResource(R.drawable.edit),
                                 contentDescription = null,
                             )
                         },
                         onClick = {
-                            onDismiss()
-                            playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                            showEditDialog = true
                         },
+                        index = itemIndex++,
+                        count = actionItemCount,
                     )
+                }
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
+                if (autoPlaylist != true && downloadPlaylist != true) {
                     NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
-                                    stringResource(
-                                        if (isInSpeedDial) {
-                                            R.string.remove_from_speed_dial
-                                        } else {
-                                            R.string.pin_to_speed_dial
-                                        },
-                                    ),
-                            )
-                        },
+                        headlineContent = { Text(text = stringResource(R.string.manage_tags)) },
                         leadingContent = {
                             Icon(
-                                painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
+                                painter = painterResource(R.drawable.style),
                                 contentDescription = null,
                             )
                         },
                         onClick = {
-                            val updatedPins = toggleSpeedDialPin(speedDialPins, playlistPin)
-                            onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                            onDismiss()
+                            showAssignTagsDialog = true
                         },
+                        index = itemIndex++,
+                        count = actionItemCount,
                     )
-
-                    if (editable && autoPlaylist != true) {
-                        HorizontalDivider(
-                            modifier = dividerModifier,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
-
-                        NewMenuItem(
-                            headlineContent = { Text(text = stringResource(R.string.edit)) },
-                            leadingContent = {
-                                Icon(
-                                    painter = painterResource(R.drawable.edit),
-                                    contentDescription = null,
-                                )
-                            },
-                            onClick = {
-                                showEditDialog = true
-                            },
-                        )
-                    }
-
-                    if (autoPlaylist != true && downloadPlaylist != true) {
-                        HorizontalDivider(
-                            modifier = dividerModifier,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
-
-                        NewMenuItem(
-                            headlineContent = { Text(text = stringResource(R.string.manage_tags)) },
-                            leadingContent = {
-                                Icon(
-                                    painter = painterResource(R.drawable.style),
-                                    contentDescription = null,
-                                )
-                            },
-                            onClick = {
-                                showAssignTagsDialog = true
-                            },
-                        )
-                    }
                 }
             }
         }
@@ -792,6 +782,8 @@ fun PlaylistMenu(
                                 onClick = {
                                     showRemoveDownloadDialog = true
                                 },
+                                index = 0,
+                                count = 1,
                             )
                         }
 
@@ -806,6 +798,8 @@ fun PlaylistMenu(
                                 onClick = {
                                     showRemoveDownloadDialog = true
                                 },
+                                index = 0,
+                                count = 1,
                             )
                         }
 
@@ -831,6 +825,8 @@ fun PlaylistMenu(
                                         downloads = downloadUtil.downloads.value,
                                     )
                                 },
+                                index = 0,
+                                count = 1,
                             )
                         }
                     }
@@ -858,11 +854,8 @@ fun PlaylistMenu(
                                 syncPlaylistToYouTube()
                             }
                         },
-                    )
-
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
+                        index = 0,
+                        count = 3,
                     )
 
                     NewMenuItem(
@@ -894,11 +887,8 @@ fun PlaylistMenu(
                                 showHidePlaylistDialog = true
                             }
                         },
-                    )
-
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
+                        index = 1,
+                        count = 3,
                     )
 
                     NewMenuItem(
@@ -918,6 +908,8 @@ fun PlaylistMenu(
                         onClick = {
                             showDeletePlaylistDialog = true
                         },
+                        index = 2,
+                        count = 3,
                     )
                 }
             }
@@ -948,6 +940,8 @@ fun PlaylistMenu(
                             context.startActivity(Intent.createChooser(intent, null))
                             onDismiss()
                         },
+                        index = 0,
+                        count = 1,
                     )
                 }
             }

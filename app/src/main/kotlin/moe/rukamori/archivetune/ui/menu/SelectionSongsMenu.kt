@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -222,7 +221,6 @@ fun SelectionSongMenu(
 
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val dividerModifier = Modifier.padding(start = 56.dp)
 
     LazyColumn(
         userScrollEnabled = true,
@@ -300,7 +298,6 @@ fun SelectionSongMenu(
                                 },
                             ),
                         ),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 )
             }
         }
@@ -310,131 +307,127 @@ fun SelectionSongMenu(
         }
 
         item {
+            val actionCount = 3
+            var itemIndex = 0
             MenuSurfaceSection {
-                Column {
-                    NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.queue_music),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onDismiss()
-                            playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
-                            clearAction()
-                        },
-                    )
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        onDismiss()
+                        playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
+                        clearAction()
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
-                                    stringResource(
-                                        if (allInLibrary) R.string.remove_from_library else R.string.add_to_library,
-                                    ),
-                            )
-                        },
-                        leadingContent = {
-                            Icon(
-                                painter =
-                                    painterResource(
-                                        if (allInLibrary) R.drawable.library_add_check else R.drawable.library_add,
-                                    ),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            coroutineScope.launch(Dispatchers.IO) {
-                                val shouldAdd = !allInLibrary
-                                val now = LocalDateTime.now()
-                                val failed = LinkedHashSet<String>()
-                                val updatedSongs = ArrayList<moe.rukamori.archivetune.db.entities.SongEntity>()
-                                for (song in songSelection.asSequence().map { it.song }.distinctBy { it.id }) {
-                                    val remoteResult = YouTube.likeVideo(song.id, shouldAdd)
-                                    if (remoteResult.isFailure) {
-                                        failed += song.id
-                                        continue
-                                    }
-                                    updatedSongs +=
-                                        song.copy(
-                                            liked = shouldAdd,
-                                            likedDate = if (shouldAdd) now else null,
-                                            inLibrary = if (shouldAdd) now else null,
-                                        )
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                stringResource(
+                                    if (allInLibrary) R.string.remove_from_library else R.string.add_to_library,
+                                ),
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter =
+                                painterResource(
+                                    if (allInLibrary) R.drawable.library_add_check else R.drawable.library_add,
+                                ),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            val shouldAdd = !allInLibrary
+                            val now = LocalDateTime.now()
+                            val failed = LinkedHashSet<String>()
+                            val updatedSongs = ArrayList<moe.rukamori.archivetune.db.entities.SongEntity>()
+                            for (song in songSelection.asSequence().map { it.song }.distinctBy { it.id }) {
+                                val remoteResult = YouTube.likeVideo(song.id, shouldAdd)
+                                if (remoteResult.isFailure) {
+                                    failed += song.id
+                                    continue
                                 }
-
-                                if (updatedSongs.isNotEmpty()) {
-                                    database.withTransaction {
-                                        updatedSongs.forEach(::update)
-                                    }
-                                }
-
-                                withContext(Dispatchers.Main) {
-                                    onDismiss()
-                                    clearAction()
-                                    if (failed.isNotEmpty()) {
-                                        Toast
-                                            .makeText(context, context.getString(R.string.error_unknown), Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
-                                }
+                                updatedSongs +=
+                                    song.copy(
+                                        liked = shouldAdd,
+                                        likedDate = if (shouldAdd) now else null,
+                                        inLibrary = if (shouldAdd) now else null,
+                                    )
                             }
-                        },
-                    )
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
-                                    stringResource(
-                                        if (allLiked) R.string.dislike_all else R.string.like_all,
-                                    ),
-                            )
-                        },
-                        leadingContent = {
-                            Icon(
-                                painter =
-                                    painterResource(
-                                        if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
-                                    ),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onDismiss()
-                            val shouldUnlikeAll = songSelection.all { it.song.liked }
-                            val updatedSongs =
-                                songSelection
-                                    .asSequence()
-                                    .map { it.song }
-                                    .distinctBy { it.id }
-                                    .filter { song -> shouldUnlikeAll || !song.liked }
-                                    .map { song -> song.localToggleLike() }
-                                    .toList()
-
-                            if (updatedSongs.isEmpty()) return@NewMenuItem
-
-                            coroutineScope.launch(Dispatchers.IO) {
+                            if (updatedSongs.isNotEmpty()) {
                                 database.withTransaction {
                                     updatedSongs.forEach(::update)
                                 }
-                                syncUtils.likeSongs(updatedSongs)
                             }
-                        },
-                    )
-                }
+
+                            withContext(Dispatchers.Main) {
+                                onDismiss()
+                                clearAction()
+                                if (failed.isNotEmpty()) {
+                                    Toast
+                                        .makeText(context, context.getString(R.string.error_unknown), Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            }
+                        }
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
+
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                stringResource(
+                                    if (allLiked) R.string.dislike_all else R.string.like_all,
+                                ),
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter =
+                                painterResource(
+                                    if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
+                                ),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        onDismiss()
+                        val shouldUnlikeAll = songSelection.all { it.song.liked }
+                        val updatedSongs =
+                            songSelection
+                                .asSequence()
+                                .map { it.song }
+                                .distinctBy { it.id }
+                                .filter { song -> shouldUnlikeAll || !song.liked }
+                                .map { song -> song.localToggleLike() }
+                                .toList()
+
+                        if (updatedSongs.isEmpty()) return@NewMenuItem
+
+                        coroutineScope.launch(Dispatchers.IO) {
+                            database.withTransaction {
+                                updatedSongs.forEach(::update)
+                            }
+                            syncUtils.likeSongs(updatedSongs)
+                        }
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
             }
         }
 
@@ -463,6 +456,8 @@ fun SelectionSongMenu(
                             onClick = {
                                 showRemoveDownloadDialog = true
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
 
@@ -477,6 +472,8 @@ fun SelectionSongMenu(
                             onClick = {
                                 showRemoveDownloadDialog = true
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
 
@@ -502,6 +499,8 @@ fun SelectionSongMenu(
                                     downloads = downloadUtil.downloads.value,
                                 )
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
                 }
@@ -587,6 +586,8 @@ fun SelectionSongMenu(
                                 }
                             }
                         },
+                        index = 0,
+                        count = 1,
                     )
                 }
             }
@@ -618,6 +619,8 @@ fun SelectionSongMenu(
                             onRemoveFromCache(songSelection)
                             clearAction()
                         },
+                        index = 0,
+                        count = 1,
                     )
                 }
             }
@@ -759,7 +762,6 @@ fun SelectionMediaMetadataMenu(
 
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val dividerModifier = Modifier.padding(start = 56.dp)
 
     LazyColumn(
         userScrollEnabled = true,
@@ -837,7 +839,6 @@ fun SelectionMediaMetadataMenu(
                                 },
                             ),
                         ),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 )
             }
         }
@@ -847,132 +848,129 @@ fun SelectionMediaMetadataMenu(
         }
 
         item {
+            val actionCount =
+                (if (onRemoveFromHistory != null) 1 else 0) +
+                    (if (currentItems.isNotEmpty()) 1 else 0) +
+                    1 +
+                    1
+            var itemIndex = 0
             MenuSurfaceSection {
-                Column {
-                    if (onRemoveFromHistory != null) {
-                        NewMenuItem(
-                            headlineContent = {
-                                Text(
-                                    text = stringResource(R.string.remove_from_history),
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                            },
-                            leadingContent = {
-                                Icon(
-                                    painter = painterResource(R.drawable.delete),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error,
-                                )
-                            },
-                            onClick = {
-                                onDismiss()
-                                onRemoveFromHistory()
-                                clearAction()
-                            },
-                        )
-
-                        HorizontalDivider(
-                            modifier = dividerModifier,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
-                    }
-
-                    if (currentItems.isNotEmpty()) {
-                        NewMenuItem(
-                            headlineContent = {
-                                Text(
-                                    text = stringResource(R.string.remove_from_queue),
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                            },
-                            leadingContent = {
-                                Icon(
-                                    painter = painterResource(R.drawable.delete),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error,
-                                )
-                            },
-                            onClick = {
-                                onDismiss()
-                                if (onRemoveFromQueue != null) {
-                                    onRemoveFromQueue(currentItems)
-                                } else {
-                                    var i = 0
-                                    currentItems.forEach { cur ->
-                                        if (playerConnection.player.availableCommands.contains(Player.COMMAND_CHANGE_MEDIA_ITEMS)) {
-                                            playerConnection.player.removeMediaItem(cur.firstPeriodIndex - i++)
-                                        }
-                                    }
-                                }
-                                clearAction()
-                            },
-                        )
-
-                        HorizontalDivider(
-                            modifier = dividerModifier,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
-                    }
-
-                    NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.queue_music),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onDismiss()
-                            playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
-                            clearAction()
-                        },
-                    )
-
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
+                if (onRemoveFromHistory != null) {
                     NewMenuItem(
                         headlineContent = {
                             Text(
-                                text =
-                                    stringResource(
-                                        if (allLiked) R.string.dislike_all else R.string.like_all,
-                                    ),
+                                text = stringResource(R.string.remove_from_history),
+                                color = MaterialTheme.colorScheme.error,
                             )
                         },
                         leadingContent = {
                             Icon(
-                                painter =
-                                    painterResource(
-                                        if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
-                                    ),
+                                painter = painterResource(R.drawable.delete),
                                 contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
                             )
                         },
                         onClick = {
                             onDismiss()
-                            val updatedSongs =
-                                songSelection
-                                    .asSequence()
-                                    .distinctBy { it.id }
-                                    .filter { song -> allLiked || !song.liked }
-                                    .map { song -> song.toSongEntity().localToggleLike() }
-                                    .toList()
-
-                            if (updatedSongs.isEmpty()) return@NewMenuItem
-
-                            coroutineScope.launch(Dispatchers.IO) {
-                                database.withTransaction {
-                                    updatedSongs.forEach(::update)
-                                }
-                                syncUtils.likeSongs(updatedSongs)
-                            }
+                            onRemoveFromHistory()
+                            clearAction()
                         },
+                        index = itemIndex++,
+                        count = actionCount,
                     )
                 }
+
+                if (currentItems.isNotEmpty()) {
+                    NewMenuItem(
+                        headlineContent = {
+                            Text(
+                                text = stringResource(R.string.remove_from_queue),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.delete),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        },
+                        onClick = {
+                            onDismiss()
+                            if (onRemoveFromQueue != null) {
+                                onRemoveFromQueue(currentItems)
+                            } else {
+                                var i = 0
+                                currentItems.forEach { cur ->
+                                    if (playerConnection.player.availableCommands.contains(Player.COMMAND_CHANGE_MEDIA_ITEMS)) {
+                                        playerConnection.player.removeMediaItem(cur.firstPeriodIndex - i++)
+                                    }
+                                }
+                            }
+                            clearAction()
+                        },
+                        index = itemIndex++,
+                        count = actionCount,
+                    )
+                }
+
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        onDismiss()
+                        playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
+                        clearAction()
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
+
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                stringResource(
+                                    if (allLiked) R.string.dislike_all else R.string.like_all,
+                                ),
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter =
+                                painterResource(
+                                    if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
+                                ),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        onDismiss()
+                        val updatedSongs =
+                            songSelection
+                                .asSequence()
+                                .distinctBy { it.id }
+                                .filter { song -> allLiked || !song.liked }
+                                .map { song -> song.toSongEntity().localToggleLike() }
+                                .toList()
+
+                        if (updatedSongs.isEmpty()) return@NewMenuItem
+
+                        coroutineScope.launch(Dispatchers.IO) {
+                            database.withTransaction {
+                                updatedSongs.forEach(::update)
+                            }
+                            syncUtils.likeSongs(updatedSongs)
+                        }
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
             }
         }
 
@@ -1001,6 +999,8 @@ fun SelectionMediaMetadataMenu(
                             onClick = {
                                 showRemoveDownloadDialog = true
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
 
@@ -1015,6 +1015,8 @@ fun SelectionMediaMetadataMenu(
                             onClick = {
                                 showRemoveDownloadDialog = true
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
 
@@ -1040,6 +1042,8 @@ fun SelectionMediaMetadataMenu(
                                     downloads = downloadUtil.downloads.value,
                                 )
                             },
+                            index = 0,
+                            count = 1,
                         )
                     }
                 }

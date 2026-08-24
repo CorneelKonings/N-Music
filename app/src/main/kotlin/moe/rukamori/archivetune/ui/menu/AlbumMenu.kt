@@ -32,7 +32,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -356,13 +355,10 @@ fun AlbumMenu(
         },
     )
 
-    HorizontalDivider()
-
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val dividerModifier = Modifier.padding(start = 56.dp)
 
     LazyColumn(
         userScrollEnabled = true,
@@ -456,7 +452,6 @@ fun AlbumMenu(
                                 )
                             }
                         },
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 )
             }
         }
@@ -466,90 +461,83 @@ fun AlbumMenu(
         }
 
         item {
+            val actionCount = 4
+            var itemIndex = 0
             MenuSurfaceSection {
-                Column {
-                    NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.play_next)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.playlist_play),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onDismiss()
-                            playerConnection.playNext(songs.map { it.toMediaItem() })
-                        },
-                    )
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.play_next)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.playlist_play),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        onDismiss()
+                        playerConnection.playNext(songs.map { it.toMediaItem() })
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        onDismiss()
+                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.add_to_queue)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.queue_music),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onDismiss()
-                            playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                        },
-                    )
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.add_to_playlist)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.playlist_add),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        showChoosePlaylistDialog = true
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
 
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.add_to_playlist)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.playlist_add),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            showChoosePlaylistDialog = true
-                        },
-                    )
-
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    NewMenuItem(
-                        headlineContent = {
-                            Text(
-                                text =
-                                    stringResource(
-                                        if (isInSpeedDial) {
-                                            R.string.remove_from_speed_dial
-                                        } else {
-                                            R.string.pin_to_speed_dial
-                                        },
-                                    ),
-                            )
-                        },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            val updatedPins = toggleSpeedDialPin(speedDialPins, albumPin)
-                            onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
-                            onDismiss()
-                        },
-                    )
-                }
+                NewMenuItem(
+                    headlineContent = {
+                        Text(
+                            text =
+                                stringResource(
+                                    if (isInSpeedDial) {
+                                        R.string.remove_from_speed_dial
+                                    } else {
+                                        R.string.pin_to_speed_dial
+                                    },
+                                ),
+                        )
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(if (isInSpeedDial) R.drawable.bookmark_filled else R.drawable.bookmark),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        val updatedPins = toggleSpeedDialPin(speedDialPins, albumPin)
+                        onSpeedDialSongIdsChange(serializeSpeedDialPins(updatedPins))
+                        onDismiss()
+                    },
+                    index = itemIndex++,
+                    count = actionCount,
+                )
             }
         }
 
@@ -586,6 +574,8 @@ fun AlbumMenu(
                                         )
                                     }
                                 },
+                                index = 0,
+                                count = 1,
                             )
                         }
 
@@ -607,6 +597,8 @@ fun AlbumMenu(
                                         )
                                     }
                                 },
+                                index = 0,
+                                count = 1,
                             )
                         }
 
@@ -632,6 +624,8 @@ fun AlbumMenu(
                                         downloads = downloadUtil.downloads.value,
                                     )
                                 },
+                                index = 0,
+                                count = 1,
                             )
                         }
                     }
@@ -644,53 +638,52 @@ fun AlbumMenu(
         }
 
         item {
+            val navItemCount = if (!isLocalAlbum) 2 else 1
+            var itemIndex = 0
             MenuSurfaceSection {
-                Column {
+                NewMenuItem(
+                    headlineContent = { Text(text = stringResource(R.string.view_artist)) },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.artist),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
+                            navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
+                            onDismiss()
+                        } else {
+                            showSelectArtistDialog = true
+                        }
+                    },
+                    index = itemIndex++,
+                    count = navItemCount,
+                )
+
+                if (!isLocalAlbum) {
                     NewMenuItem(
-                        headlineContent = { Text(text = stringResource(R.string.view_artist)) },
+                        headlineContent = { Text(text = stringResource(R.string.refetch)) },
                         leadingContent = {
                             Icon(
-                                painter = painterResource(R.drawable.artist),
+                                painter = painterResource(R.drawable.sync),
                                 contentDescription = null,
+                                modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
                             )
                         },
                         onClick = {
-                            if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
-                                navController.navigate("artist/${splitArtists[0].originalArtist!!.id}")
-                                onDismiss()
-                            } else {
-                                showSelectArtistDialog = true
-                            }
-                        },
-                    )
-
-                    if (!isLocalAlbum) {
-                        HorizontalDivider(
-                            modifier = dividerModifier,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
-
-                        NewMenuItem(
-                            headlineContent = { Text(text = stringResource(R.string.refetch)) },
-                            leadingContent = {
-                                Icon(
-                                    painter = painterResource(R.drawable.sync),
-                                    contentDescription = null,
-                                    modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
-                                )
-                            },
-                            onClick = {
-                                refetchIconDegree -= 360
-                                scope.launch(Dispatchers.IO) {
-                                    YouTube.album(album.id).onSuccess {
-                                        database.transaction {
-                                            update(album.album, it, album.artists)
-                                        }
+                            refetchIconDegree -= 360
+                            scope.launch(Dispatchers.IO) {
+                                YouTube.album(album.id).onSuccess {
+                                    database.transaction {
+                                        update(album.album, it, album.artists)
                                     }
                                 }
-                            },
-                        )
-                    }
+                            }
+                        },
+                        index = itemIndex++,
+                        count = navItemCount,
+                    )
                 }
             }
         }
