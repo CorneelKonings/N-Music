@@ -610,6 +610,7 @@ private fun PreferenceSelectionOption(
         modifier =
             modifier
                 .fillMaxWidth()
+                .yumaClickable(pressedScale = 0.96f, onClick = onClick)
                 .yumaGlassCard(
                     shape = shape,
                     backgroundColor = backgroundColor,
@@ -618,7 +619,6 @@ private fun PreferenceSelectionOption(
                     position = position,
                 )
                 .clip(shape)
-                .yumaClickable(pressedScale = 0.97f, onClick = onClick)
                 .padding(
                     horizontal = 18.dp,
                     vertical = 14.dp,

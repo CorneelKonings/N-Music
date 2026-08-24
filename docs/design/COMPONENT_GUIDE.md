@@ -1,12 +1,12 @@
 # Yuma UI Kit Component Guide
 
-This guide defines the standard workflow and technical requirements for building, documenting, and testing UI components in the Yuma Design System (YDS 1.0).
+This guide defines the standard workflow and technical requirements for building, documenting, and testing UI components in the Yuma Design System (YDS 2.1).
 
 ---
 
 ## 1. Component Lifecycle & Creation Workflow
 
-When creating a new UI Kit component (located under `ui/component/yuma/`), follow this 6-step workflow:
+When creating a new UI Kit component (located under `ui/component/`), follow this 6-step workflow:
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -29,10 +29,10 @@ All Yuma UI components must be 100% stateless:
 - **No Repositories or ViewModels:** Components must never reference ViewModels, UseCases, or data sources.
 
 ### 2.2 Token Usage Only
-- **Colors:** Use YDS color tokens (`YumaTheme.colorScheme.*`). Never hardcode hex colors (`0xFF...`).
-- **Typography:** Use YDS typography tokens (`YumaTheme.typography.*`). Never use raw `TextStyle(...)` overrides.
-- **Shapes & Radius:** Use YDS shape tokens (`YumaTheme.shapes.*`).
-- **Spacing:** Use YDS spacing scale (`YumaSpacing.*`).
+- **Colors:** Use YDS color tokens (`LocalYumaColors.current.*`, `MaterialTheme.colorScheme.*`). Never hardcode hex colors (`0xFF...`).
+- **Typography:** Use YDS typography tokens (`MaterialTheme.typography.*`). Never use raw `TextStyle(...)` overrides.
+- **Shapes & Radius:** Use YDS shape tokens (`SettingsDimensions.*CornerRadius`, `segmentedSettingsItemShape`, `segmentedPreferenceItemShape`).
+- **Spacing & Outlines:** Use YDS dimension tokens (`SettingsDimensions.GlassBorderThickness` = 0.5.dp, `SettingsDimensions.SegmentedItemGap` = 1.5.dp).
 
 ---
 
@@ -41,46 +41,57 @@ All Yuma UI components must be 100% stateless:
 ### Step 1: Define Stateless Interface & Parameters
 ```kotlin
 @Composable
-fun YumaButton(
-    text: String,
+fun YumaSegmentedItem(
+    title: String,
+    subtitle: String?,
+    index: Int,
+    count: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    icon: ImageVector? = null,
 ) {
     // Component rendering
 }
 ```
 
-### Step 2: Integrate YDS Motion & Touch Feedback
-Apply tactile feedback and smooth spring animations for touch states:
+### Step 2: Integrate YDS Motion, Group Lighting, & Modifier Chain
+Always chain `.yumaClickable(...)` **before** `.yumaGlassCard(...)` so the entire card structure scales as a single cohesive unit, and supply `position = yumaSegmentPosition(index, count)` for seamless group lighting:
 ```kotlin
-val scale by animateFloatAsState(
-    targetValue = if (isPressed) 0.96f else 1.0f,
-    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-    label = "scale"
-)
+val shape = remember(index, count) { segmentedSettingsItemShape(index, count) }
+val position = remember(index, count) { yumaSegmentPosition(index, count) }
+
+Box(
+    modifier = modifier
+        .fillMaxWidth()
+        .yumaClickable(enabled = enabled, pressedScale = 0.96f, onClick = onClick)
+        .yumaGlassCard(
+            shape = shape,
+            position = position,
+            strokeWidth = SettingsDimensions.GlassBorderThickness,
+        )
+        .clip(shape)
+        .padding(horizontal = 18.dp, vertical = 12.dp)
+) {
+    // Row content
+}
 ```
 
 ### Step 3: Enforce Accessibility
-- High-contrast touch target: Minimum **48x48dp** (recommended **56dp** for core audio actions).
-- Semantics: Provide clear `contentDescription` for non-text components or icon buttons.
-```kotlin
-Modifier
-    .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-    .semantics { role = Role.Button }
-```
+- High-contrast touch target: Minimum **48x48dp** (recommended **56dp+** for core player actions, **72dp** minimum height for preference rows).
+- Semantics: Provide clear `contentDescription` for non-text components or decorative icons (`contentDescription = null`).
 
 ### Step 4: Add Multipreview Declarations
-Provide Compose `@Preview` annotations for Light/Dark themes and Font scaling:
+Provide Compose `@ThemePreviews` annotations for Light/Dark themes:
 ```kotlin
-@Preview(name = "Light Mode", showBackground = true)
-@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@ThemePreviews
 @Composable
-private fun YumaButtonPreview() {
-    YumaTheme {
-        YumaButton(
-            text = "Play Song",
+private fun YumaSegmentedItemPreview() {
+    TestThemeWrapper {
+        YumaSegmentedItem(
+            title = "Account",
+            subtitle = "Manage account settings",
+            index = 0,
+            count = 3,
             onClick = {}
         )
     }
@@ -94,7 +105,8 @@ Place usage examples in component documentation or sample code blocks showing st
 
 ## 4. Anti-Patterns Checklist
 
-- ❌ Hardcoding `Color(0xFF121212)` or `dp` values outside `YumaSpacing`.
-- ❌ Using raw `MaterialTheme` or `Button` directly inside feature screens instead of Yuma UI Kit wrappers.
+- ❌ Hardcoding `Color(0xFF121212)` or `dp` values outside `SettingsDimensions`.
+- ❌ Placing `.yumaClickable(...)` after `.yumaGlassCard(...)` or inside inner layout containers (causes disconnected text-only scaling).
+- ❌ Omitting `YumaSegmentPosition` when building grouped segmented rows (causes bright blinding joint lines).
 - ❌ Putting ViewModel calls, Room DB operations, or Coroutine launches inside Composables.
 - ❌ Missing `key` in `LazyColumn`/`LazyRow` items inside list components.

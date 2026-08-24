@@ -16,9 +16,9 @@ The interface avoids generic, monolithic Material 3 templates with flat, continu
 ## 2. Visual Language & Character
 
 * **Calmness:** The interface never overwhelms the user or distracts from the listening experience.
-* **Depth & Geometry:** Depth is established via subtle translucent surfaces (`glassBackground`) and a 1dp outline (`glassBorder`).
+* **Depth & Geometry:** Depth is established via subtle translucent surfaces (`glassBackground`) and a 0.5dp hairline outline (`glassBorder`).
 * **Soft Geometry:** Composite corner radii (22dp on outer group corners, 5dp on inner joints) visually unify distinct rows into a cohesive group.
-* **Low Visual Noise:** Total elimination of divider lines (`Dividers`) in settings lists. Separation is achieved strictly through inter-row gaps (`SegmentGap = 1.5dp`) and structural padding. Dividers remain permissible within standard M3 dialogs and selection bottom sheets.
+* **Low Visual Noise:** Total elimination of divider lines (`Dividers`) in settings lists and selection sheets. Separation is achieved strictly through inter-row gaps (`SegmentGap = 1.5dp`) and structural padding.
 * **Physicality:** Every interactive element delivers tactile press feedback via a spring-animated scale down to `0.96f`.
 
 ---
@@ -61,7 +61,7 @@ All dimensions, paddings, and radii must be referenced directly from design toke
 
 ### Colors & Surfaces
 * **`glassBackground`:** Static translucent matte fill for dark and light themes (no runtime blur shaders).
-* **`glassBorder`:** 1dp subtle translucent outline for crisp edge definition.
+* **`glassBorder`:** 0.5dp subtle translucent outline (`SettingsDimensions.GlassBorderThickness`) for crisp hairline edge definition.
 * **`primaryContainer` / `primary`:** Dynamic accent color for active toggle pills, badges, and switch thumbs.
 
 ---
@@ -73,28 +73,49 @@ All dimensions, paddings, and radii must be referenced directly from design toke
 Each row within a group is an **independent glass card** (`Modifier.yumaGlassCard`), rather than an item inside a single shared container.
 
 
-┌─────────────────────────────────────────────────────────┐  ◄── Top Corners: 22dp (SegmentOuter)
+┌─────────────────────────────────────────────────────────┐  ◄── Top Corners: 22dp (SegmentOuter) | Top Alpha: 0.20f
 │  [Badge]  Title & Description                 [Control] │
-└─────────────────────────────────────────────────────────┘  ◄── Bottom Corners: 5dp (SegmentInner)
+└─────────────────────────────────────────────────────────┘  ◄── Bottom Corners: 5dp (SegmentInner) | Bottom Alpha: 0.08f
 ▲
 Gap: 1.5dp (SegmentGap, No Divider)
 ▼
-┌─────────────────────────────────────────────────────────┐  ◄── All Corners: 5dp (SegmentInner)
+┌─────────────────────────────────────────────────────────┐  ◄── All Corners: 5dp (SegmentInner) | Top Alpha: 0.08f
 │  [Badge]  Title & Description                 [Control] │
-└─────────────────────────────────────────────────────────┘  ◄── All Corners: 5dp (SegmentInner)
+└─────────────────────────────────────────────────────────┘  ◄── All Corners: 5dp (SegmentInner) | Bottom Alpha: 0.08f
 ▲
 Gap: 1.5dp (SegmentGap, No Divider)
 ▼
-┌─────────────────────────────────────────────────────────┐  ◄── Top Corners: 5dp (SegmentInner)
+┌─────────────────────────────────────────────────────────┐  ◄── Top Corners: 5dp (SegmentInner) | Top Alpha: 0.08f
 │  [Badge]  Title & Description                 [Chevron] │
-└─────────────────────────────────────────────────────────┘  ◄── Bottom Corners: 22dp (SegmentOuter)
+└─────────────────────────────────────────────────────────┘  ◄── Bottom Corners: 22dp (SegmentOuter) | Bottom Alpha: 0.04f
 
 
-* **Corner Radii by Position (`PreferenceGroupPosition`):**
+* **Corner Radii by Position (`PreferenceGroupPosition` / `YumaSegmentPosition`):**
   * **`Single`:** 22dp on all four corners.
   * **`First`:** Top corners 22dp, bottom corners 5dp.
   * **`Middle`:** All corners 5dp.
   * **`Last`:** Top corners 5dp, bottom corners 22dp.
+* **Group Lighting (`YumaSegmentPosition` Gradient Alphas):**
+  * To prevent blinding double-bright divider lines at inter-item joints, borders dynamically adapt their top/bottom gradient alphas based on position within the group:
+    * **`Single`:** `0.20f to 0.04f` (full top-to-bottom light falloff).
+    * **`First`:** `0.20f to 0.08f` (bright ceiling highlight, soft joint transition).
+    * **`Middle`:** `0.08f to 0.08f` (uniform soft outline without harsh joint flashes).
+    * **`Last`:** `0.08f to 0.04f` (soft joint top, subtle bottom fade).
+* **Modifier Chaining Order:**
+  * For tactile whole-card compression, `.yumaClickable(...)` must precede `.yumaGlassCard(...)` in the modifier chain:
+    ```kotlin
+    Modifier
+        .fillMaxWidth()
+        .yumaClickable(pressedScale = 0.96f, onClick = onClick)
+        .yumaGlassCard(
+            shape = shape,
+            backgroundColor = backgroundColor,
+            borderColor = borderColor,
+            position = position,
+        )
+        .clip(shape)
+        .padding(...)
+    ```
 * **Icon Badges:** `46dp` container (`SegmentedIconBoxSize`) with custom squircle/petal geometry and monochrome or accent fill.
 * **Typography:**
   * Title: `titleMedium` Bold (W700), color `onSurface`.
@@ -114,12 +135,11 @@ Interactive music provider toggle (YouTube Music / Spotify):
 
 ### 5.3 Dropdowns & Selection Dialogs
 
-Dropdowns, context dialogs, and single-choice selectors follow **Material 3 structural patterns** (aligned with the main settings screen): grouped M3-styled buttons organized into clean blocks.
-
-Key differences from vanilla M3 (ArchiveTune):
-* Individual translucent fill + border per item instead of a single solid container.
-* Custom geometric icon containers (squircles / petals).
-* The chevron `R.drawable.ic_arrow_right` is reserved strictly for screen navigation rows.
+Dropdowns, context dialogs, and single-choice selectors follow **YDS 2.1 segmented glass patterns**:
+* Each selection option is an independent segmented glass card with position-aware lighting (`YumaSegmentPosition`).
+* Outer modal surface utilizes solid `surfaceContainerHigh` with 28dp corner radius and 0.5dp border (`SettingsDimensions.GlassBorderThickness`).
+* Total elimination of `HorizontalDivider` between options; separation is maintained by `SegmentGap = 1.5dp`.
+* Selected items feature a subtle `primary.copy(alpha = 0.16f)` container tint and a right-aligned checkmark icon.
 
 ---
 
@@ -127,9 +147,9 @@ Key differences from vanilla M3 (ArchiveTune):
 
 | State | Visual Feedback |
 | :--- | :--- |
-| **Default** | Translucent `glassBackground` fill + 1dp `glassBorder`. |
-| **Pressed** | Scale down to `0.96f` with `spring(stiffness = Spring.StiffnessMedium)`. |
-| **Active / Selected** | Active indicator filled with `primary`, text colored `onPrimary`. |
+| **Default** | Translucent `glassBackground` fill + 0.5dp hairline `glassBorder` with position-aware lighting. |
+| **Pressed** | Whole-card scale down to `0.96f` with `spring(stiffness = Spring.StiffnessMedium)`. |
+| **Active / Selected** | Active indicator filled with `primary`, text colored `onPrimary` or tinted container. |
 | **Disabled** | Row opacity set to `0.5f`, touch handling blocked. |
 
 ---
@@ -155,14 +175,15 @@ Screens
 ## 8. Do / Don't
 
 ### ✔ DO
-* Use `Modifier.yumaGlassCard()` with `glassBackground` fill and 1dp `glassBorder` for all preference rows.
+* Use `Modifier.yumaGlassCard()` with `glassBackground` fill, 0.5dp `glassBorder`, and position-aware lighting for all preference rows and selection options.
+* Precede `.yumaGlassCard(...)` with `.yumaClickable(...)` in modifier chains for tactile whole-card compression.
 * Use the `SegmentGap` token (1.5dp) to separate grouped rows instead of `HorizontalDivider`.
 * Apply segmented corner radii (22dp outer, 5dp inner) to unify items within a group.
 * Use custom squircle/petal badge shapes for icons.
-* Follow M3 conventions for dialogs and selection bottom sheets (opaque solid surfaces, permissible dividers).
 
 ### ✘ DON'T
 * Wrap an entire preference group into a single opaque container without individual segmented rows.
 * Apply heavy runtime blur shaders (`BackdropBlur`) to list items or preference rows (blur is strictly reserved for floating overlays).
+* Put `.yumaClickable(...)` after `.yumaGlassCard(...)` or inside inner layout containers, which causes disconnected content-only scaling.
 * Introduce arbitrary corner radii or paddings outside the defined YDS tokens.
 * Use generic circular solid chips from default Material 3.
