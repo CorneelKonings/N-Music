@@ -82,7 +82,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import coil3.compose.AsyncImage
-import moe.rukamori.archivetune.ui.component.MarqueeText
 import moe.rukamori.archivetune.ui.component.LocalPreferenceItemIndex
 import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
@@ -343,17 +342,17 @@ fun SettingsRow(
             Spacer(modifier = Modifier.width(SettingsDimensions.RowIconSpacing))
 
             Column(modifier = Modifier.weight(1f)) {
-                MarqueeText(
+                Text(
                     text = item.title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    modifier = Modifier,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 item.subtitle?.let { subtitle ->
                     Spacer(modifier = Modifier.height(SettingsDimensions.RowTextSpacing))
-                    MarqueeText(
+                    Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color =
@@ -363,7 +362,7 @@ fun SettingsRow(
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             },
                         maxLines = 1,
-                        modifier = Modifier,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -528,24 +527,24 @@ fun SettingsSegmentedItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
             ) {
-                MarqueeText(
+                Text(
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                     ),
                     maxLines = 1,
-                    modifier = Modifier,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 item.subtitle?.let { subtitle ->
                     Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedRowSpacing))
-                    MarqueeText(
+                    Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                         maxLines = 1,
-                        modifier = Modifier,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }

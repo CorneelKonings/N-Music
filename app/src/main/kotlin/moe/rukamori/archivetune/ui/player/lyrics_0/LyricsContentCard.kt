@@ -5,10 +5,8 @@ package moe.rukamori.archivetune.ui.player.lyrics_0
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,7 +51,9 @@ import moe.rukamori.archivetune.constants.ShowLyricsPlayerControlsKey
 import moe.rukamori.archivetune.ui.component.LyricsEnhanced
 import moe.rukamori.archivetune.ui.player.player_0.PlayerSeekBar
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.state.PlayerUiState
+import moe.rukamori.archivetune.ui.theme.glassBorder
 import moe.rukamori.archivetune.ui.theme.transparentIconShadow
 import moe.rukamori.archivetune.ui.utils.bounceClick
 import moe.rukamori.archivetune.utils.rememberPreference
@@ -64,13 +64,13 @@ fun LyricsContentCard(
     state: PlayerUiState,
     animateProgressProvider: () -> Float,
     progressMsProvider: () -> Long,
-    onSearchClick: () -> Unit = {},
-    lazyListState: LazyListState = rememberLazyListState(),
     modifier: Modifier = Modifier,
-    onLineClick: (Long) -> Unit = {},
     onAction: (PlayerAction) -> Unit,
     onSeek: (Float) -> Unit,
     onSeekStarted: () -> Unit,
+    onSearchClick: () -> Unit = {},
+    lazyListState: LazyListState = rememberLazyListState(),
+    onLineClick: (Long) -> Unit = {},
 ) {
     val context = LocalContext.current
     val screenHeightPx = remember { context.resources.displayMetrics.heightPixels.toFloat() }
@@ -83,66 +83,61 @@ fun LyricsContentCard(
         label = "LyricsBgAnimation",
     )
 
-    val cardBackgroundBrush =
-        remember(animatedDarkMuted) {
-            val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
-            val midColor = animatedDarkMuted
-            val endColor = Color(0xFF121212)
+    val cardBackgroundBrush = remember(animatedDarkMuted) {
+        val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
+        val midColor = animatedDarkMuted
+        val endColor = Color(0xFF121212)
 
-            Brush.verticalGradient(
-                0.0f to startColor,
-                0.2f to midColor,
-                1.0f to endColor,
-            )
-        }
+        Brush.verticalGradient(
+            0.0f to startColor,
+            0.2f to midColor,
+            1.0f to endColor,
+        )
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         Spacer(modifier = Modifier.height(120.dp))
 
         Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .graphicsLayer {
-                        translationY = screenHeightPx * (1f - animateProgressProvider())
-                    }.clipToBounds(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .graphicsLayer {
+                    translationY = screenHeightPx * (1f - animateProgressProvider())
+                }
+                .clipToBounds(),
         ) {
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .layout { measurable, constraints ->
-                            val borderPx = 1.dp.roundToPx()
-                            val expandedConstraints =
-                                constraints.copy(
-                                    minWidth = constraints.maxWidth + borderPx * 2,
-                                    maxWidth = constraints.maxWidth + borderPx * 2,
-                                    minHeight = constraints.maxHeight + borderPx,
-                                    maxHeight = constraints.maxHeight + borderPx,
-                                )
-                            val placeable = measurable.measure(expandedConstraints)
-                            layout(constraints.maxWidth, constraints.maxHeight) {
-                                placeable.place(-borderPx, 0)
-                            }
-                        }.border(
-                            BorderStroke(1.dp, Color(0x22FFFFFF)),
-                            RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                        ).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .background(
-                            if (state.isBlurBackgroundEnabled) {
-                                Color.Black.copy(alpha = 0.2f)
-                            } else {
-                                Color.Transparent
-                            },
-                        ).then(
-                            if (!state.isBlurBackgroundEnabled) {
-                                Modifier.background(cardBackgroundBrush)
-                            } else {
-                                Modifier
-                            },
-                        ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .layout { measurable, constraints ->
+                        val borderPx = SettingsDimensions.GlassBorderThickness.roundToPx()
+                        val expandedConstraints = constraints.copy(
+                            minWidth = constraints.maxWidth + borderPx * 2,
+                            maxWidth = constraints.maxWidth + borderPx * 2,
+                            minHeight = constraints.maxHeight + borderPx,
+                            maxHeight = constraints.maxHeight + borderPx,
+                        )
+                        val placeable = measurable.measure(expandedConstraints)
+                        layout(constraints.maxWidth, constraints.maxHeight) {
+                            placeable.place(-borderPx, 0)
+                        }
+                    }
+                    .glassBorder(
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                        strokeWidth = SettingsDimensions.GlassBorderThickness,
+                        topAlpha = 0.20f,
+                        bottomAlpha = 0.04f,
+                    )
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(
+                        if (state.isBlurBackgroundEnabled) {
+                            Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.2f), Color.Black.copy(alpha = 0.2f)))
+                        } else {
+                            cardBackgroundBrush
+                        }
+                    ),
             ) {
                 LyricsEnhanced(
                     sliderPositionProvider = progressMsProvider,
@@ -159,43 +154,37 @@ fun LyricsContentCard(
                     )
 
                     Box(
-                        modifier =
-                            Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(horizontal = 20.dp, vertical = 24.dp)
-                                .fillMaxWidth()
-                                .layout { measurable, constraints ->
-                                    val placeable = measurable.measure(constraints)
-                                    if (animateProgressProvider() >= 0.05f) {
-                                        layout(placeable.width, placeable.height) {
-                                            placeable.placeRelative(0, 0)
-                                        }
-                                    } else {
-                                        layout(0, 0) {}
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = 20.dp, vertical = 24.dp)
+                            .fillMaxWidth()
+                            .layout { measurable, constraints ->
+                                val placeable = measurable.measure(constraints)
+                                if (animateProgressProvider() >= 0.05f) {
+                                    layout(placeable.width, placeable.height) {
+                                        placeable.placeRelative(0, 0)
                                     }
+                                } else {
+                                    layout(0, 0) {}
                                 }
-                                .graphicsLayer {
-                                    val progress = animateProgressProvider()
-                                    alpha = progress
-                                    scaleX = 0.88f + (0.12f * progress)
-                                    scaleY = 0.88f + (0.12f * progress)
-                                    translationY = 40f * (1f - progress)
-                                }
-                                .clip(RoundedCornerShape(32.dp))
-                                .background(animatedAccentColor.copy(alpha = 0.12f))
-                                .border(
-                                    BorderStroke(
-                                        0.5.dp,
-                                        Brush.verticalGradient(
-                                            listOf(
-                                                animatedAccentColor.copy(alpha = 0.18f),
-                                                animatedAccentColor.copy(alpha = 0.08f),
-                                            ),
-                                        ),
-                                    ),
-                                    RoundedCornerShape(32.dp),
-                                )
-                                .padding(vertical = 12.dp),
+                            }
+                            .graphicsLayer {
+                                val progress = animateProgressProvider()
+                                alpha = progress
+                                scaleX = 0.88f + (0.12f * progress)
+                                scaleY = 0.88f + (0.12f * progress)
+                                translationY = 40f * (1f - progress)
+                            }
+                            .clip(RoundedCornerShape(32.dp))
+                            .background(animatedAccentColor.copy(alpha = 0.12f))
+                            .glassBorder(
+                                shape = RoundedCornerShape(32.dp),
+                                strokeWidth = SettingsDimensions.GlassBorderThickness,
+                                topAlpha = 0.18f,
+                                bottomAlpha = 0.08f,
+                                baseColor = animatedAccentColor,
+                            )
+                            .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(
@@ -214,24 +203,22 @@ fun LyricsContentCard(
                             )
 
                             Row(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 24.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp),
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 val playPauseIcon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
 
                                 Box(
-                                    modifier =
-                                        Modifier
-                                            .bounceClick(pressedScale = 0.90f) {
-                                                onAction(PlayerAction.Previous)
-                                            }
-                                            .size(48.dp)
-                                            .transparentIconShadow(alpha = 0.1f, shadowRadius = 15.dp)
-                                            .clip(CircleShape),
+                                    modifier = Modifier
+                                        .bounceClick(pressedScale = 0.90f) {
+                                            onAction(PlayerAction.Previous)
+                                        }
+                                        .size(48.dp)
+                                        .transparentIconShadow(alpha = 0.1f, shadowRadius = 15.dp)
+                                        .clip(CircleShape),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Image(
@@ -243,16 +230,15 @@ fun LyricsContentCard(
                                 }
 
                                 Box(
-                                    modifier =
-                                        Modifier
-                                            .bounceClick(pressedScale = 0.92f) {
-                                                if (!state.isLoading) onAction(PlayerAction.PlayPause)
-                                            }
-                                            .size(68.dp)
-                                            .clip(CircleShape)
-                                            .drawBehind {
-                                                drawCircle(animatedAccentColor)
-                                            },
+                                    modifier = Modifier
+                                        .bounceClick(pressedScale = 0.92f) {
+                                            if (!state.isLoading) onAction(PlayerAction.PlayPause)
+                                        }
+                                        .size(68.dp)
+                                        .clip(CircleShape)
+                                        .drawBehind {
+                                            drawCircle(animatedAccentColor)
+                                        },
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     if (state.isLoading) {
@@ -271,14 +257,13 @@ fun LyricsContentCard(
                                 }
 
                                 Box(
-                                    modifier =
-                                        Modifier
-                                            .bounceClick(pressedScale = 0.90f) {
-                                                onAction(PlayerAction.Next)
-                                            }
-                                            .size(48.dp)
-                                            .transparentIconShadow(alpha = 0.1f, shadowRadius = 15.dp)
-                                            .clip(CircleShape),
+                                    modifier = Modifier
+                                        .bounceClick(pressedScale = 0.90f) {
+                                            onAction(PlayerAction.Next)
+                                        }
+                                        .size(48.dp)
+                                        .transparentIconShadow(alpha = 0.1f, shadowRadius = 15.dp)
+                                        .clip(CircleShape),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Image(

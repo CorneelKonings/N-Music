@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,7 +37,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -124,14 +124,6 @@ fun SettingsScreen(
     var isUpdateDismissed by remember { mutableStateOf(false) }
     val settingsGroups = buildSettingsGroups(navController, isAndroid12OrLater, hasUpdate, context)
 
-    val scrimAlpha by remember {
-        derivedStateOf {
-            val offset = listState.firstVisibleItemScrollOffset
-            val index = listState.firstVisibleItemIndex
-            if (index > 0) 0.85f else (offset / 100f).coerceIn(0f, 0.85f)
-        }
-    }
-
     SettingsScreenBackground {
         Scaffold(
             modifier =
@@ -142,17 +134,23 @@ fun SettingsScreen(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
                 Box {
+                    val surfaceColor = MaterialTheme.colorScheme.surface
                     Box(
                         modifier = Modifier
                             .matchParentSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.surface.copy(alpha = scrimAlpha),
-                                        Color.Transparent
-                                    )
+                            .drawBehind {
+                                val offset = listState.firstVisibleItemScrollOffset
+                                val index = listState.firstVisibleItemIndex
+                                val alpha = if (index > 0) 0.85f else (offset / 100f).coerceIn(0f, 0.85f)
+                                drawRect(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            surfaceColor.copy(alpha = alpha),
+                                            Color.Transparent,
+                                        ),
+                                    ),
                                 )
-                            )
+                            },
                     )
                     LargeFlexibleTopAppBar(
                         title = {
