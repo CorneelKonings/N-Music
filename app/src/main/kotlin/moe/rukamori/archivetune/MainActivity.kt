@@ -675,7 +675,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
                 androidx.compose.material3.Button(
                     onClick = {
                         bottomSheetPageState.dismiss()
@@ -683,7 +682,7 @@ class MainActivity : ComponentActivity() {
                             launchSingleTop = true
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
                     shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(R.string.update_text))
