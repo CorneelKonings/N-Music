@@ -682,19 +682,10 @@ class MainActivity : ComponentActivity() {
                     BuildConfig.UPDATER_AVAILABLE &&
                     System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds
                 ) {
-                    val channelString = withContext(Dispatchers.IO) { dataStore.data.first()[UpdateChannelKey] }
-                    val actualChannel = try {
-                        UpdateChannel.valueOf(channelString ?: defaultUpdateChannel.name)
-                    } catch (_: Exception) {
-                        defaultUpdateChannel
-                    }
-                    val versionResult = when (actualChannel) {
-                        UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryVersionName()
-                        else -> Updater.getLatestVersionName()
-                    }
+                    val versionResult = Updater.getLatestVersionName()
                     versionResult.onSuccess {
                         if (Updater.isUpdateAvailable(it, BuildConfig.VERSION_NAME)) {
-                            latestUpdateChannel = actualChannel
+                            latestUpdateChannel = UpdateChannel.STABLE
                             latestVersionName = it
                         }
                     }
@@ -707,10 +698,7 @@ class MainActivity : ComponentActivity() {
                     latestUpdateChannel == updateChannel &&
                     Updater.isUpdateAvailable(latestVersionName, BuildConfig.VERSION_NAME)
                 ) {
-                    val releaseNotesResult = when (latestUpdateChannel) {
-                        UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryReleaseNotes()
-                        else -> Updater.getLatestReleaseNotes()
-                    }
+                    val releaseNotesResult = Updater.getLatestReleaseNotes()
                     releaseNotesResult.onSuccess {
                         releaseNotesState.value = it
                     }.onFailure {
