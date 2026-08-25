@@ -18,7 +18,9 @@ if (localPropertiesFile.exists()) {
 
 val discordApplicationId =
     (
-        localProperties.getProperty("DISCORD_APPLICATION_ID")
+        localProperties.getProperty("DISCORD_CLIENT_ID")
+            ?: localProperties.getProperty("DISCORD_APPLICATION_ID")
+            ?: System.getenv("DISCORD_CLIENT_ID")
             ?: System.getenv("DISCORD_APPLICATION_ID")
             ?: "1165706613961789445"
         ).trim()
