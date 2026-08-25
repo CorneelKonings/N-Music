@@ -39,7 +39,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -874,18 +873,13 @@ private fun UpdateSummaryCard(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .widthIn(max = 840.dp)
-                .padding(
-                    horizontal = SettingsDimensions.ScreenHorizontalPadding,
-                    vertical = SettingsDimensions.SectionSpacing,
-                )
                 .yumaGlassCard(
                     shape = cardShape,
                     backgroundColor = colors.glassBackground,
                     borderColor = colors.glassBorder,
                     strokeWidth = SettingsDimensions.GlassBorderThickness,
                 )
-                .padding(20.dp),
+                .padding(SettingsDimensions.BannerContentPadding),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (!imageUrl.isNullOrBlank()) {
@@ -1104,7 +1098,7 @@ private fun UpdateChannelPanel(
                             .fillMaxWidth()
                             .clip(barShape)
                             .background(colors.glassBackground)
-                            .border(1.dp, colors.glassBorder, barShape)
+                            .border(SettingsDimensions.GlassBorderThickness, colors.glassBorder, barShape)
                             .padding(4.dp),
                     ) {
                         Row(
