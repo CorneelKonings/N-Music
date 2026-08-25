@@ -836,6 +836,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             LaunchedEffect(latestVersionName, latestUpdateChannel, updateChannel) {
+                if (intent.getBooleanExtra("force_update", false)) {
+                    bottomSheetPageState.show(updateSheetContent)
+                    return@LaunchedEffect
+                }
                 if (
                     BuildConfig.UPDATER_AVAILABLE &&
                     latestUpdateChannel == updateChannel &&
