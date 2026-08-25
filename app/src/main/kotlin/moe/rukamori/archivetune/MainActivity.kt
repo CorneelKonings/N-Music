@@ -117,6 +117,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
@@ -125,6 +126,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -168,9 +170,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowSizeClass
+import coil3.compose.AsyncImage
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import coil3.request.crossfade
 import coil3.toBitmap
 import moe.rukamori.archivetune.constants.AppBarHeight
 import moe.rukamori.archivetune.constants.AppFontPreference
@@ -348,6 +352,7 @@ class MainActivity : ComponentActivity() {
     private var pendingBackupRestoreUri by mutableStateOf<Uri?>(null)
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
     private var latestUpdateChannel by mutableStateOf(defaultUpdateChannel)
+    private var latestImageUrl by mutableStateOf<String?>(null)
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
     private var isMusicServiceBound = false
@@ -635,7 +640,7 @@ class MainActivity : ComponentActivity() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = latestVersionName,
+                        text = "v$latestVersionName",
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily(Font(R.font.google_sans_regular, FontWeight.Normal), Font(R.font.google_sans_bold, FontWeight.Bold)),
@@ -654,6 +659,14 @@ class MainActivity : ComponentActivity() {
                         animate = true,
                         animationDurationMillis = 2000,
                         samples = 400,
+                    )
+                }
+                latestImageUrl?.takeIf { it.isNotBlank() }?.let { url ->
+                    AsyncImage(
+                        model = ImageRequest.Builder(context).data(url).crossfade(true).build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp).clip(RoundedCornerShape(16.dp)),
                     )
                 }
                 Spacer(Modifier.height(12.dp))
@@ -702,6 +715,7 @@ class MainActivity : ComponentActivity() {
                         if (Updater.isUpdateAvailable(it, BuildConfig.VERSION_NAME)) {
                             latestUpdateChannel = UpdateChannel.STABLE
                             latestVersionName = it
+                            latestImageUrl = Updater.getLatestReleaseInfo().getOrNull()?.imageUrl
                         }
                     }
                 }
@@ -711,6 +725,7 @@ class MainActivity : ComponentActivity() {
                 if (intent.getBooleanExtra("force_update", false)) {
                     latestVersionName = "9.9.9"
                     latestUpdateChannel = UpdateChannel.STABLE
+                    latestImageUrl = null
                     releaseNotesState.value = """
                         ## YumaPlayer v9.9.9 — Major Release
 
@@ -850,6 +865,7 @@ class MainActivity : ComponentActivity() {
                     }.onFailure {
                         releaseNotesState.value = null
                     }
+                    latestImageUrl = Updater.getLatestReleaseInfo().getOrNull()?.imageUrl
                     bottomSheetPageState.show(updateSheetContent)
                 }
             }
