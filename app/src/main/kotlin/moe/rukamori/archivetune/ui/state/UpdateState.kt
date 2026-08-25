@@ -9,14 +9,15 @@ sealed interface UpdateState {
         val updateUrl: String,
         val changelog: String,
         val accentColor: Color? = null,
-        val isOverlayDismissed: Boolean = false
-
+        val isOverlayDismissed: Boolean = false,
+        val imageUrl: String? = null
     ) : UpdateState
     data class CriticalUpdate(
         val versionName: String,
         val updateUrl: String,
         val changelog: String,
         val accentColor: Color? = null,
-        val isOverlayDismissed: Boolean = false
+        val isOverlayDismissed: Boolean = false,
+        val imageUrl: String? = null
     ) : UpdateState
 }

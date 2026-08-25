@@ -29,12 +29,14 @@ class UpdateViewModel @Inject constructor(
                     info.isCritical -> UpdateState.CriticalUpdate(
                         versionName = info.versionName,
                         updateUrl = info.updateUrl,
-                        changelog = info.changelog
+                        changelog = info.changelog,
+                        imageUrl = info.imageUrl
                     )
                     else -> UpdateState.SoftUpdate(
                         versionName = info.versionName,
                         updateUrl = info.updateUrl,
-                        changelog = info.changelog
+                        changelog = info.changelog,
+                        imageUrl = info.imageUrl
                     )
                 }
             }
@@ -49,12 +51,14 @@ class UpdateViewModel @Inject constructor(
                     info.isCritical -> UpdateState.CriticalUpdate(
                         versionName = info.versionName,
                         updateUrl = info.updateUrl,
-                        changelog = info.changelog
+                        changelog = info.changelog,
+                        imageUrl = info.imageUrl
                     )
                     else -> UpdateState.SoftUpdate(
                         versionName = info.versionName,
                         updateUrl = info.updateUrl,
-                        changelog = info.changelog
+                        changelog = info.changelog,
+                        imageUrl = info.imageUrl
                     )
                 }
             }

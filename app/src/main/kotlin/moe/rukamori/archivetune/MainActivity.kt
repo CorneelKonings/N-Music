@@ -19,6 +19,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.widget.Toast
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -40,11 +41,14 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -141,6 +145,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -245,6 +250,7 @@ import moe.rukamori.archivetune.ui.component.FloatingNavigationToolbar
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.LocalBottomSheetPageState
 import moe.rukamori.archivetune.ui.component.LocalMenuState
+import moe.rukamori.archivetune.ui.component.MarkdownText
 import moe.rukamori.archivetune.ui.component.NetworkStatusBanner
 import moe.rukamori.archivetune.ui.component.StarDialog
 import moe.rukamori.archivetune.ui.component.TopSearch
@@ -254,7 +260,6 @@ import moe.rukamori.archivetune.ui.component.shimmer.ShimmerTheme
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.player.player_0.UnifiedPlayerSheetV2
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
-import moe.rukamori.archivetune.ui.player.update_0.WelcomeOverlay
 import moe.rukamori.archivetune.ui.screens.Screens
 import moe.rukamori.archivetune.ui.screens.navigationBuilder
 import moe.rukamori.archivetune.ui.screens.onboarding.OnboardingRoute
@@ -276,9 +281,11 @@ import moe.rukamori.archivetune.ui.theme.extractSeedColor
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.resetHeightOffset
+import moe.rukamori.archivetune.constants.UpdateChannel
 import moe.rukamori.archivetune.utils.IntentParser
 import moe.rukamori.archivetune.utils.PreferenceStore
 import moe.rukamori.archivetune.utils.SyncUtils
+import moe.rukamori.archivetune.utils.Updater
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.get
 import moe.rukamori.archivetune.utils.isLowRamDevice
@@ -310,6 +317,7 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.days
 import moe.rukamori.archivetune.ui.state.UpdateState
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -335,6 +343,8 @@ class MainActivity : ComponentActivity() {
     private var aodModeLaunchRequestCount by mutableIntStateOf(0)
     private var pendingTogetherJoinLink: String? = null
     private var pendingBackupRestoreUri by mutableStateOf<Uri?>(null)
+    private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
+    private var latestUpdateChannel by mutableStateOf(defaultUpdateChannel)
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
     private var isMusicServiceBound = false
@@ -615,6 +625,100 @@ class MainActivity : ComponentActivity() {
                     moe.rukamori.archivetune.ui.component
                         .MenuState()
                 }
+            val releaseNotesState = remember { mutableStateOf<String?>(null) }
+            val updateSheetContent: @Composable ColumnScope.() -> Unit = {
+                Text(
+                    text = stringResource(R.string.new_update_available),
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+                Spacer(Modifier.height(8.dp))
+                androidx.compose.material3.OutlinedButton(
+                    onClick = {},
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 5.dp, vertical = 5.dp),
+                    shapes = ButtonDefaults.shapes(),
+                ) {
+                    Text(text = latestVersionName, style = MaterialTheme.typography.labelLarge)
+                }
+                Spacer(Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState()),
+                ) {
+                    val notes = releaseNotesState.value
+                    if (notes != null && notes.isNotBlank()) {
+                        MarkdownText(
+                            markdown = notes,
+                            modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.release_notes_unavailable),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                androidx.compose.material3.Button(
+                    onClick = {
+                        bottomSheetPageState.dismiss()
+                        this@MainActivity.navController.navigate("settings/update") {
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shapes = ButtonDefaults.shapes(),
+                ) {
+                    Text(text = stringResource(R.string.update_text))
+                }
+            }
+            LaunchedEffect(Unit) {
+                while (playerConnection == null) {
+                    delay(100)
+                }
+                delay(500)
+                if (
+                    BuildConfig.UPDATER_AVAILABLE &&
+                    System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds
+                ) {
+                    val channelString = withContext(Dispatchers.IO) { dataStore.data.first()[UpdateChannelKey] }
+                    val actualChannel = try {
+                        UpdateChannel.valueOf(channelString ?: defaultUpdateChannel.name)
+                    } catch (_: Exception) {
+                        defaultUpdateChannel
+                    }
+                    val versionResult = when (actualChannel) {
+                        UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryVersionName()
+                        else -> Updater.getLatestVersionName()
+                    }
+                    versionResult.onSuccess {
+                        if (Updater.isUpdateAvailable(it, BuildConfig.VERSION_NAME)) {
+                            latestUpdateChannel = actualChannel
+                            latestVersionName = it
+                        }
+                    }
+                }
+                moe.rukamori.archivetune.utils.UpdateNotificationManager.checkForUpdates(this@MainActivity)
+            }
+            LaunchedEffect(latestVersionName, latestUpdateChannel, updateChannel) {
+                if (
+                    BuildConfig.UPDATER_AVAILABLE &&
+                    latestUpdateChannel == updateChannel &&
+                    Updater.isUpdateAvailable(latestVersionName, BuildConfig.VERSION_NAME)
+                ) {
+                    val releaseNotesResult = when (latestUpdateChannel) {
+                        UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryReleaseNotes()
+                        else -> Updater.getLatestReleaseNotes()
+                    }
+                    releaseNotesResult.onSuccess {
+                        releaseNotesState.value = it
+                    }.onFailure {
+                        releaseNotesState.value = null
+                    }
+                    bottomSheetPageState.show(updateSheetContent)
+                }
+            }
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val customThemeColorValue by rememberPreference(CustomThemeColorKey, defaultValue = "default")
@@ -785,7 +889,6 @@ class MainActivity : ComponentActivity() {
                     }.collectAsStateWithLifecycle(false)
 
                     val updateViewModel: UpdateViewModel = hiltViewModel()
-                    // Запускаем проверку при старте
                     LaunchedEffect(updateChannel) {
                         updateViewModel.checkUpdates(updateChannel)
                     }
@@ -2355,8 +2458,6 @@ UpdateScreen(
                     pendingBackupRestoreUri?.let { uri ->
                         BackupRestoreFromIntentDialog(uri = uri)
                     }
-
-
 
                     LaunchedEffect(shouldShowSearchBar, openSearchImmediately) {
                         if (shouldShowSearchBar && openSearchImmediately) {

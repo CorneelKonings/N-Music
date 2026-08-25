@@ -552,7 +552,8 @@ fun UpdateScreen(
     ) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
             verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SectionSpacing),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -627,9 +628,7 @@ fun UpdateScreen(
                     rotationAngle = rotationAngle,
                     onToggleExpanded = { isExpanded = !isExpanded },
                     onCommitClick = { commit -> uriHandler.openUri(commit.url) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
@@ -869,14 +868,17 @@ private fun UpdateSummaryCard(
 
     val colors = LocalYumaColors.current
     val cardShape = RoundedCornerShape(28.dp)
-    val imageShape = RoundedCornerShape(24.dp)
+    val imageShape = RoundedCornerShape(16.dp)
 
     Box(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding)
                 .widthIn(max = 840.dp)
+                .padding(
+                    horizontal = SettingsDimensions.ScreenHorizontalPadding,
+                    vertical = SettingsDimensions.SectionSpacing,
+                )
                 .yumaGlassCard(
                     shape = cardShape,
                     backgroundColor = colors.glassBackground,
@@ -900,7 +902,7 @@ private fun UpdateSummaryCard(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 180.dp)
+                        .heightIn(max = 180.dp)
                         .clip(imageShape),
                 )
             }
