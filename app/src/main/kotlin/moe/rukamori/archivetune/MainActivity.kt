@@ -133,8 +133,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -627,18 +630,31 @@ class MainActivity : ComponentActivity() {
                 }
             val releaseNotesState = remember { mutableStateOf<String?>(null) }
             val updateSheetContent: @Composable ColumnScope.() -> Unit = {
-                Text(
-                    text = stringResource(R.string.new_update_available),
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-                Spacer(Modifier.height(8.dp))
-                androidx.compose.material3.OutlinedButton(
-                    onClick = {},
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 5.dp, vertical = 5.dp),
-                    shapes = ButtonDefaults.shapes(),
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(text = latestVersionName, style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = latestVersionName,
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily(Font(R.font.google_sans_regular, FontWeight.Normal), Font(R.font.google_sans_bold, FontWeight.Bold)),
+                        ),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    moe.rukamori.archivetune.ui.component.SineWaveLine(
+                        modifier = Modifier.fillMaxWidth().height(26.dp).padding(horizontal = 8.dp),
+                        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.75f),
+                        alpha = 0.95f,
+                        strokeWidth = 4.dp,
+                        amplitude = 4.dp,
+                        waves = 7.6f,
+                        animate = true,
+                        animationDurationMillis = 2000,
+                        samples = 400,
+                    )
                 }
                 Spacer(Modifier.height(12.dp))
                 Box(
@@ -646,7 +662,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val notes = releaseNotesState.value
                     if (notes != null && notes.isNotBlank()) {
-                        MarkdownText(
+                        moe.rukamori.archivetune.ui.component.MarkdownText(
                             markdown = notes,
                             modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
                             style = MaterialTheme.typography.bodyMedium,
@@ -691,6 +707,14 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 moe.rukamori.archivetune.utils.UpdateNotificationManager.checkForUpdates(this@MainActivity)
+            }
+            LaunchedEffect(Unit) {
+                if (intent.getBooleanExtra("force_update", false)) {
+                    latestVersionName = "9.9.9"
+                    latestUpdateChannel = UpdateChannel.STABLE
+                    releaseNotesState.value = "### Test changelog\n- форс плашки"
+                    bottomSheetPageState.show(updateSheetContent)
+                }
             }
             LaunchedEffect(latestVersionName, latestUpdateChannel, updateChannel) {
                 if (
