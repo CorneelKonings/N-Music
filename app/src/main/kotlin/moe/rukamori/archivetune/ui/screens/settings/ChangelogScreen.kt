@@ -50,14 +50,13 @@ fun ChangelogScreen(
     var error by remember { mutableStateOf<String?>(null) }
 
     suspend fun loadReleases(forceRefresh: Boolean) {
-        val result =
-            when (channel) {
-                UpdateChannel.DAILY_NIGHTLY -> Updater.getAllDailyNightlyReleases(forceRefresh = forceRefresh)
-                else -> Updater.getAllReleases(forceRefresh = forceRefresh)
-            }
+        val result = Updater.getAllReleases(forceRefresh = forceRefresh)
         result
             .onSuccess { r ->
-                releases = r
+                releases = when (channel) {
+                    UpdateChannel.DAILY_NIGHTLY -> r.filter { it.prerelease }
+                    else -> r.filter { !it.prerelease }
+                }
                 error = null
             }.onFailure { e ->
                 if (releases.isEmpty()) {
@@ -68,10 +67,11 @@ fun ChangelogScreen(
     }
 
     LaunchedEffect(Unit) {
+        val cachedAll = Updater.getCachedReleases()
         val cachedReleases =
             when (channel) {
-                UpdateChannel.DAILY_NIGHTLY -> Updater.getCachedDailyNightlyReleases()
-                else -> Updater.getCachedReleases()
+                UpdateChannel.DAILY_NIGHTLY -> cachedAll.filter { it.prerelease }
+                else -> cachedAll.filter { !it.prerelease }
             }
         if (cachedReleases.isNotEmpty()) {
             releases = cachedReleases

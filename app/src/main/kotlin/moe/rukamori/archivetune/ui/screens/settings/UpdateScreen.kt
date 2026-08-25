@@ -154,7 +154,7 @@ fun UpdateScreen(
     val uriHandler = LocalUriHandler.current
     val scrollBehavior = appBarScrollBehavior()
     val coroutineScope = rememberCoroutineScope()
-    val nightlyInstallUrl = remember { Updater.getLatestNightlyDownloadUrl() }
+    val nightlyInstallUrl = remember { Updater.getLatestDownloadUrl() }
 
     val (enableUpdateNotification, onEnableUpdateNotificationChange) =
         rememberPreference(
@@ -257,7 +257,7 @@ fun UpdateScreen(
                 try {
                     val versionResult =
                         when (updateChannel) {
-                            UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestDailyNightlyVersionName()
+                            UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryVersionName()
                             else -> Updater.getLatestVersionName()
                         }
                     versionResult.onSuccess { version ->
@@ -484,7 +484,7 @@ fun UpdateScreen(
         if (BuildConfig.UPDATER_AVAILABLE) {
             val versionResult =
                 when (updateChannel) {
-                    UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestDailyNightlyVersionName()
+                    UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryVersionName()
                     else -> Updater.getLatestVersionName()
                 }
             versionResult.onSuccess {

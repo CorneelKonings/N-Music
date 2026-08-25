@@ -23,7 +23,7 @@ class UpdateRepositoryImpl @Inject constructor() : UpdateRepository {
         }
 
         val result = when (channel) {
-            UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestDailyNightlyReleaseInfo()
+            UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryReleaseInfo()
             else -> Updater.getLatestReleaseInfo()
         }
 
@@ -31,7 +31,7 @@ class UpdateRepositoryImpl @Inject constructor() : UpdateRepository {
             val currentVersion = BuildConfig.VERSION_NAME
             if (Updater.isUpdateAvailable(release.tagName, currentVersion)) {
                 val downloadUrl = when (channel) {
-                    UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestDailyNightlyDownloadUrl()
+                    UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryDownloadUrl()
                     else -> Updater.getLatestDownloadUrl()
                 }
 
@@ -61,13 +61,13 @@ class UpdateRepositoryImpl @Inject constructor() : UpdateRepository {
         }
 
         val result = when (channel) {
-            UpdateChannel.DAILY_NIGHTLY -> Updater.getAllDailyNightlyReleases(forceRefresh = true)
+            UpdateChannel.DAILY_NIGHTLY -> Updater.getAllReleases(forceRefresh = true)
             else -> Updater.getAllReleases(forceRefresh = true)
         }
 
         result.onSuccess { releases ->
             val latest = when (channel) {
-                UpdateChannel.DAILY_NIGHTLY -> Updater.findLatestDailyNightlyRelease(releases)
+                UpdateChannel.DAILY_NIGHTLY -> Updater.findLatestCanaryRelease(releases)
                 else -> Updater.findLatestRelease(releases)
             }
 
@@ -75,7 +75,7 @@ class UpdateRepositoryImpl @Inject constructor() : UpdateRepository {
                 val currentVersion = BuildConfig.VERSION_NAME
                 if (Updater.isUpdateAvailable(latest.tagName, currentVersion)) {
                     val downloadUrl = when (channel) {
-                        UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestDailyNightlyDownloadUrl()
+                        UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryDownloadUrl()
                         else -> Updater.getLatestDownloadUrl()
                     }
 

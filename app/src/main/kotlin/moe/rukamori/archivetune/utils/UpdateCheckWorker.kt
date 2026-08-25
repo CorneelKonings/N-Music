@@ -50,7 +50,7 @@ class UpdateCheckWorker(
                 }
 
                 UpdateChannel.DAILY_NIGHTLY -> {
-                    Updater.getLatestDailyNightlyVersionName().onSuccess { latestVersion ->
+                    Updater.getLatestCanaryVersionName().onSuccess { latestVersion ->
                         if (Updater.isUpdateAvailable(latestVersion, BuildConfig.VERSION_NAME)) {
                             UpdateNotificationManager.notifyIfNewVersion(
                                 applicationContext,
