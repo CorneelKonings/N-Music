@@ -251,7 +251,6 @@ import moe.rukamori.archivetune.ui.component.TopSearch
 import moe.rukamori.archivetune.ui.component.TvNavigationRail
 import moe.rukamori.archivetune.ui.component.rememberBottomSheetState
 import moe.rukamori.archivetune.ui.component.shimmer.ShimmerTheme
-import moe.rukamori.archivetune.ui.components.update.UpdateOverlay
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.player.player_0.UnifiedPlayerSheetV2
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
@@ -2357,28 +2356,7 @@ UpdateScreen(
                         BackupRestoreFromIntentDialog(uri = uri)
                     }
 
-                    // Поверх всего дерева
-                    when (val state = updateState) {
-                        is UpdateState.CriticalUpdate -> {
-                            // Критические обновления нельзя скрывать кнопкой Later (или можно, решай сам)
-                            UpdateOverlay(
-                                state = state,
-                                onDismiss = { updateViewModel.dismissUpdate() },
-                                onUpdateClick = { url -> /* ... */ }
-                            )
-                        }
-                        is UpdateState.SoftUpdate -> {
-                            // 👈 ПОКАЗЫВАЕМ ТОЛЬКО ЕСЛИ ЮЗЕР НЕ НАЖИМАЛ "LATER"
-                            if (!state.isOverlayDismissed) {
-                                UpdateOverlay(
-                                    state = state,
-                                    onDismiss = { updateViewModel.dismissUpdate() },
-                                    onUpdateClick = { url -> /* ... */ }
-                                )
-                            }
-                        }
-                        else -> Unit
-                    }
+
 
                     LaunchedEffect(shouldShowSearchBar, openSearchImmediately) {
                         if (shouldShowSearchBar && openSearchImmediately) {
