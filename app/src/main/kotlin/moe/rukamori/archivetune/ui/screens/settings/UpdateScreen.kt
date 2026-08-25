@@ -107,6 +107,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.request.crossfade
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.BuildConfig
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
@@ -170,6 +171,7 @@ fun UpdateScreen(
     var commits by remember { mutableStateOf<List<GitCommit>>(emptyList()) }
     var isLoadingCommits by remember { mutableStateOf(true) }
     var latestVersion by remember { mutableStateOf<String?>(null) }
+    var latestImageUrl by remember { mutableStateOf<String?>(null) }
     var isExpanded by rememberSaveable { mutableStateOf(true) }
     var isCheckingForUpdate by remember { mutableStateOf(false) }
     var showNightlyChannelConfirmDialog by rememberSaveable { mutableStateOf(false) }
@@ -482,15 +484,28 @@ fun UpdateScreen(
     LaunchedEffect(updateChannel) {
         isLoadingCommits = true
         if (BuildConfig.UPDATER_AVAILABLE) {
-            val versionResult =
+            val releaseResult =
                 when (updateChannel) {
-                    UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryVersionName()
-                    else -> Updater.getLatestVersionName()
+                    UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryReleaseInfo()
+                    else -> Updater.getLatestReleaseInfo()
                 }
-            versionResult.onSuccess {
-                latestVersion = it
-                if (!Updater.isUpdateAvailable(it, BuildConfig.VERSION_NAME)) {
+            releaseResult.onSuccess { release ->
+                latestVersion = release.tagName
+                latestImageUrl = release.imageUrl
+                if (!Updater.isUpdateAvailable(release.tagName, BuildConfig.VERSION_NAME)) {
                     onUpToDate()
+                }
+            }.onFailure {
+                val versionResult =
+                    when (updateChannel) {
+                        UpdateChannel.DAILY_NIGHTLY -> Updater.getLatestCanaryVersionName()
+                        else -> Updater.getLatestVersionName()
+                    }
+                versionResult.onSuccess {
+                    latestVersion = it
+                    if (!Updater.isUpdateAvailable(it, BuildConfig.VERSION_NAME)) {
+                        onUpToDate()
+                    }
                 }
             }
         }
@@ -538,7 +553,7 @@ fun UpdateScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SectionSpacing),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
@@ -549,6 +564,7 @@ fun UpdateScreen(
                     updateChannel = updateChannel,
                     isUpdateAvailable = isUpdateAvailable,
                     isCheckingForUpdate = isCheckingForUpdate,
+                    imageUrl = latestImageUrl,
                     onCheckForUpdate = handleCheckForUpdate,
                     onOpenChangelog = {
                         navController.navigate("settings/changelog?channel=$updateChannel")
@@ -823,6 +839,7 @@ private fun UpdateSummaryCard(
     updateChannel: UpdateChannel,
     isUpdateAvailable: Boolean,
     isCheckingForUpdate: Boolean,
+    imageUrl: String?,
     onCheckForUpdate: () -> Unit,
     onOpenChangelog: () -> Unit,
 ) {
@@ -851,7 +868,8 @@ private fun UpdateSummaryCard(
         }
 
     val colors = LocalYumaColors.current
-    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
+    val cardShape = RoundedCornerShape(28.dp)
+    val imageShape = RoundedCornerShape(24.dp)
 
     Box(
         modifier =
@@ -863,10 +881,30 @@ private fun UpdateSummaryCard(
                     shape = cardShape,
                     backgroundColor = colors.glassBackground,
                     borderColor = colors.glassBorder,
+                    strokeWidth = SettingsDimensions.GlassBorderThickness,
                 )
                 .padding(20.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (!imageUrl.isNullOrBlank()) {
+                val context = LocalContext.current
+                val imageModel = remember(context, imageUrl) {
+                    coil3.request.ImageRequest.Builder(context)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build()
+                }
+                AsyncImage(
+                    model = imageModel,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 180.dp)
+                        .clip(imageShape),
+                )
+            }
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -895,8 +933,8 @@ private fun UpdateSummaryCard(
             }
 
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap),
+                verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap),
             ) {
                 StatusBadgeChip(
                     text = channelLabel,
@@ -914,7 +952,7 @@ private fun UpdateSummaryCard(
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (isCheckingForUpdate) {
@@ -1003,11 +1041,12 @@ private fun InteractiveChip(
 
     Box(
         modifier = modifier
-            .yumaClickable(pressedScale = 0.94f, onClick = onClick)
+            .yumaClickable(pressedScale = SettingsAnimations.PressScale, onClick = onClick)
             .yumaGlassCard(
                 shape = shape,
                 backgroundColor = colors.glassBackground,
                 borderColor = colors.glassBorder,
+                strokeWidth = SettingsDimensions.GlassBorderThickness,
             ),
     ) {
         Row(

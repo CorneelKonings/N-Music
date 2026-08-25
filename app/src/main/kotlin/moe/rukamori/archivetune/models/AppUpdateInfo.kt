@@ -5,5 +5,6 @@ data class AppUpdateInfo(
     val versionName: String,
     val updateUrl: String,
     val isCritical: Boolean,
-    val changelog: String = ""
+    val changelog: String = "",
+    val imageUrl: String? = null
 )

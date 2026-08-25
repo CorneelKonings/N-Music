@@ -37,6 +37,7 @@ data class ReleaseInfo(
     val publishedAt: String,
     val htmlUrl: String,
     val prerelease: Boolean = false,
+    val imageUrl: String? = null,
 )
 
 private data class ReleasesNetworkResult(
@@ -227,19 +228,31 @@ object Updater {
 
     private fun preferredReleaseVersionNameOrNull(release: ReleaseInfo): String? = parseReleaseSemVerOrNull(release)?.normalizedName()
 
+    private val markdownImageRegex = Regex("""!\[.*?]\((https?://[^)]+)\)""")
+    private val directImageUrlRegex = Regex("""https?://\S+\.(gif|png|jpg|jpeg|webp)(\?\S*)?""", RegexOption.IGNORE_CASE)
+
+    internal fun parseImageUrlOrNull(body: String?): String? {
+        if (body.isNullOrBlank()) return null
+        markdownImageRegex.find(body)?.groupValues?.getOrNull(1)?.takeIf { it.isNotBlank() }?.let { return it.trim() }
+        directImageUrlRegex.find(body)?.value?.takeIf { it.isNotBlank() }?.let { return it.trim() }
+        return null
+    }
+
     private fun parseReleasesJson(json: String): List<ReleaseInfo> {
         val jsonArray = JSONArray(json)
         val releases = ArrayList<ReleaseInfo>(jsonArray.length())
         for (i in 0 until jsonArray.length()) {
             val item = jsonArray.getJSONObject(i)
+            val body = if (item.has("body") && !item.isNull("body")) item.optString("body") else null
             releases.add(
                 ReleaseInfo(
                     tagName = item.optString("tag_name", ""),
                     name = item.optString("name", ""),
-                    body = if (item.has("body")) item.optString("body") else null,
+                    body = body,
                     publishedAt = item.optString("published_at", ""),
                     htmlUrl = item.optString("html_url", ""),
                     prerelease = item.optBoolean("prerelease", false),
+                    imageUrl = parseImageUrlOrNull(body),
                 ),
             )
         }
@@ -255,6 +268,7 @@ object Updater {
             latest.body.orEmpty(),
             latest.htmlUrl,
             latest.prerelease.toString(),
+            latest.imageUrl.orEmpty(),
         ).joinToString("||")
     }
 

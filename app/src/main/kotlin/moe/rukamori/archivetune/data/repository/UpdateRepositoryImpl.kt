@@ -43,7 +43,8 @@ class UpdateRepositoryImpl @Inject constructor() : UpdateRepository {
                         versionName = release.tagName,
                         updateUrl = downloadUrl,
                         isCritical = isCritical,
-                        changelog = MarkdownCleaner.clean(release.body)
+                        changelog = MarkdownCleaner.clean(release.body),
+                        imageUrl = release.imageUrl
                     )
                 )
             } else {
@@ -87,7 +88,8 @@ class UpdateRepositoryImpl @Inject constructor() : UpdateRepository {
                             versionName = latest.tagName,
                             updateUrl = downloadUrl,
                             isCritical = isCritical,
-                            changelog = MarkdownCleaner.clean(latest.body)
+                            changelog = MarkdownCleaner.clean(latest.body),
+                            imageUrl = latest.imageUrl
                         )
                     )
                 } else {

@@ -16,11 +16,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
@@ -165,12 +173,16 @@ fun ChangelogScreen(
                         modifier =
                             Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                                .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding),
+                        verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap),
                     ) {
                         item { Spacer(modifier = Modifier.height(8.dp)) }
 
-                        items(releases) { release ->
+                        items(
+                            items = releases,
+                            key = { it.tagName.ifBlank { it.name } + it.publishedAt },
+                            contentType = { "changelog_release" }
+                        ) { release ->
                             ReleaseCard(release = release)
                         }
 
@@ -198,17 +210,43 @@ private fun ReleaseCard(release: ReleaseInfo) {
             }
         }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-            ),
+    val colors = LocalYumaColors.current
+    val cardShape = RoundedCornerShape(28.dp)
+    val imageShape = RoundedCornerShape(24.dp)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .yumaGlassCard(
+                shape = cardShape,
+                backgroundColor = colors.glassBackground,
+                borderColor = colors.glassBorder,
+                strokeWidth = SettingsDimensions.GlassBorderThickness,
+            )
+            .padding(16.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (!release.imageUrl.isNullOrBlank()) {
+                val context = LocalContext.current
+                val imageModel = remember(context, release.imageUrl) {
+                    ImageRequest.Builder(context)
+                        .data(release.imageUrl)
+                        .crossfade(true)
+                        .build()
+                }
+                AsyncImage(
+                    model = imageModel,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 180.dp)
+                        .clip(imageShape),
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -228,7 +266,6 @@ private fun ReleaseCard(release: ReleaseInfo) {
             }
 
             if (!release.body.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
                 MarkdownText(
                     markdown = release.body,
                     style = MaterialTheme.typography.bodyMedium,
