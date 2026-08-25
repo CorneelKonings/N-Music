@@ -573,29 +573,25 @@ fun UpdateScreen(
             }
 
             item {
-                PreferenceGroup {
-                    item {
-                        SwitchPreference(
-                            title = { Text(text = stringResource(R.string.enable_update_notification)) },
-                            description = stringResource(R.string.enable_update_notification_desc),
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.new_release),
-                                    contentDescription = null,
-                                )
-                            },
-                            checked = enableUpdateNotification,
-                            onCheckedChange = { enabled ->
-                                if (enabled) {
-                                    showEnableUpdateNotificationConfirmDialog = true
-                                } else {
-                                    onEnableUpdateNotificationChange(false)
-                                    UpdateNotificationManager.cancelPeriodicUpdateCheck(context)
-                                }
-                            },
+                SwitchPreference(
+                    title = { Text(text = stringResource(R.string.enable_update_notification)) },
+                    description = stringResource(R.string.enable_update_notification_desc),
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.new_release),
+                            contentDescription = null,
                         )
-                    }
-                }
+                    },
+                    checked = enableUpdateNotification,
+                    onCheckedChange = { enabled ->
+                        if (enabled) {
+                            showEnableUpdateNotificationConfirmDialog = true
+                        } else {
+                            onEnableUpdateNotificationChange(false)
+                            UpdateNotificationManager.cancelPeriodicUpdateCheck(context)
+                        }
+                    },
+                )
             }
 
             item {
@@ -1078,53 +1074,49 @@ private fun UpdateChannelPanel(
     onCanarySelected: () -> Unit,
 ) {
     val isCanary = updateChannel != UpdateChannel.STABLE
-    PreferenceGroup {
-        item {
-            PreferenceEntry(
-                title = { Text(text = stringResource(R.string.update_channel)) },
-                description = stringResource(R.string.update_channel_desc),
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.tune),
-                        contentDescription = null,
-                    )
-                },
-                content = {
-                    Spacer(Modifier.height(10.dp))
-                    val colors = LocalYumaColors.current
-                    val barShape = RoundedCornerShape(16.dp)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(barShape)
-                            .background(colors.glassBackground)
-                            .border(SettingsDimensions.GlassBorderThickness, colors.glassBorder, barShape)
-                            .padding(4.dp),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            ChannelSelectChip(
-                                label = stringResource(R.string.channel_stable),
-                                isSelected = !isCanary,
-                                onClick = onStableSelected,
-                                modifier = Modifier.weight(1f),
-                            )
-                            ChannelSelectChip(
-                                 label = stringResource(R.string.channel_canary_soon),
-                                 isSelected = isCanary,
-                                onClick = onCanarySelected,
-                                modifier = Modifier.weight(1f),
-                                enabled = false,
-                            )
-                        }
-                    }
-                },
+    PreferenceEntry(
+        title = { Text(text = stringResource(R.string.update_channel)) },
+        description = stringResource(R.string.update_channel_desc),
+        icon = {
+            Icon(
+                painter = painterResource(R.drawable.tune),
+                contentDescription = null,
             )
-        }
-    }
+        },
+        content = {
+            Spacer(Modifier.height(10.dp))
+            val colors = LocalYumaColors.current
+            val barShape = RoundedCornerShape(16.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(barShape)
+                    .background(colors.glassBackground)
+                    .border(SettingsDimensions.GlassBorderThickness, colors.glassBorder, barShape)
+                    .padding(4.dp),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    ChannelSelectChip(
+                        label = stringResource(R.string.channel_stable),
+                        isSelected = !isCanary,
+                        onClick = onStableSelected,
+                        modifier = Modifier.weight(1f),
+                    )
+                    ChannelSelectChip(
+                         label = stringResource(R.string.channel_canary_soon),
+                         isSelected = isCanary,
+                        onClick = onCanarySelected,
+                        modifier = Modifier.weight(1f),
+                        enabled = false,
+                    )
+                }
+            }
+        },
+    )
 }
 
 @Composable
