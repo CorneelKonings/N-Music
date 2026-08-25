@@ -948,7 +948,7 @@ private fun UpdateSummaryCard(
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (isCheckingForUpdate) {
