@@ -72,9 +72,10 @@ class NewsRepository
         fun getCachedItem(id: String): NewsItem? = metadataCache?.find { it.id == id }
 
         private companion object {
-            const val METADATA_URL =
-                "https://raw.githubusercontent.com/koiverse/ArchiveTuneNewsRepository/main/metadata.json"
+             const val METADATA_URL =
+                "https://raw.githubusercontent.com/MuwMx/yuma_news/main/metadata.json"
+
             const val CONTENT_BASE_URL =
-                "https://raw.githubusercontent.com/koiverse/ArchiveTuneNewsRepository/main/content/"
+                "https://raw.githubusercontent.com/MuwMx/yuma_news/main/content/"
         }
     }
