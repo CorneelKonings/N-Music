@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.text.font.FontWeight
@@ -62,13 +61,12 @@ fun NewActionButton(
             modifier
                 .fillMaxWidth()
                 .heightIn(min = 84.dp)
+                .yumaClickable(enabled = enabled, pressedScale = 0.96f, onClick = onClick)
                 .yumaGlassCard(
                     shape = RoundedCornerShape(14.dp),
                     backgroundColor = containerColor,
                     borderColor = Color.Transparent,
                 )
-                .clip(RoundedCornerShape(14.dp))
-                .yumaClickable(enabled = enabled, pressedScale = 0.96f, onClick = onClick)
                 .padding(horizontal = 10.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -128,6 +126,7 @@ fun NewMenuItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(bottom = if (isLast) 0.dp else SettingsDimensions.SegmentedItemGap)
+            .yumaClickable(enabled = enabled && onClick != null, pressedScale = 0.96f, onClick = onClick ?: {})
             .yumaGlassCard(
                 shape = shape,
                 backgroundColor = colors.glassBackground,
@@ -135,11 +134,10 @@ fun NewMenuItem(
                 strokeWidth = SettingsDimensions.GlassBorderThickness,
                 position = position,
             )
-            .clip(shape)
-            .yumaClickable(enabled = enabled && onClick != null, pressedScale = 0.96f, onClick = onClick ?: {})
+            .padding(horizontal = 18.dp, vertical = 14.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 14.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (leadingContent != null) {
