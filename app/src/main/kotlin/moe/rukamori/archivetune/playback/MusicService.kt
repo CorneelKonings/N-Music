@@ -428,6 +428,9 @@ class MusicService :
 
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
+    @Volatile
+    private var isInitializingQueue = false
+    private var playQueueJob: Job? = null
     private val persistentStateLock = Any()
     private val persistentSaveGeneration = AtomicLong(0L)
 
@@ -3432,6 +3435,8 @@ class MusicService :
         ensureScopesActive()
         cancelCrossfade(resetVolume = true, resetPauseAtEnd = true)
         suppressAutoPlayback = false
+        playQueueJob?.cancel()
+        isInitializingQueue = true
         currentQueue = queue
         queueTitle = null
         val permanentShuffle = dataStore.get(PermanentShuffleKey, false)
@@ -3446,64 +3451,69 @@ class MusicService :
             player.prepare()
             player.playWhenReady = playWhenReady
         }
-        scope.launch(SilentHandler) {
-            val hideExplicit = dataStore.get(HideExplicitKey, false)
-            val hideVideo = dataStore.get(HideVideoKey, false)
-            val autoLoadMoreEnabled = dataStore.get(AutoLoadMoreKey, true)
-            var initialStatus =
-                withContext(Dispatchers.IO) {
-                    queue
-                        .getInitialStatus()
-                        .filterExplicit(hideExplicit)
-                        .filterVideo(hideVideo)
-                }
-            if (!autoLoadMoreEnabled && queue.shouldExpandToFullQueueWhenAutoLoadMoreDisabled() && queue.hasNextPage()) {
-                val expandedItems = initialStatus.items.toMutableList()
-                var pagesLoaded = 0
-                while (queue.hasNextPage() && pagesLoaded < 200) {
-                    pagesLoaded++
-                    val nextItems =
-                        withContext(Dispatchers.IO) {
-                            queue
-                                .nextPage()
-                                .filterExplicit(hideExplicit)
-                                .filterVideo(hideVideo)
+        playQueueJob = scope.launch(SilentHandler) {
+            try {
+                val hideExplicit = dataStore.get(HideExplicitKey, false)
+                val hideVideo = dataStore.get(HideVideoKey, false)
+                val autoLoadMoreEnabled = dataStore.get(AutoLoadMoreKey, true)
+                var initialStatus =
+                    withContext(Dispatchers.IO) {
+                        queue
+                            .getInitialStatus()
+                            .filterExplicit(hideExplicit)
+                            .filterVideo(hideVideo)
+                    }
+                if (!isActive) return@launch
+                if (!autoLoadMoreEnabled && queue.shouldExpandToFullQueueWhenAutoLoadMoreDisabled() && queue.hasNextPage()) {
+                    val expandedItems = initialStatus.items.toMutableList()
+                    var pagesLoaded = 0
+                    while (queue.hasNextPage() && pagesLoaded < 200 && isActive) {
+                        pagesLoaded++
+                        val nextItems =
+                            withContext(Dispatchers.IO) {
+                                queue
+                                    .nextPage()
+                                    .filterExplicit(hideExplicit)
+                                    .filterVideo(hideVideo)
+                            }
+                        if (nextItems.isNotEmpty()) {
+                            expandedItems += nextItems
                         }
-                    if (nextItems.isNotEmpty()) {
-                        expandedItems += nextItems
+                    }
+                    initialStatus = initialStatus.copy(items = expandedItems)
+                }
+                if (initialStatus.title != null) {
+                    queueTitle = initialStatus.title
+                }
+                if (initialStatus.items.isEmpty()) return@launch
+                if (queue.preloadItem != null) {
+                    val before = initialStatus.items.subList(0, initialStatus.mediaItemIndex)
+                    val after = initialStatus.items.subList(
+                        initialStatus.mediaItemIndex + 1,
+                        initialStatus.items.size,
+                    )
+                    if (before.isNotEmpty()) {
+                        player.addMediaItems(0, before)
+                    }
+                    if (after.isNotEmpty()) {
+                        player.addMediaItems(after)
+                    }
+                    if (player.shuffleModeEnabled) {
+                        applyCurrentFirstShuffleOrder()
+                    }
+                } else {
+                    val items = initialStatus.items
+                    val index = initialStatus.mediaItemIndex
+
+                    player.setMediaItems(items, index, initialStatus.position)
+                    player.prepare()
+                    player.playWhenReady = playWhenReady
+                    if (player.shuffleModeEnabled) {
+                        applyCurrentFirstShuffleOrder()
                     }
                 }
-                initialStatus = initialStatus.copy(items = expandedItems)
-            }
-            if (initialStatus.title != null) {
-                queueTitle = initialStatus.title
-            }
-            if (initialStatus.items.isEmpty()) return@launch
-            if (queue.preloadItem != null) {
-                val before = initialStatus.items.subList(0, initialStatus.mediaItemIndex)
-                val after = initialStatus.items.subList(
-                    initialStatus.mediaItemIndex + 1,
-                    initialStatus.items.size,
-                )
-                if (before.isNotEmpty()) {
-                    player.addMediaItems(0, before)
-                }
-                if (after.isNotEmpty()) {
-                    player.addMediaItems(after)
-                }
-                if (player.shuffleModeEnabled) {
-                    applyCurrentFirstShuffleOrder()
-                }
-            } else {
-                val items = initialStatus.items
-                val index = initialStatus.mediaItemIndex
-
-                player.setMediaItems(items, index, initialStatus.position)
-                player.prepare()
-                player.playWhenReady = playWhenReady
-                if (player.shuffleModeEnabled) {
-                    applyCurrentFirstShuffleOrder()
-                }
+            } finally {
+                isInitializingQueue = false
             }
         }
     }
@@ -5954,6 +5964,7 @@ class MusicService :
 
         // Auto-load more from queue if available
         if (!suppressAutoPlayback &&
+            !isInitializingQueue &&
             !timelineEmpty &&
             dataStore.get(AutoLoadMoreKey, true) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
@@ -5980,6 +5991,7 @@ class MusicService :
         }
 
         if (!suppressAutoPlayback &&
+            !isInitializingQueue &&
             !timelineEmpty &&
             dataStore.get(AutoLoadMoreKey, true) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
