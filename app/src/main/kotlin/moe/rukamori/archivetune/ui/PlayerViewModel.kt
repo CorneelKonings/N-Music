@@ -384,6 +384,7 @@ class PlayerViewModel @Inject constructor(
                 val albumId = metadata?.album?.id
                 if (albumId != null) {
                     viewModelScope.launch {
+                        requestSheetCollapse()
                         _event.send(PlayerEvent.Navigate("album/$albumId"))
                     }
                 }
@@ -393,6 +394,7 @@ class PlayerViewModel @Inject constructor(
                 val artistId = metadata?.artists?.firstOrNull()?.id
                 if (artistId != null) {
                     viewModelScope.launch {
+                        requestSheetCollapse()
                         _event.send(PlayerEvent.Navigate("artist/$artistId"))
                     }
                 }
@@ -563,6 +565,7 @@ class PlayerViewModel @Inject constructor(
             }
             is ParsedIntentAction.Login -> {
                 viewModelScope.launch {
+                    requestSheetCollapse()
                     _event.send(PlayerEvent.Navigate(moe.rukamori.archivetune.ui.screens.buildLoginRoute(action.loginUrl)))
                 }
             }
@@ -573,23 +576,27 @@ class PlayerViewModel @Inject constructor(
                         YouTube.albumSongs(playlistId)
                             .onSuccess { songs ->
                                 songs.firstOrNull()?.album?.id?.let { browseId ->
+                                    requestSheetCollapse()
                                     _event.send(PlayerEvent.Navigate("album/$browseId"))
                                 }
                             }
                     }
                 } else {
                     viewModelScope.launch {
+                        requestSheetCollapse()
                         _event.send(PlayerEvent.Navigate("online_playlist/$playlistId"))
                     }
                 }
             }
             is ParsedIntentAction.YouTubeAlbum -> {
                 viewModelScope.launch {
+                    requestSheetCollapse()
                     _event.send(PlayerEvent.Navigate("album/${action.browseId}"))
                 }
             }
             is ParsedIntentAction.YouTubeArtist -> {
                 viewModelScope.launch {
+                    requestSheetCollapse()
                     _event.send(PlayerEvent.Navigate("artist/${action.artistId}"))
                 }
             }
@@ -626,6 +633,7 @@ class PlayerViewModel @Inject constructor(
                                     playerConnection?.playQueue(YouTubeQueue.playlist(it))
                                 } ?: run {
                                     viewModelScope.launch {
+                                        requestSheetCollapse()
                                         _event.send(PlayerEvent.Navigate("online_playlist/${action.playlistId}"))
                                     }
                                 }
