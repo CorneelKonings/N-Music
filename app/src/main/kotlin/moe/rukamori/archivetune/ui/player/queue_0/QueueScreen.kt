@@ -22,6 +22,12 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -44,8 +50,46 @@ fun QueueScreen(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+    val fadeHeight = 24.dp
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }
+                .drawWithContent {
+                    drawContent()
+                    val fadeHeightPx = fadeHeight.toPx()
+                    if (size.height > 0f && fadeHeightPx > 0f) {
+                        drawRect(
+                            brush =
+                                Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            Color.Transparent,
+                                            Color.Black,
+                                        ),
+                                    startY = 0f,
+                                    endY = fadeHeightPx,
+                                ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                        drawRect(
+                            brush =
+                                Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            Color.Black,
+                                            Color.Transparent,
+                                        ),
+                                    startY = size.height - fadeHeightPx,
+                                    endY = size.height,
+                                ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    }
+                },
         contentPadding = contentPadding,
     ) {
         itemsIndexed(

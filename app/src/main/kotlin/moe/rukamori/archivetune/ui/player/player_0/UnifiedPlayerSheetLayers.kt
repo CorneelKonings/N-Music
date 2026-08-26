@@ -2,23 +2,34 @@ package moe.rukamori.archivetune.ui.player.player_0
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -245,58 +256,104 @@ private fun UnifiedLayerTwoHeader(
             onMoreClick = onMoreClick
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            FilterChip(
-                selected = pagerState.currentPage == 0,
-                onClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(0)
-                    }
-                },
-                label = {
-                    Text(
-                        text = stringResource(R.string.lyrics),
-                        fontWeight = if (pagerState.currentPage == 0) FontWeight.Bold else FontWeight.Normal
-                    )
-                },
-                shape = RoundedCornerShape(20.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = if (state.isBlurBackgroundEnabled) Color.White.copy(alpha = 0.25f) else Color(state.vibrantColor).copy(alpha = 0.35f),
-                    selectedLabelColor = Color.White,
-                    containerColor = if (state.isBlurBackgroundEnabled) Color.Black.copy(alpha = 0.3f) else Color(state.darkMutedColor).copy(alpha = 0.6f),
-                    labelColor = Color.White.copy(alpha = 0.7f)
-                ),
-                border = null
-            )
+        val selectedPage = pagerState.currentPage
+        val indicatorOffset by animateFloatAsState(
+            targetValue = if (selectedPage == 1) 1f else 0f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "LayerTwoSegmentedIndicatorOffset"
+        )
 
-            FilterChip(
-                selected = pagerState.currentPage == 1,
-                onClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(1)
+        val barShape = RoundedCornerShape(20.dp)
+        val indicatorShape = RoundedCornerShape(16.dp)
+
+        val containerColor = if (state.isBlurBackgroundEnabled) {
+            Color.Black.copy(alpha = 0.35f)
+        } else {
+            Color(state.darkMutedColor).copy(alpha = 0.6f)
+        }
+
+        val borderColor = if (state.isBlurBackgroundEnabled) {
+            Color.White.copy(alpha = 0.15f)
+        } else {
+            Color.White.copy(alpha = 0.10f)
+        }
+
+        val indicatorColor = if (state.isBlurBackgroundEnabled) {
+            Color.White.copy(alpha = 0.25f)
+        } else {
+            Color(state.vibrantColor).copy(alpha = 0.35f)
+        }
+
+        Box(
+            modifier = Modifier
+                .padding(start = 24.dp, end = 24.dp, top = 6.dp, bottom = 8.dp)
+                .width(220.dp)
+                .height(40.dp)
+                .clip(barShape)
+                .background(containerColor)
+                .border(1.dp, borderColor, barShape),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp)
+            ) {
+                val tabWidth = maxWidth / 2
+
+                Surface(
+                    shape = indicatorShape,
+                    color = indicatorColor,
+                    modifier = Modifier
+                        .size(width = tabWidth, height = maxHeight)
+                        .offset(x = tabWidth * indicatorOffset)
+                ) {}
+
+                Row(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clip(indicatorShape)
+                            .clickable {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(0)
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.lyrics),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (selectedPage == 0) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedPage == 0) Color.White else Color.White.copy(alpha = 0.7f)
+                        )
                     }
-                },
-                label = {
-                    Text(
-                        text = stringResource(R.string.queue),
-                        fontWeight = if (pagerState.currentPage == 1) FontWeight.Bold else FontWeight.Normal
-                    )
-                },
-                shape = RoundedCornerShape(20.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = if (state.isBlurBackgroundEnabled) Color.White.copy(alpha = 0.25f) else Color(state.vibrantColor).copy(alpha = 0.35f),
-                    selectedLabelColor = Color.White,
-                    containerColor = if (state.isBlurBackgroundEnabled) Color.Black.copy(alpha = 0.3f) else Color(state.darkMutedColor).copy(alpha = 0.6f),
-                    labelColor = Color.White.copy(alpha = 0.7f)
-                ),
-                border = null
-            )
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clip(indicatorShape)
+                            .clickable {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(1)
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.queue),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (selectedPage == 1) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedPage == 1) Color.White else Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
         }
     }
 }
