@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +52,7 @@ import moe.rukamori.archivetune.ui.player.player_0.sett.FullPlayerOptionsMenu
 import moe.rukamori.archivetune.ui.player.player_0.sett.PlayerMenuScreen
 import moe.rukamori.archivetune.ui.state.PlayerSheetState
 import moe.rukamori.archivetune.ui.state.PlayerUiState
+import moe.rukamori.archivetune.ui.state.QueueUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
 import moe.rukamori.archivetune.ui.menu.EqualizerDialog
 import moe.rukamori.archivetune.ui.menu.TempoPitchDialog
@@ -69,6 +71,7 @@ import kotlin.math.roundToInt
 @Composable
 fun UnifiedPlayerSheetV2(
     state: PlayerUiState,
+    queueState: QueueUiState = QueueUiState(),
     updateState: UpdateState = UpdateState.NoUpdate,
     onAction: (PlayerAction) -> Unit,
     onCloseLyricsClick: () -> Unit,
@@ -143,10 +146,11 @@ fun UnifiedPlayerSheetV2(
             }
         }
 
-        // Анимация открывания/закрывания текстов песен
-        val lyricsTransitionFraction = remember { Animatable(0f) }
+        val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
+
+        val layerTwoTransitionFraction = remember { Animatable(0f) }
         LaunchedEffect(state.isLyricsVisible) {
-            lyricsTransitionFraction.animateTo(
+            layerTwoTransitionFraction.animateTo(
                 targetValue = if (state.isLyricsVisible) 1f else 0f,
                 animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow)
             )
@@ -154,11 +158,11 @@ fun UnifiedPlayerSheetV2(
 
         var lyricsSwipeOffsetY by remember { mutableStateOf(0f) }
 
-        val lyricsFractionProvider = {
+        val layerTwoFractionProvider = {
             val dragFraction = if (screenHeightPx > 0f) {
                 (lyricsSwipeOffsetY / (screenHeightPx * 0.35f)).coerceIn(0f, 1f)
             } else 0f
-            lyricsTransitionFraction.value * (1f - dragFraction)
+            layerTwoTransitionFraction.value * (1f - dragFraction)
         }
 
         var wasLyricsFullyOpened by remember { mutableStateOf(false) }
@@ -170,7 +174,7 @@ fun UnifiedPlayerSheetV2(
         }
 
         LaunchedEffect(Unit) {
-            snapshotFlow { lyricsTransitionFraction.value }.collect { fraction ->
+            snapshotFlow { layerTwoTransitionFraction.value }.collect { fraction ->
                 if (fraction > 0.8f && state.isLyricsVisible) {
                     wasLyricsFullyOpened = true
                 }
@@ -355,9 +359,11 @@ fun UnifiedPlayerSheetV2(
             ) {
                 UnifiedPlayerSheetLayers(
                     state = state,
+                    queueState = queueState,
                     updateState = updateState,
+                    pagerState = pagerState,
                     expansionFractionProvider = { expansionFraction.value },
-                    lyricsFractionProvider = lyricsFractionProvider,
+                    layerTwoFractionProvider = layerTwoFractionProvider,
                     progressMsProvider = progressMsProvider,
                     fullPlayerVisualState = fullPlayerVisualState,
                     lyricsSwipeOffsetY = lyricsSwipeOffsetY,

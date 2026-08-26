@@ -2823,8 +2823,10 @@ private fun ScopedPlayerSheet(
     onExpansionFractionChanged: (Float) -> Unit,
 ) {
     val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+    val queueState by playerViewModel.queueState.collectAsStateWithLifecycle()
     UnifiedPlayerSheetV2(
         state = uiState,
+        queueState = queueState,
         progressMsProvider = playerViewModel.progressMsProvider,
         onAction = { action ->
             when (action) {

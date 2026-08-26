@@ -21,11 +21,6 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -63,24 +58,16 @@ fun QueueScreen(
 
             val dismissState =
                 rememberSwipeToDismissBoxState(
-                    positionalThreshold = { totalDistance -> totalDistance },
+                    confirmValueChange = { dismissValue ->
+                        if (dismissValue == SwipeToDismissBoxValue.StartToEnd || dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                            onAction(PlayerAction.RemoveQueueItem(index))
+                            true
+                        } else {
+                            false
+                        }
+                    },
+                    positionalThreshold = { totalDistance -> totalDistance * 0.5f },
                 )
-
-            var processedDismiss by remember { mutableStateOf(false) }
-            LaunchedEffect(dismissState.currentValue) {
-                val dismissValue = dismissState.currentValue
-                if (!processedDismiss && (
-                        dismissValue == SwipeToDismissBoxValue.StartToEnd ||
-                            dismissValue == SwipeToDismissBoxValue.EndToStart
-                    )
-                ) {
-                    processedDismiss = true
-                    onAction(PlayerAction.RemoveQueueItem(index))
-                }
-                if (dismissValue == SwipeToDismissBoxValue.Settled) {
-                    processedDismiss = false
-                }
-            }
 
             SwipeToDismissBox(
                 state = dismissState,

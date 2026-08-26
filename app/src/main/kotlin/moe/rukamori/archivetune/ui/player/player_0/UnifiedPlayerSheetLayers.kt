@@ -1,28 +1,41 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
+import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.ui.player.lyrics_0.LyricsColumn
-import moe.rukamori.archivetune.ui.player.player_0.scoped.FullPlayerVisualState
-import moe.rukamori.archivetune.ui.state.PlayerUiState
-import moe.rukamori.archivetune.ui.state.UpdateState
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
+import moe.rukamori.archivetune.ui.player.player_0.scoped.FullPlayerVisualState
 import moe.rukamori.archivetune.ui.player.player_0.sett.PlayerMenuScreen
+import moe.rukamori.archivetune.ui.player.queue_0.QueueScreen
+import moe.rukamori.archivetune.ui.state.PlayerUiState
+import moe.rukamori.archivetune.ui.state.QueueUiState
+import moe.rukamori.archivetune.ui.state.UpdateState
 
 @Composable
 internal fun UnifiedPlayerSheetLayers(
     state: PlayerUiState,
+    queueState: QueueUiState,
     updateState: UpdateState,
+    pagerState: PagerState,
     expansionFractionProvider: () -> Float,
-    lyricsFractionProvider: () -> Float,
+    layerTwoFractionProvider: () -> Float,
     progressMsProvider: () -> Long,
     fullPlayerVisualState: FullPlayerVisualState,
     lyricsSwipeOffsetY: Float,
@@ -43,10 +56,6 @@ internal fun UnifiedPlayerSheetLayers(
     val density = LocalDensity.current.density
 
     Box(modifier = modifier.fillMaxSize()) {
-
-        // ==========================================
-        // СЛОЙ 1: МИНИ-ПЛЕЕР
-        // ==========================================
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -64,26 +73,45 @@ internal fun UnifiedPlayerSheetLayers(
             )
         }
 
-        // ==========================================
-        // СЛОЙ 2: БОЛЬШОЙ ПУЛЬТ
-        // ==========================================
         val hasTrack by remember(state.title) {
             derivedStateOf { state.title.isNotEmpty() }
         }
 
         if (hasTrack) {
+            val scope = rememberCoroutineScope()
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .conditionalPlacement {
-                        expansionFractionProvider() >= 0.005f && lyricsFractionProvider() < 0.995f
+                        expansionFractionProvider() >= 0.005f && layerTwoFractionProvider() < 0.995f
                     }
                     .graphicsLayer {
                         val expansionFraction = expansionFractionProvider()
-                        val lyricsFraction = lyricsFractionProvider()
+                        val layerTwoFraction = layerTwoFractionProvider()
                         val baseAlpha = if (expansionFraction < 0.005f) 0f else fullPlayerVisualState.contentAlpha
-                        alpha = baseAlpha * (1f - lyricsFraction)
-                        translationY = fullPlayerVisualState.translationY - (200f * density * lyricsFraction)
+                        alpha = baseAlpha * (1f - layerTwoFraction)
+                        translationY = fullPlayerVisualState.translationY - (200f * density * layerTwoFraction)
+                    }
+                    .pointerInput(Unit) {
+                        detectVerticalDragGestures(
+                            onDragStart = { offset ->
+                                if (expansionFractionProvider() > 0.95f && layerTwoFractionProvider() < 0.05f) {
+                                    val screenWidth = size.width.toFloat()
+                                    val targetPage = if (offset.x < screenWidth / 2f) 0 else 1
+                                    scope.launch {
+                                        pagerState.scrollToPage(targetPage)
+                                    }
+                                }
+                            },
+                            onVerticalDrag = { change, dragAmount ->
+                                if (expansionFractionProvider() > 0.95f && layerTwoFractionProvider() < 0.05f) {
+                                    if (dragAmount < -5f) {
+                                        change.consume()
+                                        onAction(PlayerAction.Lyrics)
+                                    }
+                                }
+                            }
+                        )
                     }
             ) {
                 FullPlayer(
@@ -103,31 +131,55 @@ internal fun UnifiedPlayerSheetLayers(
             }
         }
 
-        // ==========================================
-        // СЛОЙ 3: ЭКРАН ЛИРИКИ
-        // ==========================================
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .conditionalPlacement { lyricsFractionProvider() >= 0.005f }
+                .conditionalPlacement { layerTwoFractionProvider() >= 0.005f }
                 .graphicsLayer {
-                    alpha = lyricsFractionProvider()
+                    val fraction = layerTwoFractionProvider()
+                    alpha = fraction
+                    translationY = (1f - fraction) * (200f * density)
                 }
         ) {
-            LyricsColumn(
-                state = state,
-                animateProgressProvider = lyricsFractionProvider,
-                progressMsProvider = progressMsProvider,
-                onCloseClick = onCloseLyricsClick,
-                onAction = onAction,
-                onMoreClick = onMoreLyricsClick,
-                onSearchClick = onSearchLyricsClick,
-                onLineClick = { timeMs -> onSeek(timeMs.toFloat()) },
-                onSeek = onSeek,
-                onSeekStarted = onSeekStarted,
-                swipeOffsetY = lyricsSwipeOffsetY,
-                onSwipeOffsetChange = onLyricsSwipeOffsetChanged
-            )
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                when (page) {
+                    0 -> {
+                        LyricsColumn(
+                            state = state,
+                            animateProgressProvider = layerTwoFractionProvider,
+                            progressMsProvider = progressMsProvider,
+                            onCloseClick = onCloseLyricsClick,
+                            onAction = onAction,
+                            onMoreClick = onMoreLyricsClick,
+                            onSearchClick = onSearchLyricsClick,
+                            onLineClick = { timeMs -> onSeek(timeMs.toFloat()) },
+                            onSeek = onSeek,
+                            onSeekStarted = onSeekStarted,
+                            swipeOffsetY = lyricsSwipeOffsetY,
+                            onSwipeOffsetChange = onLyricsSwipeOffsetChanged
+                        )
+                    }
+                    1 -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    translationY = lyricsSwipeOffsetY
+                                }
+                        ) {
+                            QueueScreen(
+                                state = queueState,
+                                onAction = onAction,
+                                contentPadding = WindowInsets.systemBars.asPaddingValues(),
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
