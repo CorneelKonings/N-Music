@@ -34,47 +34,52 @@ class SpotifyLikedSongsQueue(
     private var apiFetchOffset = 0
     private var apiTotal = 0
     private var apiHasMore = true
+    private var isInitialized = false
 
     override suspend fun getInitialStatus(): Queue.Status =
         withContext(Dispatchers.IO) {
-            if (initialTracks.isNotEmpty()) {
-                allTracks += initialTracks
-                apiTotal = initialTracks.size
-                apiFetchOffset = apiTotal
-                apiHasMore = false
-            } else {
-                fetchNextApiPage()
+            try {
+                if (initialTracks.isNotEmpty()) {
+                    allTracks += initialTracks
+                    apiTotal = initialTracks.size
+                    apiFetchOffset = apiTotal
+                    apiHasMore = false
+                } else {
+                    fetchNextApiPage()
+                }
+
+                while (startIndex >= allTracks.size && apiHasMore) {
+                    fetchNextApiPage()
+                }
+
+                if (allTracks.isEmpty()) {
+                    return@withContext Queue.Status(title = title, items = emptyList(), mediaItemIndex = 0)
+                }
+
+                val targetIndex = startIndex.coerceIn(allTracks.indices)
+                val resolvedEntries = resolveTrackEntries(allTracks)
+                val resolvedItems = resolvedEntries.map { it.second }
+
+                resolveOffset = allTracks.size
+                if (resolvedItems.isEmpty()) {
+                    return@withContext Queue.Status(title = title, items = emptyList(), mediaItemIndex = 0)
+                }
+
+                Queue.Status(
+                    title = title,
+                    items = resolvedItems,
+                    mediaItemIndex =
+                        resolvedEntries
+                            .indexOfFirst { it.first >= targetIndex }
+                            .takeIf { it >= 0 }
+                            ?: resolvedItems.lastIndex,
+                )
+            } finally {
+                isInitialized = true
             }
-
-            while (startIndex >= allTracks.size && apiHasMore) {
-                fetchNextApiPage()
-            }
-
-            if (allTracks.isEmpty()) {
-                return@withContext Queue.Status(title = title, items = emptyList(), mediaItemIndex = 0)
-            }
-
-            val targetIndex = startIndex.coerceIn(allTracks.indices)
-            val resolvedEntries = resolveTrackEntries(allTracks)
-            val resolvedItems = resolvedEntries.map { it.second }
-
-            resolveOffset = allTracks.size
-            if (resolvedItems.isEmpty()) {
-                return@withContext Queue.Status(title = title, items = emptyList(), mediaItemIndex = 0)
-            }
-
-            Queue.Status(
-                title = title,
-                items = resolvedItems,
-                mediaItemIndex =
-                    resolvedEntries
-                        .indexOfFirst { it.first >= targetIndex }
-                        .takeIf { it >= 0 }
-                        ?: resolvedItems.lastIndex,
-            )
         }
 
-    override fun hasNextPage(): Boolean = resolveOffset < allTracks.size || apiHasMore
+    override fun hasNextPage(): Boolean = isInitialized && (resolveOffset < allTracks.size || apiHasMore)
 
     override suspend fun nextPage(): List<MediaItem> =
         withContext(Dispatchers.IO) {

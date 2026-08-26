@@ -24,34 +24,39 @@ class SpotifyTracksQueue(
 ) : Queue {
     private val allTracks = initialTracks.toList()
     private var resolveOffset = 0
+    private var isInitialized = false
 
     override suspend fun getInitialStatus(): Queue.Status =
         withContext(Dispatchers.IO) {
-            if (allTracks.isEmpty()) {
-                return@withContext Queue.Status(title = title, items = emptyList(), mediaItemIndex = 0)
+            try {
+                if (allTracks.isEmpty()) {
+                    return@withContext Queue.Status(title = title, items = emptyList(), mediaItemIndex = 0)
+                }
+
+                val targetIndex = startIndex.coerceIn(allTracks.indices)
+                val resolvedEntries = resolveTrackEntries(allTracks)
+                val resolvedItems = resolvedEntries.map { it.second }
+
+                resolveOffset = allTracks.size
+                if (resolvedItems.isEmpty()) {
+                    return@withContext Queue.Status(title = title, items = emptyList(), mediaItemIndex = 0)
+                }
+
+                Queue.Status(
+                    title = title,
+                    items = resolvedItems,
+                    mediaItemIndex =
+                        resolvedEntries
+                            .indexOfFirst { it.first >= targetIndex }
+                            .takeIf { it >= 0 }
+                            ?: resolvedItems.lastIndex,
+                )
+            } finally {
+                isInitialized = true
             }
-
-            val targetIndex = startIndex.coerceIn(allTracks.indices)
-            val resolvedEntries = resolveTrackEntries(allTracks)
-            val resolvedItems = resolvedEntries.map { it.second }
-
-            resolveOffset = allTracks.size
-            if (resolvedItems.isEmpty()) {
-                return@withContext Queue.Status(title = title, items = emptyList(), mediaItemIndex = 0)
-            }
-
-            Queue.Status(
-                title = title,
-                items = resolvedItems,
-                mediaItemIndex =
-                    resolvedEntries
-                        .indexOfFirst { it.first >= targetIndex }
-                        .takeIf { it >= 0 }
-                        ?: resolvedItems.lastIndex,
-            )
         }
 
-    override fun hasNextPage(): Boolean = resolveOffset < allTracks.size
+    override fun hasNextPage(): Boolean = isInitialized && resolveOffset < allTracks.size
 
     override suspend fun nextPage(): List<MediaItem> =
         withContext(Dispatchers.IO) {
