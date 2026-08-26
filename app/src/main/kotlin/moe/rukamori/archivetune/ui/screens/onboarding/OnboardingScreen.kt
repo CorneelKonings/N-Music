@@ -1085,6 +1085,36 @@ private fun CustomizationPage(
 ) {
     val page = uiState.pages[pageIndex]
 
+    val accountSettingsViewModel: moe.rukamori.archivetune.ui.screens.settings.account.AccountSettingsViewModel = hiltViewModel()
+    val accountUiState by accountSettingsViewModel.uiState.collectAsStateWithLifecycle()
+
+    val homeViewModel: moe.rukamori.archivetune.viewmodels.HomeViewModel = hiltViewModel()
+    val accountNameFromViewModel by homeViewModel.accountName.collectAsStateWithLifecycle()
+    val accountImageUrl by homeViewModel.accountImageUrl.collectAsStateWithLifecycle()
+    val accountChannelsState by homeViewModel.accountChannelsState.collectAsStateWithLifecycle()
+
+    val (accountNamePref, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountNameKey, "")
+    val (accountEmail, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountEmailKey, "")
+    val (accountChannelHandle, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountChannelHandleKey, "")
+    val (innerTubeCookie, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.InnerTubeCookieKey, "")
+    val (dataSyncId, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.DataSyncIdKey, "")
+    val (savedAccountsJson, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.SavedAccountsKey, "")
+    
+    val savedAccounts = remember(savedAccountsJson) {
+        moe.rukamori.archivetune.utils.SavedAccountCollection(moe.rukamori.archivetune.utils.decodeSavedAccounts(savedAccountsJson))
+    }
+    
+    val isLoggedIn = remember(innerTubeCookie) {
+        moe.rukamori.archivetune.innertube.utils.hasYouTubeLoginCookie(innerTubeCookie)
+    }
+
+    val displayName = when {
+        accountNameFromViewModel.isNotBlank() -> accountNameFromViewModel
+        accountNamePref.isNotBlank() -> accountNamePref
+        isLoggedIn -> stringResource(R.string.account)
+        else -> stringResource(R.string.login)
+    }
+
     val (darkMode, onDarkModeChange) = moe.rukamori.archivetune.utils.rememberEnumPreference<DarkMode>(moe.rukamori.archivetune.constants.DarkModeKey, defaultValue = DarkMode.AUTO)
     val (homeBackgroundStyle, onHomeBackgroundStyleChange) = moe.rukamori.archivetune.utils.rememberEnumPreference<HomeBackgroundStyle>(moe.rukamori.archivetune.constants.HomeBackgroundStyleKey, defaultValue = HomeBackgroundStyle.TONAL)
     
@@ -1105,7 +1135,7 @@ private fun CustomizationPage(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = OnboardingPagePadding,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -1117,86 +1147,121 @@ private fun CustomizationPage(
             )
         }
 
-        item(contentType = "spotifyHome") {
-            moe.rukamori.archivetune.ui.screens.settings.ExpressiveSegmentedRow(
-                icon = painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon),
-                title = stringResource(R.string.home_screen_provider),
-                subtitle = stringResource(R.string.home_screen_provider_desc),
-                selectedValue = useSpotifyHome,
-                onValueSelected = onUseSpotifyHomeChange
-            )
-        }
+        item(contentType = "customizationGroup") {
+            moe.rukamori.archivetune.ui.component.PreferenceGroup(
+                modifier = Modifier.widthIn(max = OnboardingContentMaxWidth).fillMaxWidth()
+            ) {
+                item {
+                    moe.rukamori.archivetune.ui.screens.settings.ProfileIdentityCard(
+                        isLoggedIn = isLoggedIn,
+                        accountName = displayName,
+                        accountEmail = accountEmail,
+                        accountHandle = accountChannelHandle,
+                        accountImageUrl = accountImageUrl,
+                        savedAccounts = savedAccounts,
+                        activeInnerTubeCookie = innerTubeCookie,
+                        activeDataSyncId = dataSyncId,
+                        accountChannelsState = accountChannelsState,
+                        extractedColorHex = accountUiState.extractedColorHex,
+                        onAvatarPixelsReady = accountSettingsViewModel::processAvatarPixels,
+                        onPrimaryAction = {},
+                        onSecondaryAction = {},
+                        onSaveAccount = {},
+                        onSwitchAccount = {},
+                        onSwitchAccountChannel = {},
+                        onRemoveAccount = {},
+                        onAddAnotherAccount = {},
+                    )
+                }
 
-        item(contentType = "darkMode") {
-            moe.rukamori.archivetune.ui.screens.settings.DarkModeSelector(
-                darkMode = darkMode,
-                onDarkModeChange = onDarkModeChange
-            )
-        }
+                item {
+                    moe.rukamori.archivetune.ui.screens.settings.ExpressiveSegmentedRow(
+                        icon = painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon),
+                        title = stringResource(R.string.home_screen_provider),
+                        subtitle = stringResource(R.string.home_screen_provider_desc),
+                        selectedValue = useSpotifyHome,
+                        onValueSelected = onUseSpotifyHomeChange
+                    )
+                }
 
-        item(contentType = "homeBackground") {
-            moe.rukamori.archivetune.ui.screens.settings.HomeBackgroundSelector(
-                homeBackgroundStyle = homeBackgroundStyle,
-                onHomeBackgroundStyleChange = onHomeBackgroundStyleChange
-            )
-        }
+                item {
+                    moe.rukamori.archivetune.ui.screens.settings.DarkModeSelector(
+                        darkMode = darkMode,
+                        onDarkModeChange = onDarkModeChange
+                    )
+                }
 
-        item(contentType = "playbackSource") {
-            moe.rukamori.archivetune.ui.screens.settings.PlaybackSourceSelector(
-                playbackSource = playbackSource,
-                onPlaybackSourceChange = onPlaybackSourceChange,
-                onEnableLosslessChange = onEnableLosslessChange
-            )
+                item {
+                    moe.rukamori.archivetune.ui.screens.settings.HomeBackgroundSelector(
+                        homeBackgroundStyle = homeBackgroundStyle,
+                        onHomeBackgroundStyleChange = onHomeBackgroundStyleChange
+                    )
+                }
+
+                item {
+                    moe.rukamori.archivetune.ui.screens.settings.PlaybackSourceSelector(
+                        playbackSource = playbackSource,
+                        onPlaybackSourceChange = onPlaybackSourceChange,
+                        onEnableLosslessChange = onEnableLosslessChange
+                    )
+                }
+            }
         }
 
         if (playbackSource == PlaybackSource.FLAC) {
-            item(contentType = "flacToken1") {
-                moe.rukamori.archivetune.ui.component.EditTextPreference(
-                    title = { Text(stringResource(R.string.squid_captcha_cookie)) },
-                    icon = { Icon(painterResource(R.drawable.lock), null) },
-                    value = squidCaptchaCookie,
-                    onValueChange = onSquidCaptchaCookieChange,
-                )
-            }
-            item(contentType = "flacToken2") {
-                moe.rukamori.archivetune.ui.component.EditTextPreference(
-                    title = { Text(stringResource(R.string.arcod_stash_key)) },
-                    icon = { Icon(painterResource(R.drawable.lock), null) },
-                    value = arcodStashKey,
-                    onValueChange = onArcodStashKeyChange,
-                )
-            }
-            item(contentType = "flacToken3") {
-                moe.rukamori.archivetune.ui.component.EditTextPreference(
-                    title = { Text(stringResource(R.string.arcod_bearer_token)) },
-                    icon = { Icon(painterResource(R.drawable.lock), null) },
-                    value = arcodBearerToken,
-                    onValueChange = onArcodBearerTokenChange,
-                )
-            }
-            item(contentType = "flacToken4") {
-                moe.rukamori.archivetune.ui.component.EditTextPreference(
-                    title = { Text(stringResource(R.string.qobuz_app_id)) },
-                    icon = { Icon(painterResource(R.drawable.lock), null) },
-                    value = qobuzAppId,
-                    onValueChange = onQobuzAppIdChange,
-                )
-            }
-            item(contentType = "flacToken5") {
-                moe.rukamori.archivetune.ui.component.EditTextPreference(
-                    title = { Text(stringResource(R.string.qobuz_app_secret)) },
-                    icon = { Icon(painterResource(R.drawable.lock), null) },
-                    value = qobuzAppSecret,
-                    onValueChange = onQobuzAppSecretChange,
-                )
-            }
-            item(contentType = "flacToken6") {
-                moe.rukamori.archivetune.ui.component.EditTextPreference(
-                    title = { Text(stringResource(R.string.qobuz_user_auth_token)) },
-                    icon = { Icon(painterResource(R.drawable.lock), null) },
-                    value = qobuzUserAuthToken,
-                    onValueChange = onQobuzUserAuthTokenChange,
-                )
+            item(contentType = "flacTokens") {
+                moe.rukamori.archivetune.ui.component.PreferenceGroup(
+                    modifier = Modifier.widthIn(max = OnboardingContentMaxWidth).fillMaxWidth()
+                ) {
+                    item {
+                        moe.rukamori.archivetune.ui.component.EditTextPreference(
+                            title = { Text(stringResource(R.string.squid_captcha_cookie)) },
+                            icon = { Icon(painterResource(R.drawable.lock), null) },
+                            value = squidCaptchaCookie,
+                            onValueChange = onSquidCaptchaCookieChange,
+                        )
+                    }
+                    item {
+                        moe.rukamori.archivetune.ui.component.EditTextPreference(
+                            title = { Text(stringResource(R.string.arcod_stash_key)) },
+                            icon = { Icon(painterResource(R.drawable.lock), null) },
+                            value = arcodStashKey,
+                            onValueChange = onArcodStashKeyChange,
+                        )
+                    }
+                    item {
+                        moe.rukamori.archivetune.ui.component.EditTextPreference(
+                            title = { Text(stringResource(R.string.arcod_bearer_token)) },
+                            icon = { Icon(painterResource(R.drawable.lock), null) },
+                            value = arcodBearerToken,
+                            onValueChange = onArcodBearerTokenChange,
+                        )
+                    }
+                    item {
+                        moe.rukamori.archivetune.ui.component.EditTextPreference(
+                            title = { Text(stringResource(R.string.qobuz_app_id)) },
+                            icon = { Icon(painterResource(R.drawable.lock), null) },
+                            value = qobuzAppId,
+                            onValueChange = onQobuzAppIdChange,
+                        )
+                    }
+                    item {
+                        moe.rukamori.archivetune.ui.component.EditTextPreference(
+                            title = { Text(stringResource(R.string.qobuz_app_secret)) },
+                            icon = { Icon(painterResource(R.drawable.lock), null) },
+                            value = qobuzAppSecret,
+                            onValueChange = onQobuzAppSecretChange,
+                        )
+                    }
+                    item {
+                        moe.rukamori.archivetune.ui.component.EditTextPreference(
+                            title = { Text(stringResource(R.string.qobuz_user_auth_token)) },
+                            icon = { Icon(painterResource(R.drawable.lock), null) },
+                            value = qobuzUserAuthToken,
+                            onValueChange = onQobuzUserAuthTokenChange,
+                        )
+                    }
+                }
             }
         }
     }

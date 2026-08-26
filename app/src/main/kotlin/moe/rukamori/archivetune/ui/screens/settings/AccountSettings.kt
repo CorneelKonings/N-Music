@@ -991,6 +991,7 @@ fun AccountSettings(
 @Composable
 fun ProfileIdentityCard(
     modifier: Modifier = Modifier,
+    shape: androidx.compose.ui.graphics.Shape? = null,
     isLoggedIn: Boolean,
     accountName: String,
     accountEmail: String,
@@ -1018,8 +1019,27 @@ fun ProfileIdentityCard(
     )
 
     val colors = LocalYumaColors.current
-    val cardShape = RoundedCornerShape(SettingsDimensions.GroupCardCornerRadius)
     val context = LocalContext.current
+    
+    val groupPosition = moe.rukamori.archivetune.ui.component.LocalPreferenceGroupPosition.current
+    val resolvedShape = shape ?: when (groupPosition) {
+        moe.rukamori.archivetune.ui.component.PreferenceGroupPosition.First -> RoundedCornerShape(
+            topStart = SettingsDimensions.SegmentedCornerLarge,
+            topEnd = SettingsDimensions.SegmentedCornerLarge,
+            bottomStart = SettingsDimensions.SegmentedCornerSmall,
+            bottomEnd = SettingsDimensions.SegmentedCornerSmall
+        )
+        moe.rukamori.archivetune.ui.component.PreferenceGroupPosition.Middle -> RoundedCornerShape(
+            SettingsDimensions.SegmentedCornerSmall
+        )
+        moe.rukamori.archivetune.ui.component.PreferenceGroupPosition.Last -> RoundedCornerShape(
+            topStart = SettingsDimensions.SegmentedCornerSmall,
+            topEnd = SettingsDimensions.SegmentedCornerSmall,
+            bottomStart = SettingsDimensions.SegmentedCornerLarge,
+            bottomEnd = SettingsDimensions.SegmentedCornerLarge
+        )
+        else -> RoundedCornerShape(SettingsDimensions.SegmentedCornerLarge)
+    }
 
     val extractedColor = remember(extractedColorHex) {
         extractedColorHex?.let {
@@ -1069,7 +1089,7 @@ fun ProfileIdentityCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(cardShape)
+            .clip(resolvedShape)
             .drawWithCache {
                 val spot1X = size.width * (0.5f + 0.35f * kotlin.math.cos(time))
                 val spot1Y = size.height * (0.5f + 0.30f * kotlin.math.sin(time))
@@ -1103,7 +1123,7 @@ fun ProfileIdentityCard(
                     drawRect(brush = spot2Gradient, blendMode = blendMode)
                 }
             }
-            .border(1.dp, colors.glassBorder, cardShape),
+            .border(1.dp, colors.glassBorder, resolvedShape),
     ) {
         Row(
             modifier = Modifier
@@ -1747,7 +1767,7 @@ fun ExpressiveRowIcon(
             Icon(
                 painter = icon,
                 contentDescription = null,
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
                 tint = iconTint,
             )
         }

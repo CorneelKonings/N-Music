@@ -731,4 +731,6 @@
     <string name="qobuz_app_id">Qobuz App ID</string>
     <string name="qobuz_app_secret">Qobuz App Secret</string>
     <string name="qobuz_user_auth_token">Qobuz User Auth Token</string>
+    <string name="onboarding_customization_title">Сделай плеер своим</string>
+    <string name="onboarding_customization_subtitle">Выбери тему, фон и основной источник музыки.</string>
 </resources>
