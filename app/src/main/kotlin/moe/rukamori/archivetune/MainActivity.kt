@@ -876,7 +876,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     is OnboardingScreenState.Success -> {
-                        if (state.uiState.shouldShowOnboarding) {
+                        if (state.uiState.shouldShowOnboarding || intent.getBooleanExtra("force_onboarding", false)) {
                             OnboardingRoute(viewModel = onboardingViewModel)
                             return@ArchiveTuneTheme
                         }
