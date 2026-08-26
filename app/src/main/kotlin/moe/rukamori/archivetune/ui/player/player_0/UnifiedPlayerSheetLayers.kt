@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,16 +93,6 @@ internal fun UnifiedPlayerSheetLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer {
-                    alpha = expansionFractionProvider()
-                }
-        ) {
-            PlayerBackgroundLayers(state = state)
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
                 .conditionalPlacement { expansionFractionProvider() < 0.99f }
                 .graphicsLayer {
                     val fraction = expansionFractionProvider()
@@ -155,6 +146,7 @@ internal fun UnifiedPlayerSheetLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .conditionalPlacement { layerTwoFractionProvider() > 0.005f }
                 .graphicsLayer {
                     val fraction = layerTwoFractionProvider()
                     alpha = fraction
@@ -280,6 +272,18 @@ private fun UnifiedLayerTwoHeader(
         val barShape = RoundedCornerShape(20.dp)
         val indicatorShape = RoundedCornerShape(16.dp)
 
+        val containerColor = if (state.isBlurBackgroundEnabled) {
+            Color.Black.copy(alpha = 0.35f)
+        } else {
+            Color(state.darkMutedColor).copy(alpha = 0.6f)
+        }
+
+        val borderColor = if (state.isBlurBackgroundEnabled) {
+            Color.White.copy(alpha = 0.15f)
+        } else {
+            Color.White.copy(alpha = 0.10f)
+        }
+
         val indicatorColor = if (state.isBlurBackgroundEnabled) {
             Color.White.copy(alpha = 0.25f)
         } else {
@@ -291,7 +295,9 @@ private fun UnifiedLayerTwoHeader(
                 .padding(start = 24.dp, end = 24.dp, top = 6.dp, bottom = 8.dp)
                 .width(220.dp)
                 .height(40.dp)
-                .clip(barShape),
+                .clip(barShape)
+                .background(containerColor)
+                .border(1.dp, borderColor, barShape),
             contentAlignment = Alignment.CenterStart
         ) {
             BoxWithConstraints(

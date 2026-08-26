@@ -120,6 +120,7 @@ fun FullPlayer(
     )
 
     // ── Root ──────────────────────────────────────────────────────────────────
+    PlayerBackgroundLayers(state = state)
     Box(
         modifier = modifier
             .fillMaxSize()
