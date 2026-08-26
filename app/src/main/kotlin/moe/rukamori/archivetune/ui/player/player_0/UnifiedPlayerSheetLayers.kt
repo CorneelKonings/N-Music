@@ -47,7 +47,9 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.player.lyrics_0.LyricsColumn
@@ -201,6 +203,7 @@ internal fun UnifiedPlayerSheetLayers(
                 ) {
                     HorizontalPager(
                         state = pagerState,
+                        beyondViewportPageCount = 1,
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         when (page) {
@@ -309,7 +312,12 @@ private fun UnifiedLayerTwoHeader(
                     color = indicatorColor,
                     modifier = Modifier
                         .size(width = tabWidth, height = maxHeight)
-                        .offset(x = tabWidth * indicatorOffset)
+                        .offset {
+                            IntOffset(
+                                x = (tabWidth.toPx() * indicatorOffset).roundToInt(),
+                                y = 0
+                            )
+                        }
                 ) {}
 
                 Row(modifier = Modifier.fillMaxSize()) {
@@ -360,12 +368,9 @@ private fun UnifiedLayerTwoHeader(
 
 private fun Modifier.conditionalPlacement(shouldPlace: () -> Boolean): Modifier = this.layout { measurable, constraints ->
     val placeable = measurable.measure(constraints)
-    if (shouldPlace()) {
-        layout(placeable.width, placeable.height) {
+    layout(placeable.width, placeable.height) {
+        if (shouldPlace()) {
             placeable.placeRelative(0, 0)
-        }
-    } else {
-        layout(0, 0) {
         }
     }
 }
