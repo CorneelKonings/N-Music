@@ -31,12 +31,14 @@ import kotlin.math.abs
 import moe.rukamori.archivetune.ui.player.player_0.buttons.SleepTimerTopBadge
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.utils.TimeUtils
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerSeekBar(
     state: PlayerUiState,
-    progressMs: Long,
+    progressProvider: () -> Long,
     durationMs: Long,
     vibrantColor: Color,
     slideOffset: () -> Float,
@@ -47,6 +49,18 @@ fun PlayerSeekBar(
     onSeek: (Float) -> Unit,
     onSeekStarted: () -> Unit,
 ) {
+    var progressMs by remember { mutableLongStateOf(progressProvider()) }
+
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            val current = progressProvider()
+            if (progressMs != current) {
+                progressMs = current
+            }
+            delay(250)
+        }
+    }
+
     var sliderPosition by remember { mutableStateOf(0f) }
     val isDragging = remember { mutableStateOf(false) }
     var localSeekTarget by remember { mutableStateOf<Float?>(null) }

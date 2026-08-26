@@ -107,7 +107,10 @@ class PlayerViewModel @Inject constructor(
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.NoUpdate)
     val updateState: StateFlow<UpdateState> = _updateState.asStateFlow()
 
-    val progressMsProvider: () -> Long = { audioPlayer?.currentPosition ?: _uiState.value.progressMs }
+    private val _playbackProgress = MutableStateFlow(0L)
+    val playbackProgress: StateFlow<Long> = _playbackProgress.asStateFlow()
+
+    val progressMsProvider: () -> Long = { audioPlayer?.currentPosition ?: _playbackProgress.value }
 
     private var lastFetchedTrackKey: String = ""
     private var isUserSeeking = false
@@ -134,7 +137,7 @@ class PlayerViewModel @Inject constructor(
                         val isSynced = parsedLines.any { line -> line.time > 0 }
                         startRomanizationJob(parsedLines, lyricsFetchGeneration.get())
                         _uiState.update {
-                            val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, it.progressMs, it.lyricsSyncOffset) else -1
+                            val targetIndex = if (isSynced) findCurrentLineIndex(parsedLines, _playbackProgress.value, it.lyricsSyncOffset) else -1
                             it.copy(
                                 lyricsList = parsedLines,
                                 isSynced = isSynced,
@@ -538,8 +541,9 @@ class PlayerViewModel @Inject constructor(
         if (!isUserSeeking) {
             val progressMs = currentTimeSec * 1000L
             val durationMs = durationSec * 1000L
+            _playbackProgress.value = progressMs
             _uiState.update {
-                it.copy(progressMs = progressMs, durationMs = durationMs)
+                it.copy(durationMs = durationMs)
             }
             updateLyricsProgress(progressMs)
         }
@@ -659,18 +663,17 @@ class PlayerViewModel @Inject constructor(
                     val player = audioPlayer
                     if (player != null && !isUserSeeking) {
                         val position = player.currentPosition
+                        _playbackProgress.value = position
                         val duration = player.duration
                         val validDuration = if (duration > 0L && duration != androidx.media3.common.C.TIME_UNSET) duration else null
-                        _uiState.update { current ->
-                            val resolvedDuration = if (validDuration != null && (current.durationMs <= 0L || current.durationMs != validDuration)) {
-                                validDuration
-                            } else {
-                                current.durationMs
+                        if (validDuration != null) {
+                            _uiState.update { current ->
+                                if (current.durationMs <= 0L || current.durationMs != validDuration) {
+                                    current.copy(durationMs = validDuration)
+                                } else {
+                                    current
+                                }
                             }
-                            current.copy(
-                                progressMs = position,
-                                durationMs = resolvedDuration
-                            )
                         }
                         updateLyricsProgress(position)
                     }
@@ -1035,7 +1038,7 @@ class PlayerViewModel @Inject constructor(
 
     fun setLyricsVisible(isVisible: Boolean) {
         _uiState.update { 
-            val targetIndex = if (!isVisible || !it.isSynced || it.lyricsList.all { line -> line.time == -1L }) -1 else findCurrentLineIndex(it.lyricsList, it.progressMs, it.lyricsSyncOffset)
+            val targetIndex = if (!isVisible || !it.isSynced || it.lyricsList.all { line -> line.time == -1L }) -1 else findCurrentLineIndex(it.lyricsList, _playbackProgress.value, it.lyricsSyncOffset)
             it.copy(isLyricsVisible = isVisible, currentLineIndex = targetIndex) 
         }
         if (isVisible && _uiState.value.lyricsList.isEmpty()) {
@@ -1058,7 +1061,7 @@ class PlayerViewModel @Inject constructor(
     fun seekTo(positionMs: Long) {
         audioPlayer?.seekTo(positionMs)
         isUserSeeking = false
-        _uiState.update { it.copy(progressMs = positionMs) }
+        _playbackProgress.value = positionMs
     }
 
     fun playNext() {

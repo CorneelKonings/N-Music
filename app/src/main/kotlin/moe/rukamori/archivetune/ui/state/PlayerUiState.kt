@@ -20,7 +20,6 @@ data class PlayerUiState(
     // Статусы плеера
     val isPlaying: Boolean = false,
     val isLiked: Boolean = false,
-    val progressMs: Long = 0L,
     val durationMs: Long = 0L,
 
     // Состояние лирики

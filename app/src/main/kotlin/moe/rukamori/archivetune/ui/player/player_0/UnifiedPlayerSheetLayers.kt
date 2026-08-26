@@ -71,36 +71,6 @@ internal fun UnifiedPlayerSheetLayers(
             derivedStateOf { state.title.isNotEmpty() }
         }
 
-        val isCollapsed by remember {
-            derivedStateOf { expansionFractionProvider() < 0.01f }
-        }
-
-        val effectiveState = if (isCollapsed) {
-            remember(
-                state.title,
-                state.artist,
-                state.coverUrl,
-                state.coverDrawable,
-                state.trackUrl,
-                state.isPlaying,
-                state.isLiked,
-                state.vibrantColor,
-                state.gradientColor,
-                state.durationMs,
-                state.placeholderResId,
-                state.isLyricsVisible,
-                state.isBlurBackgroundEnabled,
-                state.isImmersiveEnabled,
-                state.showCodecInfo,
-                state.isAlbumCoverGlowEnabled,
-                state.codecInfo
-            ) {
-                state.copy(progressMs = 0L)
-            }
-        } else {
-            state
-        }
-
         if (hasTrack) {
             Box(
                 modifier = Modifier
@@ -117,7 +87,8 @@ internal fun UnifiedPlayerSheetLayers(
                     }
             ) {
                 FullPlayer(
-                    state = effectiveState,
+                    state = state,
+                    progressMsProvider = progressMsProvider,
                     updateState = updateState,
                     slideOffset = expansionFractionProvider,
                     density = density,
@@ -144,7 +115,7 @@ internal fun UnifiedPlayerSheetLayers(
                 }
         ) {
             LyricsColumn(
-                state = effectiveState,
+                state = state,
                 animateProgressProvider = lyricsFractionProvider,
                 progressMsProvider = progressMsProvider,
                 onCloseClick = onCloseLyricsClick,

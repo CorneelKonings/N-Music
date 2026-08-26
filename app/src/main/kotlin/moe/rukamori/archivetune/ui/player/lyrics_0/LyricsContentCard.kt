@@ -194,7 +194,7 @@ fun LyricsContentCard(
                         ) {
                             PlayerSeekBar(
                                 state = state,
-                                progressMs = progressMsProvider(),
+                                progressProvider = progressMsProvider,
                                 durationMs = state.durationMs,
                                 vibrantColor = Color(state.vibrantColor),
                                 slideOffset = { 1f },

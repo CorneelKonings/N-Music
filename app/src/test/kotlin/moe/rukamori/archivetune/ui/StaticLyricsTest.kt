@@ -100,7 +100,7 @@ class StaticLyricsTest {
             
             // Simulate progress to line 3 (index 3)
             viewModel.onPlaybackProgress(4, 10)
-            val progressState1 = awaitItem() // progressMs update
+            val progressState1 = awaitItem() // durationMs update
             val progressState2 = awaitItem() // currentLineIndex update
             assertEquals(3, progressState2.currentLineIndex)
 

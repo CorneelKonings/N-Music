@@ -57,6 +57,7 @@ val GoogleSans = FontFamily(
 @Composable
 fun FullPlayer(
     state: PlayerUiState,
+    progressMsProvider: () -> Long = { 0L },
     slideOffset: () -> Float,
     density: Float,
     onCollapseClick: () -> Unit,
@@ -186,7 +187,7 @@ fun FullPlayer(
 
                     PlayerSeekBar(
                         state = state,
-                        progressMs = state.progressMs,
+                        progressProvider = progressMsProvider,
                         durationMs = state.durationMs,
                         vibrantColor = Color(state.vibrantColor),
                         slideOffset = slideOffset,
