@@ -610,7 +610,7 @@ private fun WelcomePage(
                     }
 
                     Icon(
-                        painter = painterResource(id = R.mipmap.ic_launcher_monochrome),
+                        painter = painterResource(id = R.drawable.ic_launcher_monochromatic),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
@@ -1008,7 +1008,7 @@ private fun GlassCommunityRow(
         }
 
         Icon(
-            painter = painterResource(R.drawable.arrow_forward),
+            painter = painterResource(R.drawable.ic_arrow_right),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
