@@ -50,6 +50,7 @@ aboutLibraries = "15.0.3"
 lottie = "6.6.2"
 haze = "1.5.3"
 graphicsShapes = "1.0.1"
+coreSplashscreen = "1.0.1"
 
 googleMaterial = "1.12.0"
 appUpdateKtx = "2.1.0"
@@ -70,6 +71,7 @@ google-material = { group = "com.google.android.material", name = "material", ve
 
 gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 activity = { module = "androidx.activity:activity-compose", version.ref = "activity" }
+core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 navigation = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigation" }
 datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }

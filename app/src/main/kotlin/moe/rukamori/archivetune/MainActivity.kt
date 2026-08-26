@@ -151,6 +151,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -358,6 +359,7 @@ class MainActivity : ComponentActivity() {
     private var isMusicServiceBound = false
     private var immersiveStatusBarsHidden = false
     private val playerViewModel: PlayerViewModel by viewModels()
+    private val onboardingViewModel: OnboardingViewModel by viewModels()
     private val serviceConnection =
         object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -543,7 +545,11 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        splashScreen.setKeepOnScreenCondition {
+            onboardingViewModel.screenState.value is OnboardingScreenState.Loading
+        }
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -859,19 +865,10 @@ class MainActivity : ComponentActivity() {
                 fontPreference = fontPreference,
                 customFontUri = customFontUri,
             ) {
-                val onboardingViewModel: OnboardingViewModel = hiltViewModel()
                 val onboardingState by onboardingViewModel.screenState.collectAsStateWithLifecycle()
 
                 when (val state = onboardingState) {
                     OnboardingScreenState.Loading -> {
-                        Box(
-                            modifier =
-                                Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
-                                    ),
-                        )
                         return@ArchiveTuneTheme
                     }
 

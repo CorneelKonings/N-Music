@@ -116,13 +116,13 @@ private val GoogleSansFont = FontFamily(
 )
 
 @Composable
-private fun rememberExpressiveShape(index: Int): Shape =
-    when (index % 4) {
-        0 -> MaterialShapes.Cookie4Sided.toShape()
-        1 -> MaterialShapes.Clover4Leaf.toShape()
-        2 -> MaterialShapes.Ghostish.toShape()
-        else -> MaterialShapes.Sunny.toShape()
-    }
+private fun rememberExpressiveShapes(): List<Shape> {
+    val s0 = MaterialShapes.Cookie4Sided.toShape()
+    val s1 = MaterialShapes.Clover4Leaf.toShape()
+    val s2 = MaterialShapes.Ghostish.toShape()
+    val s3 = MaterialShapes.Sunny.toShape()
+    return remember(s0, s1, s2, s3) { listOf(s0, s1, s2, s3) }
+}
 
 @Composable
 fun OnboardingRoute(
@@ -507,7 +507,33 @@ private fun WelcomePage(
         ),
         label = "rotationAngle"
     )
-    
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val glassBg = LocalYumaColors.current.glassBackground
+
+    val glowBrush = remember(primaryColor) {
+        Brush.radialGradient(
+            colors = listOf(
+                primaryColor.copy(alpha = 0.45f),
+                primaryColor.copy(alpha = 0.15f),
+                Color.Transparent,
+            ),
+        )
+    }
+    val borderBrush = remember(primaryColor, tertiaryColor) {
+        Brush.sweepGradient(
+            colors = listOf(
+                primaryColor,
+                tertiaryColor,
+                primaryColor,
+            )
+        )
+    }
+    val borderStroke = remember(borderBrush) {
+        BorderStroke(width = 4.dp, brush = borderBrush)
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = OnboardingPagePadding,
@@ -528,36 +554,25 @@ private fun WelcomePage(
                     Box(
                         modifier = Modifier
                             .size(240.dp)
-                            .graphicsLayer { rotationZ = rotationAngle }
-                            .background(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                                        Color.Transparent,
-                                    ),
-                                ),
-                                shape = avatarShape,
-                            )
-                    )
-
-                    Surface(
-                        modifier = Modifier
-                            .size(210.dp)
                             .graphicsLayer { rotationZ = rotationAngle },
-                        shape = avatarShape,
-                        color = LocalYumaColors.current.glassBackground,
-                        border = BorderStroke(
-                            width = 4.dp,
-                            brush = Brush.sweepGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.tertiary,
-                                    MaterialTheme.colorScheme.primary,
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = glowBrush,
+                                    shape = avatarShape,
                                 )
-                            )
-                        ),
-                    ) {}
+                        )
+
+                        Surface(
+                            modifier = Modifier.size(210.dp),
+                            shape = avatarShape,
+                            color = glassBg,
+                            border = borderStroke,
+                        ) {}
+                    }
 
                     Icon(
                         painter = painterResource(id = R.mipmap.ic_launcher_monochrome),
@@ -645,6 +660,7 @@ private fun PermissionsPage(
     onPermissionAction: (OnboardingPermissionAction) -> Unit,
 ) {
     val page = uiState.pages[pageIndex]
+    val expressiveShapes = rememberExpressiveShapes()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -672,7 +688,7 @@ private fun PermissionsPage(
                 uiState.permissions.forEachIndexed { index, item ->
                     GlassPermissionRow(
                         permission = item,
-                        index = index,
+                        iconShape = expressiveShapes[index % expressiveShapes.size],
                         onPermissionAction = onPermissionAction,
                     )
                 }
@@ -684,7 +700,7 @@ private fun PermissionsPage(
 @Composable
 private fun GlassPermissionRow(
     permission: OnboardingPermissionUiModel,
-    index: Int,
+    iconShape: Shape,
     onPermissionAction: (OnboardingPermissionAction) -> Unit,
 ) {
     val action = permission.action
@@ -707,7 +723,7 @@ private fun GlassPermissionRow(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PermissionIcon(permission = permission, index = index)
+        PermissionIcon(permission = permission, iconShape = iconShape)
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -736,7 +752,7 @@ private fun GlassPermissionRow(
 @Composable
 private fun PermissionIcon(
     permission: OnboardingPermissionUiModel,
-    index: Int,
+    iconShape: Shape,
 ) {
     val containerColor =
         when (permission.status) {
@@ -753,8 +769,6 @@ private fun PermissionIcon(
             OnboardingPermissionStatus.ALLOWED_BY_INSTALL -> MaterialTheme.colorScheme.onSecondary
             OnboardingPermissionStatus.UNAVAILABLE -> MaterialTheme.colorScheme.onSurfaceVariant
         }
-
-    val iconShape = rememberExpressiveShape(index)
 
     Surface(
         shape = iconShape,
@@ -820,6 +834,7 @@ private fun CommunityPage(
     onCommunityAction: (OnboardingCommunityActionUiModel) -> Unit,
 ) {
     val page = uiState.pages[pageIndex]
+    val expressiveShapes = rememberExpressiveShapes()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -847,7 +862,7 @@ private fun CommunityPage(
                 uiState.communityActions.forEachIndexed { index, item ->
                     GlassCommunityRow(
                         action = item,
-                        index = index,
+                        iconShape = expressiveShapes[index % expressiveShapes.size],
                         onCommunityAction = onCommunityAction,
                     )
                 }
@@ -859,11 +874,9 @@ private fun CommunityPage(
 @Composable
 private fun GlassCommunityRow(
     action: OnboardingCommunityActionUiModel,
-    index: Int,
+    iconShape: Shape,
     onCommunityAction: (OnboardingCommunityActionUiModel) -> Unit,
 ) {
-    val iconShape = rememberExpressiveShape(index)
-
     Row(
         modifier =
             Modifier
