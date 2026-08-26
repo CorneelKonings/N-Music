@@ -29,9 +29,12 @@ internal class SheetVerticalDragGestureHandler(
     private val sheetMotionController: SheetMotionController,
     private val playerContentExpansionFraction: Animatable<Float, AnimationVector1D>,
     private val currentSheetTranslationY: Animatable<Float, AnimationVector1D>,
+    private val layerTwoFraction: Animatable<Float, AnimationVector1D>,
     private val expandedYProvider: () -> Float,
     private val collapsedYProvider: () -> Float,
     private val miniHeightPxProvider: () -> Float,
+    private val screenHeightPxProvider: () -> Float,
+    private val screenWidthPxProvider: () -> Float,
     private val currentSheetStateProvider: () -> PlayerSheetState,
     private val visualOvershootScaleY: Animatable<Float, AnimationVector1D>,
     private val onDraggingChange: (Boolean) -> Unit,
@@ -42,24 +45,37 @@ internal class SheetVerticalDragGestureHandler(
         initialVelocity: Float
     ) -> Unit,
     private val onExpandSheetState: () -> Unit,
-    private val onCollapseSheetState: () -> Unit
+    private val onCollapseSheetState: () -> Unit,
+    private val onSelectLayerTwoPage: (Int) -> Unit,
+    private val onExpandLayerTwo: () -> Unit,
+    private val onCollapseLayerTwo: () -> Unit
 ) {
     private var initialFractionOnDragStart = 0f
     private var initialYOnDragStart = 0f
+    private var initialLayerTwoFractionOnDragStart = 0f
     private var accumulatedDragYSinceStart = 0f
     private var dragSnapJob: Job? = null
 
-    fun onDragStart() {
+    fun onDragStart(position: Offset = Offset.Zero) {
         dragSnapJob?.cancel()
         dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             sheetMotionController.stop()
+            layerTwoFraction.stop()
         }
         onDraggingChange(true)
         onDraggingPlayerAreaChange(true)
         velocityTracker.resetTracking()
         initialFractionOnDragStart = playerContentExpansionFraction.value
         initialYOnDragStart = currentSheetTranslationY.value
+        initialLayerTwoFractionOnDragStart = layerTwoFraction.value
         accumulatedDragYSinceStart = 0f
+
+        val expandedY = expandedYProvider()
+        if (currentSheetTranslationY.value <= expandedY + 1f && layerTwoFraction.value < 0.05f) {
+            val screenWidth = screenWidthPxProvider()
+            val targetPage = if (position.x < screenWidth / 2f) 0 else 1
+            onSelectLayerTwoPage(targetPage)
+        }
     }
 
     fun onVerticalDrag(
@@ -68,29 +84,111 @@ internal class SheetVerticalDragGestureHandler(
         dragAmount: Float
     ) {
         accumulatedDragYSinceStart += dragAmount
-        val dragFrame = computeSheetVerticalDragFrame(
-            currentTranslationY = currentSheetTranslationY.value,
-            dragAmount = dragAmount,
-            expandedY = expandedYProvider(),
-            collapsedY = collapsedYProvider(),
-            miniHeightPx = miniHeightPxProvider(),
-            initialFractionOnDragStart = initialFractionOnDragStart,
-            initialYOnDragStart = initialYOnDragStart
-        )
-
-        val safeTranslationY = dragFrame.translationY.coerceAtLeast(expandedYProvider())
-        // Дополнительно страхуем фракцию раскрытия, чтобы она не превышала 100% (1f)
-        val safeExpansionFraction = dragFrame.expansionFraction.coerceIn(0f, 1f)
-
-        dragSnapJob?.cancel()
-        dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
-            sheetMotionController.snapTo(
-                translationYValue = safeTranslationY,
-                expansionFractionValue = safeExpansionFraction
-            )
-        }
-
         velocityTracker.addPosition(uptimeMillis, Offset(0f, accumulatedDragYSinceStart))
+
+        val expandedY = expandedYProvider()
+        val collapsedY = collapsedYProvider()
+        val miniHeightPx = miniHeightPxProvider()
+        val layerTwoDistance = (screenHeightPxProvider() * 0.4f).coerceAtLeast(300f)
+
+        val currentY = currentSheetTranslationY.value
+        val currentL2 = layerTwoFraction.value
+
+        if (dragAmount < 0) {
+            if (currentY > expandedY) {
+                val dragFrame = computeSheetVerticalDragFrame(
+                    currentTranslationY = currentY,
+                    dragAmount = dragAmount,
+                    expandedY = expandedY,
+                    collapsedY = collapsedY,
+                    miniHeightPx = miniHeightPx,
+                    initialFractionOnDragStart = initialFractionOnDragStart,
+                    initialYOnDragStart = initialYOnDragStart
+                )
+                if (dragFrame.translationY < expandedY) {
+                    val overshootPx = expandedY - dragFrame.translationY
+                    val deltaL2 = overshootPx / layerTwoDistance
+                    val newL2 = (currentL2 + deltaL2).coerceIn(0f, 1f)
+                    dragSnapJob?.cancel()
+                    dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                        sheetMotionController.snapTo(expandedY, 1f)
+                        layerTwoFraction.snapTo(newL2)
+                    }
+                } else {
+                    val safeTranslationY = dragFrame.translationY.coerceAtLeast(expandedY)
+                    val safeExpansionFraction = dragFrame.expansionFraction.coerceIn(0f, 1f)
+                    dragSnapJob?.cancel()
+                    dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                        sheetMotionController.snapTo(safeTranslationY, safeExpansionFraction)
+                        if (currentL2 > 0f) {
+                            layerTwoFraction.snapTo(0f)
+                        }
+                    }
+                }
+            } else {
+                val deltaL2 = -dragAmount / layerTwoDistance
+                val newL2 = (currentL2 + deltaL2).coerceIn(0f, 1f)
+                dragSnapJob?.cancel()
+                dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                    if (currentY != expandedY || playerContentExpansionFraction.value != 1f) {
+                        sheetMotionController.snapTo(expandedY, 1f)
+                    }
+                    layerTwoFraction.snapTo(newL2)
+                }
+            }
+        } else {
+            if (currentL2 > 0f) {
+                val deltaL2 = dragAmount / layerTwoDistance
+                if (currentL2 >= deltaL2) {
+                    val newL2 = (currentL2 - deltaL2).coerceIn(0f, 1f)
+                    dragSnapJob?.cancel()
+                    dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                        if (currentY != expandedY || playerContentExpansionFraction.value != 1f) {
+                            sheetMotionController.snapTo(expandedY, 1f)
+                        }
+                        layerTwoFraction.snapTo(newL2)
+                    }
+                } else {
+                    val consumedPx = currentL2 * layerTwoDistance
+                    val remainingDrag = dragAmount - consumedPx
+                    val dragFrame = computeSheetVerticalDragFrame(
+                        currentTranslationY = expandedY,
+                        dragAmount = remainingDrag,
+                        expandedY = expandedY,
+                        collapsedY = collapsedY,
+                        miniHeightPx = miniHeightPx,
+                        initialFractionOnDragStart = 1f,
+                        initialYOnDragStart = expandedY
+                    )
+                    val safeTranslationY = dragFrame.translationY.coerceAtLeast(expandedY)
+                    val safeExpansionFraction = dragFrame.expansionFraction.coerceIn(0f, 1f)
+                    dragSnapJob?.cancel()
+                    dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                        layerTwoFraction.snapTo(0f)
+                        sheetMotionController.snapTo(safeTranslationY, safeExpansionFraction)
+                    }
+                }
+            } else {
+                val dragFrame = computeSheetVerticalDragFrame(
+                    currentTranslationY = currentY,
+                    dragAmount = dragAmount,
+                    expandedY = expandedY,
+                    collapsedY = collapsedY,
+                    miniHeightPx = miniHeightPx,
+                    initialFractionOnDragStart = initialFractionOnDragStart,
+                    initialYOnDragStart = initialYOnDragStart
+                )
+                val safeTranslationY = dragFrame.translationY.coerceAtLeast(expandedY)
+                val safeExpansionFraction = dragFrame.expansionFraction.coerceIn(0f, 1f)
+                dragSnapJob?.cancel()
+                dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                    if (currentL2 > 0f) {
+                        layerTwoFraction.snapTo(0f)
+                    }
+                    sheetMotionController.snapTo(safeTranslationY, safeExpansionFraction)
+                }
+            }
+        }
     }
 
     fun onDragEnd() {
@@ -101,70 +199,160 @@ internal class SheetVerticalDragGestureHandler(
 
         val verticalVelocity = velocityTracker.calculateVelocity().y
         val currentFraction = playerContentExpansionFraction.value
+        val currentL2 = layerTwoFraction.value
         val minDragThresholdPx = with(densityProvider()) { 5.dp.toPx() }
-
-        // ИСПРАВЛЕНО: подняли порог до адекватных пикселей в секунду для флика
         val velocityThreshold = 1000f
+        val layerTwoDistance = (screenHeightPxProvider() * 0.4f).coerceAtLeast(300f)
 
+        if (currentL2 > 0f) {
+            val targetLayerTwoExpanded = when {
+                verticalVelocity < -velocityThreshold -> true
+                verticalVelocity > velocityThreshold -> false
+                initialLayerTwoFractionOnDragStart > 0.5f -> currentL2 > 0.75f
+                else -> currentL2 > 0.25f
+            }
 
-        val targetState = resolveVerticalSheetTargetState(
-            currentSheetContentState = currentSheetStateProvider(),
-            verticalVelocity = verticalVelocity,
-            velocityThreshold = velocityThreshold,
-            currentFraction = currentFraction,
-            accumulatedDragY = accumulatedDragYSinceStart,
-            minDragThresholdPx = minDragThresholdPx
-        )
-
-
-
-        scope.launch {
-            if (targetState == PlayerSheetState.EXPANDED) {
-                launch {
-                    visualOvershootScaleY.animateTo(
-                        targetValue = 1f,
-                        animationSpec = spring(
-                            dampingRatio = 0.78f,
-                            stiffness = Spring.StiffnessMediumLow
+            scope.launch {
+                if (targetLayerTwoExpanded) {
+                    launch {
+                        visualOvershootScaleY.animateTo(
+                            targetValue = 1f,
+                            animationSpec = spring(
+                                dampingRatio = 0.78f,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
                         )
-                    )
-                }
-                launch {
-                    // ИСПРАВЛЕНО: передаем реальную скорость для плавного подхвата пружиной
-                    onAnimateSheet(
-                        true,
-                        spring(
-                            dampingRatio = 0.78f,
-                            stiffness = Spring.StiffnessMediumLow
-                        ),
-                        verticalVelocity
-                    )
-                }
-                onExpandSheetState()
-            } else {
-                val dynamicDamping = collapseSpringDampingForFraction(currentFraction)
-                launch {
-                    val initialSquash = collapseInitialSquashForFraction(currentFraction)
-                    visualOvershootScaleY.snapTo(initialSquash)
-                    visualOvershootScaleY.animateTo(
-                        targetValue = 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessVeryLow
+                    }
+                    launch {
+                        layerTwoFraction.animateTo(
+                            targetValue = 1f,
+                            animationSpec = spring(
+                                dampingRatio = 0.78f,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            initialVelocity = -verticalVelocity / layerTwoDistance
                         )
-                    )
+                    }
+                    onExpandSheetState()
+                    onExpandLayerTwo()
+                } else {
+                    launch {
+                        layerTwoFraction.animateTo(
+                            targetValue = 0f,
+                            animationSpec = spring(
+                                dampingRatio = 0.78f,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
+                        )
+                    }
+                    onCollapseLayerTwo()
+                    if (currentFraction < 0.99f || currentSheetTranslationY.value > expandedYProvider()) {
+                        val targetState = resolveVerticalSheetTargetState(
+                            currentSheetContentState = currentSheetStateProvider(),
+                            verticalVelocity = verticalVelocity,
+                            velocityThreshold = velocityThreshold,
+                            currentFraction = currentFraction,
+                            accumulatedDragY = accumulatedDragYSinceStart,
+                            minDragThresholdPx = minDragThresholdPx
+                        )
+                        if (targetState == PlayerSheetState.EXPANDED) {
+                            launch {
+                                onAnimateSheet(
+                                    true,
+                                    spring(
+                                        dampingRatio = 0.78f,
+                                        stiffness = Spring.StiffnessMediumLow
+                                    ),
+                                    verticalVelocity
+                                )
+                            }
+                            onExpandSheetState()
+                        } else {
+                            val dynamicDamping = collapseSpringDampingForFraction(currentFraction)
+                            launch {
+                                val initialSquash = collapseInitialSquashForFraction(currentFraction)
+                                visualOvershootScaleY.snapTo(initialSquash)
+                                visualOvershootScaleY.animateTo(
+                                    targetValue = 1f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessVeryLow
+                                    )
+                                )
+                            }
+                            launch {
+                                onAnimateSheet(
+                                    false,
+                                    spring(
+                                        dampingRatio = dynamicDamping,
+                                        stiffness = Spring.StiffnessLow
+                                    ),
+                                    verticalVelocity
+                                )
+                            }
+                            onCollapseSheetState()
+                        }
+                    }
                 }
-                launch {
-                    onAnimateSheet(
-                        false,
-                        spring(
-                            dampingRatio = dynamicDamping,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        verticalVelocity
-                    )
+            }
+        } else {
+            val targetState = resolveVerticalSheetTargetState(
+                currentSheetContentState = currentSheetStateProvider(),
+                verticalVelocity = verticalVelocity,
+                velocityThreshold = velocityThreshold,
+                currentFraction = currentFraction,
+                accumulatedDragY = accumulatedDragYSinceStart,
+                minDragThresholdPx = minDragThresholdPx
+            )
+
+            scope.launch {
+                if (targetState == PlayerSheetState.EXPANDED) {
+                    launch {
+                        visualOvershootScaleY.animateTo(
+                            targetValue = 1f,
+                            animationSpec = spring(
+                                dampingRatio = 0.78f,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
+                        )
+                    }
+                    launch {
+                        onAnimateSheet(
+                            true,
+                            spring(
+                                dampingRatio = 0.78f,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            verticalVelocity
+                        )
+                    }
+                    onExpandSheetState()
+                } else {
+                    val dynamicDamping = collapseSpringDampingForFraction(currentFraction)
+                    launch {
+                        val initialSquash = collapseInitialSquashForFraction(currentFraction)
+                        visualOvershootScaleY.snapTo(initialSquash)
+                        visualOvershootScaleY.animateTo(
+                            targetValue = 1f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessVeryLow
+                            )
+                        )
+                    }
+                    launch {
+                        onAnimateSheet(
+                            false,
+                            spring(
+                                dampingRatio = dynamicDamping,
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            verticalVelocity
+                        )
+                    }
+                    onCollapseSheetState()
+                    onCollapseLayerTwo()
                 }
-                onCollapseSheetState()
             }
         }
 
@@ -186,7 +374,7 @@ internal fun Modifier.playerSheetVerticalDragGesture(
     if (!enabled) return this
     return this.pointerInput(enabled, handler) {
         detectVerticalDragGestures(
-            onDragStart = { handler.onDragStart() },
+            onDragStart = { offset -> handler.onDragStart(offset) },
             onVerticalDrag = { change, dragAmount ->
                 change.consume()
                 handler.onVerticalDrag(

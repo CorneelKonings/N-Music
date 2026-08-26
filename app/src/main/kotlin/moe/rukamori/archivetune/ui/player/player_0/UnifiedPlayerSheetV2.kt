@@ -102,6 +102,8 @@ fun UnifiedPlayerSheetV2(
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val screenHeightDp = maxHeight
         val screenHeightPx = with(density) { screenHeightDp.toPx() }
+        val screenWidthDp = maxWidth
+        val screenWidthPx = with(density) { screenWidthDp.toPx() }
 
         val navigationBarsPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         val navigationBarsPx = with(density) { navigationBarsPadding.toPx() }
@@ -148,43 +150,15 @@ fun UnifiedPlayerSheetV2(
 
         val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
 
-        val layerTwoTransitionFraction = remember { Animatable(0f) }
+        val layerTwoFraction = remember { Animatable(0f) }
         LaunchedEffect(state.isLyricsVisible) {
-            layerTwoTransitionFraction.animateTo(
+            layerTwoFraction.animateTo(
                 targetValue = if (state.isLyricsVisible) 1f else 0f,
                 animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow)
             )
         }
 
-        var lyricsSwipeOffsetY by remember { mutableStateOf(0f) }
-
-        val layerTwoFractionProvider = {
-            val dragFraction = if (screenHeightPx > 0f) {
-                (lyricsSwipeOffsetY / (screenHeightPx * 0.35f)).coerceIn(0f, 1f)
-            } else 0f
-            layerTwoTransitionFraction.value * (1f - dragFraction)
-        }
-
-        var wasLyricsFullyOpened by remember { mutableStateOf(false) }
-
-        LaunchedEffect(state.isLyricsVisible) {
-            if (!state.isLyricsVisible) {
-                wasLyricsFullyOpened = false
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            snapshotFlow { layerTwoTransitionFraction.value }.collect { fraction ->
-                if (fraction > 0.8f && state.isLyricsVisible) {
-                    wasLyricsFullyOpened = true
-                }
-
-                if (wasLyricsFullyOpened && fraction < 0.2f && state.isLyricsVisible) {
-                    wasLyricsFullyOpened = false
-                    onCloseLyricsClick()
-                }
-            }
-        }
+        val layerTwoFractionProvider = { layerTwoFraction.value }
 
         LaunchedEffect(Unit) {
             snapshotFlow { expansionFraction.value }.collect { fraction ->
@@ -234,7 +208,7 @@ fun UnifiedPlayerSheetV2(
             initialOffsetY = 150f
         )
 
-        val dragHandler = remember(motionController, sheetVisualState) {
+        val dragHandler = remember(motionController, sheetVisualState, screenHeightPx, screenWidthPx) {
             SheetVerticalDragGestureHandler(
                 scope = scope,
                 velocityTracker = velocityTracker,
@@ -242,9 +216,12 @@ fun UnifiedPlayerSheetV2(
                 sheetMotionController = motionController,
                 playerContentExpansionFraction = expansionFraction,
                 currentSheetTranslationY = translationY,
+                layerTwoFraction = layerTwoFraction,
                 expandedYProvider = { expandedY },
                 collapsedYProvider = { collapsedY },
                 miniHeightPxProvider = { miniHeightPx },
+                screenHeightPxProvider = { screenHeightPx },
+                screenWidthPxProvider = { screenWidthPx },
                 currentSheetStateProvider = { currentSheetState },
                 visualOvershootScaleY = visualOvershootScaleY,
                 onDraggingChange = {},
@@ -259,12 +236,23 @@ fun UnifiedPlayerSheetV2(
                     )
                 },
                 onExpandSheetState = { currentSheetState = PlayerSheetState.EXPANDED },
-                onCollapseSheetState = { currentSheetState = PlayerSheetState.COLLAPSED }
+                onCollapseSheetState = { currentSheetState = PlayerSheetState.COLLAPSED },
+                onSelectLayerTwoPage = { targetPage ->
+                    scope.launch {
+                        pagerState.scrollToPage(targetPage)
+                    }
+                },
+                onExpandLayerTwo = {
+                    onAction(PlayerAction.Lyrics)
+                },
+                onCollapseLayerTwo = {
+                    onCloseLyricsClick()
+                }
             )
         }
 
         PlayerSheetPredictiveBackHandler(
-            enabled = currentSheetState == PlayerSheetState.EXPANDED && !state.isLyricsVisible,
+            enabled = currentSheetState == PlayerSheetState.EXPANDED && !state.isLyricsVisible && layerTwoFraction.value < 0.01f,
             currentSheetState = currentSheetState,
             predictiveBackFractionValue = predictiveBackProgress,
             onPredictiveBackFractionChanged = { predictiveBackProgress = it },
@@ -366,8 +354,6 @@ fun UnifiedPlayerSheetV2(
                     layerTwoFractionProvider = layerTwoFractionProvider,
                     progressMsProvider = progressMsProvider,
                     fullPlayerVisualState = fullPlayerVisualState,
-                    lyricsSwipeOffsetY = lyricsSwipeOffsetY,
-                    onLyricsSwipeOffsetChanged = { lyricsSwipeOffsetY = it },
                     onAction = onAction,
                     onCloseLyricsClick = onCloseLyricsClick,
                     onMoreLyricsClick = { isLyricsMenuVisible = true },

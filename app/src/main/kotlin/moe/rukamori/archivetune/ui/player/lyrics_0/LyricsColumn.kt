@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 
@@ -24,9 +22,7 @@ fun LyricsColumn(
     onAction: (PlayerAction) -> Unit,
     onLineClick: (Long) -> Unit,
     onSeek: (Float) -> Unit,
-    onSeekStarted: () -> Unit,
-    swipeOffsetY: Float,
-    onSwipeOffsetChange: (Float) -> Unit
+    onSeekStarted: () -> Unit
 ) {
     val lazyListState = rememberLazyListState()
 
@@ -36,18 +32,8 @@ fun LyricsColumn(
         }
     }
 
-    LaunchedEffect(state.isLyricsVisible) {
-        if (state.isLyricsVisible) {
-            onSwipeOffsetChange(0f)
-        }
-    }
-
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                translationY = swipeOffsetY
-            }
+        modifier = modifier.fillMaxSize()
     ) {
         LyricsContentCard(
             state = state,
