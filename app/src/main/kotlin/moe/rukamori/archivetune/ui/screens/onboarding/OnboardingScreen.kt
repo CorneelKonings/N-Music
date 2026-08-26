@@ -14,7 +14,6 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -29,10 +28,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,13 +40,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -72,14 +66,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -103,9 +94,12 @@ import moe.rukamori.archivetune.onboarding.OnboardingPermissionUiModel
 import moe.rukamori.archivetune.onboarding.OnboardingScreenState
 import moe.rukamori.archivetune.onboarding.OnboardingUiState
 import moe.rukamori.archivetune.onboarding.OnboardingViewModel
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.YumaSegmentPosition
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
+import moe.rukamori.archivetune.ui.theme.yumaSegmentPosition
 
 private val OnboardingContentMaxWidth = 540.dp
 private val OnboardingPagePadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
@@ -122,6 +116,41 @@ private fun rememberExpressiveShapes(): List<Shape> {
     val s2 = MaterialShapes.Ghostish.toShape()
     val s3 = MaterialShapes.Sunny.toShape()
     return remember(s0, s1, s2, s3) { listOf(s0, s1, s2, s3) }
+}
+
+private fun segmentedOnboardingItemShape(
+    index: Int,
+    count: Int,
+): Shape {
+    val large = SettingsDimensions.SegmentedCornerLarge
+    val small = SettingsDimensions.SegmentedCornerSmall
+    return when {
+        count <= 1 -> {
+            RoundedCornerShape(large)
+        }
+
+        index == 0 -> {
+            RoundedCornerShape(
+                topStart = large,
+                topEnd = large,
+                bottomEnd = small,
+                bottomStart = small,
+            )
+        }
+
+        index == count - 1 -> {
+            RoundedCornerShape(
+                topStart = small,
+                topEnd = small,
+                bottomEnd = large,
+                bottomStart = large,
+            )
+        }
+
+        else -> {
+            RoundedCornerShape(small)
+        }
+    }
 }
 
 @Composable
@@ -437,13 +466,19 @@ private fun GlassBottomNavigation(
                 enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
                 exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut(),
             ) {
-                Surface(
+                val backShape = RoundedCornerShape(16.dp)
+                val colors = LocalYumaColors.current
+                Box(
                     modifier =
                         Modifier
                             .yumaClickable(onClick = onBack)
-                            .border(1.dp, LocalYumaColors.current.glassBorder, RoundedCornerShape(16.dp)),
-                    shape = RoundedCornerShape(16.dp),
-                    color = LocalYumaColors.current.glassBackground,
+                            .yumaGlassCard(
+                                shape = backShape,
+                                backgroundColor = colors.glassBackground,
+                                borderColor = colors.glassBorder,
+                                strokeWidth = SettingsDimensions.GlassBorderThickness,
+                            )
+                            .clip(backShape),
                 ) {
                     Text(
                         text = stringResource(R.string.back_button_desc),
@@ -636,17 +671,25 @@ private fun OnboardingMetadataPills(uiState: OnboardingUiState) {
 
 @Composable
 private fun PassivePill(text: String) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = LocalYumaColors.current.glassBackground,
-        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.border(1.dp, LocalYumaColors.current.glassBorder, RoundedCornerShape(12.dp)),
+    val pillShape = RoundedCornerShape(12.dp)
+    val colors = LocalYumaColors.current
+    Box(
+        modifier =
+            Modifier
+                .yumaGlassCard(
+                    shape = pillShape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                    strokeWidth = SettingsDimensions.GlassBorderThickness,
+                )
+                .clip(pillShape),
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
             style = MaterialTheme.typography.labelLarge,
             fontFamily = GoogleSansFont,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -676,19 +719,22 @@ private fun PermissionsPage(
             )
         }
         item(key = "permissions_group", contentType = "permissions_group") {
+            val count = uiState.permissions.size
             Column(
                 modifier =
                     Modifier
                         .widthIn(max = OnboardingContentMaxWidth)
-                        .fillMaxWidth()
-                        .yumaGlassCard(shape = RoundedCornerShape(24.dp))
-                        .padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                        .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap),
             ) {
                 uiState.permissions.forEachIndexed { index, item ->
+                    val shape = remember(index, count) { segmentedOnboardingItemShape(index, count) }
+                    val position = remember(index, count) { yumaSegmentPosition(index, count) }
                     GlassPermissionRow(
                         permission = item,
                         iconShape = expressiveShapes[index % expressiveShapes.size],
+                        shape = shape,
+                        position = position,
                         onPermissionAction = onPermissionAction,
                     )
                 }
@@ -701,7 +747,10 @@ private fun PermissionsPage(
 private fun GlassPermissionRow(
     permission: OnboardingPermissionUiModel,
     iconShape: Shape,
+    shape: Shape,
+    position: YumaSegmentPosition,
     onPermissionAction: (OnboardingPermissionAction) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val action = permission.action
     val onClick =
@@ -712,15 +761,29 @@ private fun GlassPermissionRow(
                 }
             }
         }
+    val colors = LocalYumaColors.current
 
     Row(
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .clickable(enabled = action != null, onClick = onClick)
-                .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                .yumaClickable(
+                    enabled = action != null,
+                    onClick = onClick,
+                )
+                .yumaGlassCard(
+                    shape = shape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                    strokeWidth = SettingsDimensions.GlassBorderThickness,
+                    position = position,
+                )
+                .clip(shape)
+                .padding(
+                    horizontal = SettingsDimensions.SegmentedItemPaddingHorizontal,
+                    vertical = SettingsDimensions.SegmentedItemPaddingVertical,
+                ),
+        horizontalArrangement = Arrangement.spacedBy(SettingsDimensions.RowIconSpacing),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PermissionIcon(permission = permission, iconShape = iconShape)
@@ -733,7 +796,7 @@ private fun GlassPermissionRow(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
             )
-            Spacer(modifier = Modifier.height(3.dp))
+            Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedRowSpacing))
             Text(
                 text = stringResource(permission.descriptionResId),
                 style = MaterialTheme.typography.bodyMedium,
@@ -773,7 +836,7 @@ private fun PermissionIcon(
     Surface(
         shape = iconShape,
         color = containerColor,
-        modifier = Modifier.size(46.dp),
+        modifier = Modifier.size(SettingsDimensions.SegmentedIconBoxSize),
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
@@ -792,6 +855,7 @@ private fun PermissionStatusAction(
     onPermissionAction: (OnboardingPermissionAction) -> Unit,
 ) {
     val action = permission.action
+    val colors = LocalYumaColors.current
 
     if (action != null) {
         Surface(
@@ -811,10 +875,17 @@ private fun PermissionStatusAction(
             )
         }
     } else {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = LocalYumaColors.current.glassBackground,
-            border = BorderStroke(1.dp, LocalYumaColors.current.glassBorder),
+        val badgeShape = RoundedCornerShape(12.dp)
+        Box(
+            modifier =
+                Modifier
+                    .yumaGlassCard(
+                        shape = badgeShape,
+                        backgroundColor = colors.glassBackground,
+                        borderColor = colors.glassBorder,
+                        strokeWidth = SettingsDimensions.GlassBorderThickness,
+                    )
+                    .clip(badgeShape),
         ) {
             Text(
                 text = stringResource(permission.status.labelResId()),
@@ -850,19 +921,22 @@ private fun CommunityPage(
             )
         }
         item(key = "community_group", contentType = "community_group") {
+            val count = uiState.communityActions.size
             Column(
                 modifier =
                     Modifier
                         .widthIn(max = OnboardingContentMaxWidth)
-                        .fillMaxWidth()
-                        .yumaGlassCard(shape = RoundedCornerShape(24.dp))
-                        .padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                        .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(SettingsDimensions.SegmentedItemGap),
             ) {
                 uiState.communityActions.forEachIndexed { index, item ->
+                    val shape = remember(index, count) { segmentedOnboardingItemShape(index, count) }
+                    val position = remember(index, count) { yumaSegmentPosition(index, count) }
                     GlassCommunityRow(
                         action = item,
                         iconShape = expressiveShapes[index % expressiveShapes.size],
+                        shape = shape,
+                        position = position,
                         onCommunityAction = onCommunityAction,
                     )
                 }
@@ -875,20 +949,34 @@ private fun CommunityPage(
 private fun GlassCommunityRow(
     action: OnboardingCommunityActionUiModel,
     iconShape: Shape,
+    shape: Shape,
+    position: YumaSegmentPosition,
     onCommunityAction: (OnboardingCommunityActionUiModel) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    val colors = LocalYumaColors.current
     Row(
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .clickable { onCommunityAction(action) }
-                .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                .yumaClickable { onCommunityAction(action) }
+                .yumaGlassCard(
+                    shape = shape,
+                    backgroundColor = colors.glassBackground,
+                    borderColor = colors.glassBorder,
+                    strokeWidth = SettingsDimensions.GlassBorderThickness,
+                    position = position,
+                )
+                .clip(shape)
+                .padding(
+                    horizontal = SettingsDimensions.SegmentedItemPaddingHorizontal,
+                    vertical = SettingsDimensions.SegmentedItemPaddingVertical,
+                ),
+        horizontalArrangement = Arrangement.spacedBy(SettingsDimensions.RowIconSpacing),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Surface(
-            modifier = Modifier.size(46.dp),
+            modifier = Modifier.size(SettingsDimensions.SegmentedIconBoxSize),
             shape = iconShape,
             color = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -910,7 +998,7 @@ private fun GlassCommunityRow(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
             )
-            Spacer(modifier = Modifier.height(3.dp))
+            Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedRowSpacing))
             Text(
                 text = stringResource(action.descriptionResId),
                 style = MaterialTheme.typography.bodyMedium,
