@@ -624,7 +624,7 @@ private fun WelcomePage(
                         painter = painterResource(id = R.drawable.about_splash),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(130.dp),
+                        modifier = Modifier.size(150.dp),
                     )
                 }
 
@@ -1133,18 +1133,29 @@ private fun CustomizationPage(
     val (qobuzAppSecret, onQobuzAppSecretChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.QobuzAppSecretKey, "")
     val (qobuzUserAuthToken, onQobuzUserAuthTokenChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.QobuzUserAuthTokenKey, "")
 
+    val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+
+    LaunchedEffect(playbackSource) {
+        if (playbackSource == PlaybackSource.FLAC) {
+            lazyListState.animateScrollToItem(2)
+        }
+    }
+
     LazyColumn(
+        state = lazyListState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(key = page.id.name, contentType = "header") {
-            ExpressivePageHeader(
-                iconResId = page.iconResId,
-                titleResId = page.titleResId,
-                subtitleResId = page.subtitleResId,
-            )
+            Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                ExpressivePageHeader(
+                    iconResId = page.iconResId,
+                    titleResId = page.titleResId,
+                    subtitleResId = page.subtitleResId,
+                )
+            }
         }
 
         item(contentType = "customizationGroup") {
