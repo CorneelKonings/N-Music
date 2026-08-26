@@ -621,15 +621,10 @@ private fun WelcomePage(
                     }
 
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_launcher_monochromatic),
+                        painter = painterResource(id = R.drawable.about_splash),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .graphicsLayer {
-                                scaleX = 1.25f
-                                scaleY = 1.25f
-                            }
+                        modifier = Modifier.size(130.dp),
                     )
                 }
 
