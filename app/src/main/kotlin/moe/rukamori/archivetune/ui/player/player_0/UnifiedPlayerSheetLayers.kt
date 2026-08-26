@@ -93,6 +93,16 @@ internal fun UnifiedPlayerSheetLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .graphicsLayer {
+                    alpha = expansionFractionProvider()
+                }
+        ) {
+            moe.rukamori.archivetune.ui.player.player_0.PlayerBackgroundLayers(state = state)
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
                 .conditionalPlacement { expansionFractionProvider() < 0.99f }
                 .graphicsLayer {
                     val fraction = expansionFractionProvider()
@@ -297,7 +307,7 @@ private fun UnifiedLayerTwoHeader(
                 .height(40.dp)
                 .clip(barShape)
                 .background(containerColor)
-                .border(1.dp, borderColor, barShape),
+                .border(SettingsDimensions.GlassBorderThickness, borderColor, barShape),
             contentAlignment = Alignment.CenterStart
         ) {
             BoxWithConstraints(
