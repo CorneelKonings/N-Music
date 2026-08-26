@@ -100,6 +100,10 @@ class PlayerViewModelHandleActionTest {
             settingsRepository = settingsRepository,
             lyricsHelper = lyricsHelper
         ), recordPrivateCalls = true)
+        every { viewModel.refreshLyrics() } returns Unit
+        every { viewModel["prepareLyricsEditText"]() } returns Unit
+        every { viewModel["saveLyrics"](any<String>()) } returns Unit
+        every { viewModel["translateLyrics"](any<String>(), any<Boolean>()) } returns Unit
     }
 
     @After

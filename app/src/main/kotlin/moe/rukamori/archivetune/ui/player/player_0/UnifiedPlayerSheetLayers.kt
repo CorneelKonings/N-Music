@@ -14,10 +14,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Velocity
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.ui.player.lyrics_0.LyricsColumn
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
@@ -163,9 +168,40 @@ internal fun UnifiedPlayerSheetLayers(
                         )
                     }
                     1 -> {
+                        val nestedScrollConnection = remember {
+                            object : NestedScrollConnection {
+                                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                                    if (lyricsSwipeOffsetY > 0f && available.y < 0f) {
+                                        val newOffset = (lyricsSwipeOffsetY + available.y).coerceAtLeast(0f)
+                                        onLyricsSwipeOffsetChanged(newOffset)
+                                        return Offset(0f, available.y)
+                                    }
+                                    return Offset.Zero
+                                }
+
+                                override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                                    if (available.y > 0f) {
+                                        onLyricsSwipeOffsetChanged(lyricsSwipeOffsetY + available.y)
+                                        return Offset(0f, available.y)
+                                    }
+                                    return Offset.Zero
+                                }
+
+                                override suspend fun onPreFling(available: Velocity): Velocity {
+                                    if (lyricsSwipeOffsetY > 100f) {
+                                        onCloseLyricsClick()
+                                    } else {
+                                        onLyricsSwipeOffsetChanged(0f)
+                                    }
+                                    return super.onPreFling(available)
+                                }
+                            }
+                        }
+
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .nestedScroll(nestedScrollConnection)
                                 .graphicsLayer {
                                     translationY = lyricsSwipeOffsetY
                                 }
