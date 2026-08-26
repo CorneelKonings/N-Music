@@ -3,7 +3,6 @@
 package moe.rukamori.archivetune.ui.player.lyrics_0
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,11 +10,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -32,20 +28,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.constants.ShowLyricsPlayerControlsKey
 import moe.rukamori.archivetune.ui.component.LyricsEnhanced
@@ -72,208 +63,143 @@ fun LyricsContentCard(
     lazyListState: LazyListState = rememberLazyListState(),
     onLineClick: (Long) -> Unit = {},
 ) {
-    val context = LocalContext.current
-    val screenHeightPx = remember { context.resources.displayMetrics.heightPixels.toFloat() }
-
     val (showPlayerControls) = rememberPreference(ShowLyricsPlayerControlsKey, defaultValue = true)
 
-    val animatedDarkMuted by animateColorAsState(
-        targetValue = Color(state.darkMutedColor),
-        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
-        label = "LyricsBgAnimation",
-    )
-
-    val cardBackgroundBrush = remember(animatedDarkMuted) {
-        val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
-        val midColor = animatedDarkMuted
-        val endColor = Color(0xFF121212)
-
-        Brush.verticalGradient(
-            0.0f to startColor,
-            0.2f to midColor,
-            1.0f to endColor,
+    Box(modifier = modifier.fillMaxSize()) {
+        LyricsEnhanced(
+            sliderPositionProvider = progressMsProvider,
+            lyricsSyncOffset = state.lyricsSyncOffset,
+            textColorOverride = Color.White,
+            modifier = Modifier.fillMaxSize(),
         )
-    }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        Spacer(modifier = Modifier.height(120.dp))
+        if (showPlayerControls) {
+            val animatedAccentColor by animateColorAsState(
+                targetValue = Color(state.vibrantColor),
+                animationSpec = tween(500),
+                label = "LyricsTransportAccent",
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .graphicsLayer {
-                    translationY = screenHeightPx * (1f - animateProgressProvider())
-                }
-                .clipToBounds(),
-        ) {
             Box(
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 20.dp, vertical = 24.dp)
                     .fillMaxWidth()
-                    .fillMaxHeight()
                     .layout { measurable, constraints ->
-                        val borderPx = SettingsDimensions.GlassBorderThickness.roundToPx()
-                        val expandedConstraints = constraints.copy(
-                            minWidth = constraints.maxWidth + borderPx * 2,
-                            maxWidth = constraints.maxWidth + borderPx * 2,
-                            minHeight = constraints.maxHeight + borderPx,
-                            maxHeight = constraints.maxHeight + borderPx,
-                        )
-                        val placeable = measurable.measure(expandedConstraints)
-                        layout(constraints.maxWidth, constraints.maxHeight) {
-                            placeable.place(-borderPx, 0)
+                        val placeable = measurable.measure(constraints)
+                        if (animateProgressProvider() >= 0.05f) {
+                            layout(placeable.width, placeable.height) {
+                                placeable.placeRelative(0, 0)
+                            }
+                        } else {
+                            layout(0, 0) {}
                         }
                     }
+                    .graphicsLayer {
+                        val progress = animateProgressProvider()
+                        alpha = progress
+                        scaleX = 0.88f + (0.12f * progress)
+                        scaleY = 0.88f + (0.12f * progress)
+                        translationY = 40f * (1f - progress)
+                    }
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(animatedAccentColor.copy(alpha = 0.12f))
                     .glassBorder(
-                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                        shape = RoundedCornerShape(32.dp),
                         strokeWidth = SettingsDimensions.GlassBorderThickness,
-                        topAlpha = 0.20f,
-                        bottomAlpha = 0.04f,
+                        topAlpha = 0.18f,
+                        bottomAlpha = 0.08f,
+                        baseColor = animatedAccentColor,
                     )
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                    .background(
-                        if (state.isBlurBackgroundEnabled) {
-                            Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.2f), Color.Black.copy(alpha = 0.2f)))
-                        } else {
-                            cardBackgroundBrush
-                        }
-                    ),
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                LyricsEnhanced(
-                    sliderPositionProvider = progressMsProvider,
-                    lyricsSyncOffset = state.lyricsSyncOffset,
-                    textColorOverride = Color.White,
-                    modifier = Modifier.fillMaxSize(),
-                )
-
-                if (showPlayerControls) {
-                    val animatedAccentColor by animateColorAsState(
-                        targetValue = Color(state.vibrantColor),
-                        animationSpec = tween(500),
-                        label = "LyricsTransportAccent",
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    PlayerSeekBar(
+                        state = state,
+                        progressProvider = progressMsProvider,
+                        durationMs = state.durationMs,
+                        vibrantColor = Color(state.vibrantColor),
+                        slideOffset = { 1f },
+                        onSeek = onSeek,
+                        onSeekStarted = onSeekStarted,
                     )
 
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(horizontal = 20.dp, vertical = 24.dp)
                             .fillMaxWidth()
-                            .layout { measurable, constraints ->
-                                val placeable = measurable.measure(constraints)
-                                if (animateProgressProvider() >= 0.05f) {
-                                    layout(placeable.width, placeable.height) {
-                                        placeable.placeRelative(0, 0)
-                                    }
-                                } else {
-                                    layout(0, 0) {}
-                                }
-                            }
-                            .graphicsLayer {
-                                val progress = animateProgressProvider()
-                                alpha = progress
-                                scaleX = 0.88f + (0.12f * progress)
-                                scaleY = 0.88f + (0.12f * progress)
-                                translationY = 40f * (1f - progress)
-                            }
-                            .clip(RoundedCornerShape(32.dp))
-                            .background(animatedAccentColor.copy(alpha = 0.12f))
-                            .glassBorder(
-                                shape = RoundedCornerShape(32.dp),
-                                strokeWidth = SettingsDimensions.GlassBorderThickness,
-                                topAlpha = 0.18f,
-                                bottomAlpha = 0.08f,
-                                baseColor = animatedAccentColor,
-                            )
-                            .padding(vertical = 12.dp),
-                        contentAlignment = Alignment.Center,
+                            .padding(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        val playPauseIcon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
+
+                        Box(
+                            modifier = Modifier
+                                .bounceClick(pressedScale = 0.90f) {
+                                    onAction(PlayerAction.Previous)
+                                }
+                                .size(48.dp)
+                                .transparentIconShadow(alpha = 0.1f, shadowRadius = 15.dp)
+                                .clip(CircleShape),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            PlayerSeekBar(
-                                state = state,
-                                progressProvider = progressMsProvider,
-                                durationMs = state.durationMs,
-                                vibrantColor = Color(state.vibrantColor),
-                                slideOffset = { 1f },
-                                onSeek = onSeek,
-                                onSeekStarted = onSeekStarted,
+                            Image(
+                                painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
+                                contentDescription = "Previous Track",
+                                modifier = Modifier.size(36.dp),
+                                colorFilter = ColorFilter.tint(Color.White),
                             )
+                        }
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                val playPauseIcon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
-
-                                Box(
-                                    modifier = Modifier
-                                        .bounceClick(pressedScale = 0.90f) {
-                                            onAction(PlayerAction.Previous)
-                                        }
-                                        .size(48.dp)
-                                        .transparentIconShadow(alpha = 0.1f, shadowRadius = 15.dp)
-                                        .clip(CircleShape),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Image(
-                                        painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
-                                        contentDescription = "Previous Track",
-                                        modifier = Modifier.size(36.dp),
-                                        colorFilter = ColorFilter.tint(Color.White),
-                                    )
+                        Box(
+                            modifier = Modifier
+                                .bounceClick(pressedScale = 0.92f) {
+                                    if (!state.isLoading) onAction(PlayerAction.PlayPause)
                                 }
-
-                                Box(
-                                    modifier = Modifier
-                                        .bounceClick(pressedScale = 0.92f) {
-                                            if (!state.isLoading) onAction(PlayerAction.PlayPause)
-                                        }
-                                        .size(68.dp)
-                                        .clip(CircleShape)
-                                        .drawBehind {
-                                            drawCircle(animatedAccentColor)
-                                        },
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    if (state.isLoading) {
-                                        CircularWavyProgressIndicator(
-                                            modifier = Modifier.size(42.dp),
-                                            color = Color(0xFF121212),
-                                        )
-                                    } else {
-                                        Image(
-                                            painter = rememberVectorPainter(playPauseIcon),
-                                            contentDescription = "Play/Pause",
-                                            modifier = Modifier.size(48.dp),
-                                            colorFilter = ColorFilter.tint(Color(0xFF121212)),
-                                        )
-                                    }
+                                .size(68.dp)
+                                .clip(CircleShape)
+                                .drawBehind {
+                                    drawCircle(animatedAccentColor)
                                 }
-
-                                Box(
-                                    modifier = Modifier
-                                        .bounceClick(pressedScale = 0.90f) {
-                                            onAction(PlayerAction.Next)
-                                        }
-                                        .size(48.dp)
-                                        .transparentIconShadow(alpha = 0.1f, shadowRadius = 15.dp)
-                                        .clip(CircleShape),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Image(
-                                        painter = rememberVectorPainter(Icons.Rounded.SkipNext),
-                                        contentDescription = "Next Track",
-                                        modifier = Modifier.size(36.dp),
-                                        colorFilter = ColorFilter.tint(Color.White),
-                                    )
-                                }
+                                .padding(0.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (state.isLoading) {
+                                CircularWavyProgressIndicator(
+                                    modifier = Modifier.size(42.dp),
+                                    color = Color(0xFF121212),
+                                )
+                            } else {
+                                Image(
+                                    painter = rememberVectorPainter(playPauseIcon),
+                                    contentDescription = "Play/Pause",
+                                    modifier = Modifier.size(48.dp),
+                                    colorFilter = ColorFilter.tint(Color(0xFF121212)),
+                                )
                             }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .bounceClick(pressedScale = 0.90f) {
+                                    onAction(PlayerAction.Next)
+                                }
+                                .size(48.dp)
+                                .transparentIconShadow(alpha = 0.1f, shadowRadius = 15.dp)
+                                .clip(CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Image(
+                                painter = rememberVectorPainter(Icons.Rounded.SkipNext),
+                                contentDescription = "Next Track",
+                                modifier = Modifier.size(36.dp),
+                                colorFilter = ColorFilter.tint(Color.White),
+                            )
                         }
                     }
                 }
