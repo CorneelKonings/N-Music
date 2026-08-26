@@ -17,7 +17,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import moe.rukamori.archivetune.BuildConfig
-import moe.rukamori.archivetune.constants.LaunchCountKey
 import moe.rukamori.archivetune.constants.OnboardingCompletedKey
 import moe.rukamori.archivetune.utils.dataStore
 import javax.inject.Inject
@@ -29,8 +28,7 @@ class OnboardingRepository
     ) {
         fun observeShouldShowOnboarding(): Flow<Boolean> =
             context.dataStore.data.map { preferences ->
-                preferences[OnboardingCompletedKey] != true &&
-                    (preferences[LaunchCountKey] ?: 0) <= 0
+                preferences[OnboardingCompletedKey] != true
             }
 
         fun currentPermissions(): ImmutableList<OnboardingPermissionData> =

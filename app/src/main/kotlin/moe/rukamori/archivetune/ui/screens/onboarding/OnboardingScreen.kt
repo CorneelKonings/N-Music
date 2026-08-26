@@ -58,7 +58,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialShapes
@@ -78,6 +77,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -116,7 +116,7 @@ private val GoogleSansFont = FontFamily(
 )
 
 @Composable
-private fun getM3ExpressiveShape(index: Int) =
+private fun rememberExpressiveShape(index: Int): Shape =
     when (index % 4) {
         0 -> MaterialShapes.Cookie4Sided.toShape()
         1 -> MaterialShapes.Clover4Leaf.toShape()
@@ -290,7 +290,6 @@ private fun MessageContent(
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                     ),
                 shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.yumaClickable(onClick = onAction),
             ) {
                 Text(
                     text = actionLabel,
@@ -334,6 +333,8 @@ private fun OnboardingSuccessContent(
         HorizontalPager(
             state = pagerState,
             userScrollEnabled = false,
+            beyondViewportPageCount = 1,
+            key = { pageIndex -> uiState.pages[pageIndex].id },
             modifier = Modifier.weight(1f),
         ) { pageIndex ->
             when (uiState.pages[pageIndex].id) {
@@ -666,6 +667,7 @@ private fun PermissionsPage(
                         .fillMaxWidth()
                         .yumaGlassCard(shape = RoundedCornerShape(24.dp))
                         .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 uiState.permissions.forEachIndexed { index, item ->
                     GlassPermissionRow(
@@ -673,12 +675,6 @@ private fun PermissionsPage(
                         index = index,
                         onPermissionAction = onPermissionAction,
                     )
-                    if (index < uiState.permissions.lastIndex) {
-                        HorizontalDivider(
-                            color = LocalYumaColors.current.glassBorder.copy(alpha = 0.5f),
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                        )
-                    }
                 }
             }
         }
@@ -758,8 +754,10 @@ private fun PermissionIcon(
             OnboardingPermissionStatus.UNAVAILABLE -> MaterialTheme.colorScheme.onSurfaceVariant
         }
 
+    val iconShape = rememberExpressiveShape(index)
+
     Surface(
-        shape = getM3ExpressiveShape(index),
+        shape = iconShape,
         color = containerColor,
         modifier = Modifier.size(46.dp),
     ) {
@@ -844,6 +842,7 @@ private fun CommunityPage(
                         .fillMaxWidth()
                         .yumaGlassCard(shape = RoundedCornerShape(24.dp))
                         .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 uiState.communityActions.forEachIndexed { index, item ->
                     GlassCommunityRow(
@@ -851,12 +850,6 @@ private fun CommunityPage(
                         index = index,
                         onCommunityAction = onCommunityAction,
                     )
-                    if (index < uiState.communityActions.lastIndex) {
-                        HorizontalDivider(
-                            color = LocalYumaColors.current.glassBorder.copy(alpha = 0.5f),
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                        )
-                    }
                 }
             }
         }
@@ -869,6 +862,8 @@ private fun GlassCommunityRow(
     index: Int,
     onCommunityAction: (OnboardingCommunityActionUiModel) -> Unit,
 ) {
+    val iconShape = rememberExpressiveShape(index)
+
     Row(
         modifier =
             Modifier
@@ -881,7 +876,7 @@ private fun GlassCommunityRow(
     ) {
         Surface(
             modifier = Modifier.size(46.dp),
-            shape = getM3ExpressiveShape(index),
+            shape = iconShape,
             color = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         ) {
@@ -925,6 +920,8 @@ private fun ExpressivePageHeader(
     titleResId: Int,
     subtitleResId: Int,
 ) {
+    val headerShape = MaterialShapes.Cookie9Sided.toShape()
+
     Column(
         modifier =
             Modifier
@@ -936,7 +933,7 @@ private fun ExpressivePageHeader(
     ) {
         Surface(
             modifier = Modifier.size(64.dp),
-            shape = MaterialShapes.Cookie9Sided.toShape(),
+            shape = headerShape,
             color = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         ) {

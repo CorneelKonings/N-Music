@@ -861,17 +861,29 @@ class MainActivity : ComponentActivity() {
             ) {
                 val onboardingViewModel: OnboardingViewModel = hiltViewModel()
                 val onboardingState by onboardingViewModel.screenState.collectAsStateWithLifecycle()
-                val shouldShowOnboarding =
-                    when (val state = onboardingState) {
-                        OnboardingScreenState.Loading -> false
-                        OnboardingScreenState.Empty -> true
-                        is OnboardingScreenState.Error -> false
-                        is OnboardingScreenState.Success -> state.uiState.shouldShowOnboarding
+
+                when (val state = onboardingState) {
+                    OnboardingScreenState.Loading -> {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
+                                    ),
+                        )
+                        return@ArchiveTuneTheme
                     }
 
-                if (shouldShowOnboarding) {
-                    OnboardingRoute(viewModel = onboardingViewModel)
-                    return@ArchiveTuneTheme
+                    is OnboardingScreenState.Success -> {
+                        if (state.uiState.shouldShowOnboarding) {
+                            OnboardingRoute(viewModel = onboardingViewModel)
+                            return@ArchiveTuneTheme
+                        }
+                    }
+
+                    OnboardingScreenState.Empty, is OnboardingScreenState.Error -> {
+                    }
                 }
 
                 BoxWithConstraints(
