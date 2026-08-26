@@ -32,6 +32,8 @@ sealed interface PlayerAction {
     object Shuffle : PlayerAction
     object Repeat : PlayerAction
     object Share : PlayerAction
+    data class PlayQueueItem(val index: Int) : PlayerAction
+    data class RemoveQueueItem(val index: Int) : PlayerAction
     // Перемотка трека
     data class SeekTo(val positionMs: Long) : PlayerAction
 

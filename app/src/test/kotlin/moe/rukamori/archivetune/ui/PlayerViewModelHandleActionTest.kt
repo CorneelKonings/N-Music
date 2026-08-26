@@ -30,6 +30,9 @@ import moe.rukamori.archivetune.data.repository.SettingsRepository
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.models.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.common.Timeline
+import moe.rukamori.archivetune.ui.state.QueueUiState
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -44,6 +47,9 @@ class PlayerViewModelHandleActionTest {
     private lateinit var lyricsHelper: LyricsHelper
     private lateinit var database: MusicDatabase
     private lateinit var connectionHolder: PlayerConnectionHolder
+    private lateinit var audioPlayer: Player
+    private val queueWindowsFlow = MutableStateFlow<List<Timeline.Window>>(emptyList())
+    private val currentWindowIndexFlow = MutableStateFlow(-1)
 
     @Before
     fun setup() {
@@ -58,9 +64,13 @@ class PlayerViewModelHandleActionTest {
         val application = mockk<Application>(relaxed = true)
         lyricsHelper = mockk(relaxed = true)
         database = mockk(relaxed = true)
+        audioPlayer = mockk(relaxed = true)
         
         val playerConnection = mockk<PlayerConnection>(relaxed = true)
         every { playerConnection.database } returns database
+        every { playerConnection.player } returns audioPlayer
+        every { playerConnection.queueWindows } returns queueWindowsFlow
+        every { playerConnection.currentWindowIndex } returns currentWindowIndexFlow
         
         val metadataFlow = MutableStateFlow<MediaMetadata?>(
             MediaMetadata(
@@ -135,5 +145,28 @@ class PlayerViewModelHandleActionTest {
         // Act & Assert: TranslateLyrics
         viewModel.handleAction(PlayerAction.TranslateLyrics("RU", false))
         verify { viewModel["translateLyrics"]("RU", false) }
+    }
+
+    @Test
+    fun `handleAction routes queue actions correctly`() = runTest {
+        viewModel.handleAction(PlayerAction.PlayQueueItem(3))
+        verify { audioPlayer.seekToDefaultPosition(3) }
+
+        viewModel.handleAction(PlayerAction.RemoveQueueItem(2))
+        verify { audioPlayer.removeMediaItem(2) }
+    }
+
+    @Test
+    fun `queueState reflects playerConnection queueWindows and currentWindowIndex`() = runTest {
+        val window1 = Timeline.Window()
+        val window2 = Timeline.Window()
+        val windows = listOf(window1, window2)
+
+        queueWindowsFlow.value = windows
+        currentWindowIndexFlow.value = 1
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(2, viewModel.queueState.value.queueWindows.size)
+        assertEquals(1, viewModel.queueState.value.currentWindowIndex)
     }
 }

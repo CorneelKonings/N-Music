@@ -25,6 +25,7 @@ import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.lyrics.LyricsEntry
 import moe.rukamori.archivetune.ui.state.PlayerEvent
 import moe.rukamori.archivetune.ui.state.PlayerUiState
+import moe.rukamori.archivetune.ui.state.QueueUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
 import moe.rukamori.archivetune.ui.theme.extractSeedColor
 import moe.rukamori.archivetune.ui.theme.generateDarkColorSchemeFromSeed
@@ -38,8 +39,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -102,6 +105,9 @@ class PlayerViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
+
+    private val _queueState = MutableStateFlow(QueueUiState())
+    val queueState: StateFlow<QueueUiState> = _queueState.asStateFlow()
 
 
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.NoUpdate)
@@ -332,6 +338,28 @@ class PlayerViewModel @Inject constructor(
                 }
             }
         }
+
+        viewModelScope.launch {
+            connectionHolder.connection
+                .flatMapLatest { connection ->
+                    if (connection != null) {
+                        combine(
+                            connection.queueWindows,
+                            connection.currentWindowIndex
+                        ) { windows, index ->
+                            QueueUiState(
+                                queueWindows = windows,
+                                currentWindowIndex = index
+                            )
+                        }
+                    } else {
+                        flowOf(QueueUiState())
+                    }
+                }
+                .collect { state ->
+                    _queueState.value = state
+                }
+        }
     }
 
     // ==========================================
@@ -342,6 +370,8 @@ class PlayerViewModel @Inject constructor(
             is PlayerAction.PlayPause -> togglePlayPause()
             is PlayerAction.Next, is PlayerAction.SkipNext -> playNext()
             is PlayerAction.Previous, is PlayerAction.SkipPrevious -> playPrevious()
+            is PlayerAction.PlayQueueItem -> audioPlayer?.seekToDefaultPosition(action.index)
+            is PlayerAction.RemoveQueueItem -> audioPlayer?.removeMediaItem(action.index)
             is PlayerAction.Like, is PlayerAction.ToggleLike -> toggleLike()
             is PlayerAction.Shuffle -> toggleShuffle()
             is PlayerAction.Repeat -> toggleRepeat()
