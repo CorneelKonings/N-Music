@@ -1224,54 +1224,20 @@ private fun CustomizationPage(
                 moe.rukamori.archivetune.ui.component.PreferenceGroup(
                     modifier = Modifier.widthIn(max = OnboardingContentMaxWidth).fillMaxWidth()
                 ) {
-                    item {
-                        moe.rukamori.archivetune.ui.component.EditTextPreference(
-                            title = { Text(stringResource(R.string.squid_captcha_cookie)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = squidCaptchaCookie,
-                            onValueChange = onSquidCaptchaCookieChange,
-                        )
-                    }
-                    item {
-                        moe.rukamori.archivetune.ui.component.EditTextPreference(
-                            title = { Text(stringResource(R.string.arcod_stash_key)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = arcodStashKey,
-                            onValueChange = onArcodStashKeyChange,
-                        )
-                    }
-                    item {
-                        moe.rukamori.archivetune.ui.component.EditTextPreference(
-                            title = { Text(stringResource(R.string.arcod_bearer_token)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = arcodBearerToken,
-                            onValueChange = onArcodBearerTokenChange,
-                        )
-                    }
-                    item {
-                        moe.rukamori.archivetune.ui.component.EditTextPreference(
-                            title = { Text(stringResource(R.string.qobuz_app_id)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = qobuzAppId,
-                            onValueChange = onQobuzAppIdChange,
-                        )
-                    }
-                    item {
-                        moe.rukamori.archivetune.ui.component.EditTextPreference(
-                            title = { Text(stringResource(R.string.qobuz_app_secret)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = qobuzAppSecret,
-                            onValueChange = onQobuzAppSecretChange,
-                        )
-                    }
-                    item {
-                        moe.rukamori.archivetune.ui.component.EditTextPreference(
-                            title = { Text(stringResource(R.string.qobuz_user_auth_token)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = qobuzUserAuthToken,
-                            onValueChange = onQobuzUserAuthTokenChange,
-                        )
-                    }
+                    FlacTokenInputs(
+                        squidCaptchaCookie = squidCaptchaCookie,
+                        onSquidCaptchaCookieChange = onSquidCaptchaCookieChange,
+                        arcodStashKey = arcodStashKey,
+                        onArcodStashKeyChange = onArcodStashKeyChange,
+                        arcodBearerToken = arcodBearerToken,
+                        onArcodBearerTokenChange = onArcodBearerTokenChange,
+                        qobuzAppId = qobuzAppId,
+                        onQobuzAppIdChange = onQobuzAppIdChange,
+                        qobuzAppSecret = qobuzAppSecret,
+                        onQobuzAppSecretChange = onQobuzAppSecretChange,
+                        qobuzUserAuthToken = qobuzUserAuthToken,
+                        onQobuzUserAuthTokenChange = onQobuzUserAuthTokenChange,
+                    )
                 }
             }
         }
