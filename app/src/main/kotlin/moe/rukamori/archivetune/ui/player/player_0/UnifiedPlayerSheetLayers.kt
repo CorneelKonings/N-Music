@@ -139,7 +139,6 @@ internal fun UnifiedPlayerSheetLayers(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .conditionalPlacement { layerTwoFractionProvider() >= 0.005f }
                 .graphicsLayer {
                     val fraction = layerTwoFractionProvider()
                     alpha = fraction
