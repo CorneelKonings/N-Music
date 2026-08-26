@@ -303,18 +303,9 @@ fun AppearanceSettings(navController: NavController) {
                 }
 
                 item {
-                    EnumListPreference(
-                        title = { Text(stringResource(R.string.dark_theme)) },
-                        icon = { Icon(painterResource(R.drawable.dark_mode), null, modifier = Modifier.size(24.dp)) },
-                        selectedValue = darkMode,
-                        onValueSelected = onDarkModeChange,
-                        valueText = {
-                            when (it) {
-                                DarkMode.ON -> stringResource(R.string.dark_theme_on)
-                                DarkMode.OFF -> stringResource(R.string.dark_theme_off)
-                                DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
-                            }
-                        },
+                    DarkModeSelector(
+                        darkMode = darkMode,
+                        onDarkModeChange = onDarkModeChange
                     )
                 }
 
@@ -338,23 +329,9 @@ fun AppearanceSettings(navController: NavController) {
                 }
 
                 item {
-                    EnumListPreference(
-                        title = { Text(stringResource(R.string.home_background)) },
-                        icon = { Icon(painterResource(R.drawable.image), null, modifier = Modifier.size(24.dp)) },
-                        selectedValue = homeBackgroundStyle,
-                        onValueSelected = onHomeBackgroundStyleChange,
-                        valueText = {
-                            when (it) {
-                                HomeBackgroundStyle.TONAL -> stringResource(R.string.home_background_tonal)
-                                HomeBackgroundStyle.CIRCLES -> stringResource(R.string.home_background_circles)
-                                HomeBackgroundStyle.RINGS -> stringResource(R.string.home_background_rings)
-                                HomeBackgroundStyle.MESH -> stringResource(R.string.home_background_mesh)
-                                HomeBackgroundStyle.GRID -> stringResource(R.string.home_background_grid)
-                                HomeBackgroundStyle.PARTICLES -> stringResource(R.string.home_background_particles)
-                                HomeBackgroundStyle.SNOW -> stringResource(R.string.home_background_snow)
-                                HomeBackgroundStyle.SPACE -> stringResource(R.string.home_background_space)
-                            }
-                        },
+                    HomeBackgroundSelector(
+                        homeBackgroundStyle = homeBackgroundStyle,
+                        onHomeBackgroundStyleChange = onHomeBackgroundStyleChange
                     )
                 }
 
@@ -677,4 +654,49 @@ private fun AppearanceSettingsPreview() {
     TestThemeWrapper {
         AppearanceSettings(navController = rememberNavController())
     }
+}
+
+@Composable
+fun DarkModeSelector(
+    darkMode: DarkMode,
+    onDarkModeChange: (DarkMode) -> Unit
+) {
+    EnumListPreference(
+        title = { Text(stringResource(R.string.dark_theme)) },
+        icon = { Icon(painterResource(R.drawable.dark_mode), null, modifier = Modifier.size(24.dp)) },
+        selectedValue = darkMode,
+        onValueSelected = onDarkModeChange,
+        valueText = {
+            when (it) {
+                DarkMode.ON -> stringResource(R.string.dark_theme_on)
+                DarkMode.OFF -> stringResource(R.string.dark_theme_off)
+                DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
+            }
+        },
+    )
+}
+
+@Composable
+fun HomeBackgroundSelector(
+    homeBackgroundStyle: HomeBackgroundStyle,
+    onHomeBackgroundStyleChange: (HomeBackgroundStyle) -> Unit
+) {
+    EnumListPreference(
+        title = { Text(stringResource(R.string.home_background)) },
+        icon = { Icon(painterResource(R.drawable.image), null, modifier = Modifier.size(24.dp)) },
+        selectedValue = homeBackgroundStyle,
+        onValueSelected = onHomeBackgroundStyleChange,
+        valueText = {
+            when (it) {
+                HomeBackgroundStyle.TONAL -> stringResource(R.string.home_background_tonal)
+                HomeBackgroundStyle.CIRCLES -> stringResource(R.string.home_background_circles)
+                HomeBackgroundStyle.RINGS -> stringResource(R.string.home_background_rings)
+                HomeBackgroundStyle.MESH -> stringResource(R.string.home_background_mesh)
+                HomeBackgroundStyle.GRID -> stringResource(R.string.home_background_grid)
+                HomeBackgroundStyle.PARTICLES -> stringResource(R.string.home_background_particles)
+                HomeBackgroundStyle.SNOW -> stringResource(R.string.home_background_snow)
+                HomeBackgroundStyle.SPACE -> stringResource(R.string.home_background_space)
+            }
+        },
+    )
 }

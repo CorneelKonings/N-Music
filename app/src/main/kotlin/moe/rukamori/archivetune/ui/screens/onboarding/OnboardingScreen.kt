@@ -93,7 +93,11 @@ import moe.rukamori.archivetune.onboarding.OnboardingPermissionStatus
 import moe.rukamori.archivetune.onboarding.OnboardingPermissionUiModel
 import moe.rukamori.archivetune.onboarding.OnboardingScreenState
 import moe.rukamori.archivetune.onboarding.OnboardingUiState
+import moe.rukamori.archivetune.ui.screens.settings.DarkMode
+import moe.rukamori.archivetune.constants.HomeBackgroundStyle
+import moe.rukamori.archivetune.constants.PlaybackSource
 import moe.rukamori.archivetune.onboarding.OnboardingViewModel
+import moe.rukamori.archivetune.ui.screens.settings.FlacTokenInputs
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.YumaSegmentPosition
@@ -379,6 +383,13 @@ private fun OnboardingSuccessContent(
                         uiState = uiState,
                         pageIndex = pageIndex,
                         onPermissionAction = onPermissionAction,
+                    )
+                }
+
+                OnboardingPageId.CUSTOMIZATION -> {
+                    CustomizationPage(
+                        uiState = uiState,
+                        pageIndex = pageIndex,
                     )
                 }
 
@@ -1071,3 +1082,127 @@ private fun OnboardingPermissionStatus.labelResId(): Int =
         OnboardingPermissionStatus.ALLOWED_BY_INSTALL -> R.string.onboarding_permission_allowed_by_install
         OnboardingPermissionStatus.UNAVAILABLE -> R.string.onboarding_permission_unavailable
     }
+
+@Composable
+private fun CustomizationPage(
+    uiState: OnboardingUiState,
+    pageIndex: Int,
+) {
+    val page = uiState.pages[pageIndex]
+
+    val (darkMode, onDarkModeChange) = moe.rukamori.archivetune.utils.rememberEnumPreference<DarkMode>(moe.rukamori.archivetune.constants.DarkModeKey, defaultValue = DarkMode.AUTO)
+    val (homeBackgroundStyle, onHomeBackgroundStyleChange) = moe.rukamori.archivetune.utils.rememberEnumPreference<HomeBackgroundStyle>(moe.rukamori.archivetune.constants.HomeBackgroundStyleKey, defaultValue = HomeBackgroundStyle.TONAL)
+    
+    val (useSpotifyHome, onUseSpotifyHomeChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.UseSpotifyHomeKey, false)
+
+    val (playbackSource, onPlaybackSourceChange) = moe.rukamori.archivetune.utils.rememberEnumPreference<PlaybackSource>(
+        moe.rukamori.archivetune.constants.PlaybackSourceKey,
+        defaultValue = PlaybackSource.YT_MUSIC,
+    )
+    val (enableLossless, onEnableLosslessChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.EnableLosslessKey, defaultValue = false)
+
+    val (squidCaptchaCookie, onSquidCaptchaCookieChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.SquidCaptchaCookieKey, "")
+    val (arcodStashKey, onArcodStashKeyChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.ArcodStashKeyKey, "")
+    val (arcodBearerToken, onArcodBearerTokenChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.ArcodBearerTokenKey, "")
+    val (qobuzAppId, onQobuzAppIdChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.QobuzAppIdKey, "")
+    val (qobuzAppSecret, onQobuzAppSecretChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.QobuzAppSecretKey, "")
+    val (qobuzUserAuthToken, onQobuzUserAuthTokenChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.QobuzUserAuthTokenKey, "")
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = OnboardingPagePadding,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        item(key = page.id.name, contentType = "header") {
+            ExpressivePageHeader(
+                iconResId = page.iconResId,
+                titleResId = page.titleResId,
+                subtitleResId = page.subtitleResId,
+            )
+        }
+
+        item(contentType = "spotifyHome") {
+            moe.rukamori.archivetune.ui.screens.settings.ExpressiveSegmentedRow(
+                icon = painterResource(if (useSpotifyHome) R.drawable.spotify_icon else R.drawable.yt_music_icon),
+                title = stringResource(R.string.home_screen_provider),
+                subtitle = stringResource(R.string.home_screen_provider_desc),
+                selectedValue = useSpotifyHome,
+                onValueSelected = onUseSpotifyHomeChange
+            )
+        }
+
+        item(contentType = "darkMode") {
+            moe.rukamori.archivetune.ui.screens.settings.DarkModeSelector(
+                darkMode = darkMode,
+                onDarkModeChange = onDarkModeChange
+            )
+        }
+
+        item(contentType = "homeBackground") {
+            moe.rukamori.archivetune.ui.screens.settings.HomeBackgroundSelector(
+                homeBackgroundStyle = homeBackgroundStyle,
+                onHomeBackgroundStyleChange = onHomeBackgroundStyleChange
+            )
+        }
+
+        item(contentType = "playbackSource") {
+            moe.rukamori.archivetune.ui.screens.settings.PlaybackSourceSelector(
+                playbackSource = playbackSource,
+                onPlaybackSourceChange = onPlaybackSourceChange,
+                onEnableLosslessChange = onEnableLosslessChange
+            )
+        }
+
+        if (playbackSource == PlaybackSource.FLAC) {
+            item(contentType = "flacToken1") {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.squid_captcha_cookie)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = squidCaptchaCookie,
+                    onValueChange = onSquidCaptchaCookieChange,
+                )
+            }
+            item(contentType = "flacToken2") {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.arcod_stash_key)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = arcodStashKey,
+                    onValueChange = onArcodStashKeyChange,
+                )
+            }
+            item(contentType = "flacToken3") {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.arcod_bearer_token)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = arcodBearerToken,
+                    onValueChange = onArcodBearerTokenChange,
+                )
+            }
+            item(contentType = "flacToken4") {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.qobuz_app_id)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = qobuzAppId,
+                    onValueChange = onQobuzAppIdChange,
+                )
+            }
+            item(contentType = "flacToken5") {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.qobuz_app_secret)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = qobuzAppSecret,
+                    onValueChange = onQobuzAppSecretChange,
+                )
+            }
+            item(contentType = "flacToken6") {
+                moe.rukamori.archivetune.ui.component.EditTextPreference(
+                    title = { Text(stringResource(R.string.qobuz_user_auth_token)) },
+                    icon = { Icon(painterResource(R.drawable.lock), null) },
+                    value = qobuzUserAuthToken,
+                    onValueChange = onQobuzUserAuthTokenChange,
+                )
+            }
+        }
+    }
+}

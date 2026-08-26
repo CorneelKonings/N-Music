@@ -989,7 +989,7 @@ fun AccountSettings(
 }
 
 @Composable
-private fun ProfileIdentityCard(
+fun ProfileIdentityCard(
     modifier: Modifier = Modifier,
     isLoggedIn: Boolean,
     accountName: String,
@@ -1555,7 +1555,7 @@ private fun UpdateBannerStrip(
 
 
 @Composable
-private fun ExpressiveSegmentedRow(
+fun ExpressiveSegmentedRow(
     icon: Painter,
     title: String,
     subtitle: String? = null,
@@ -1720,7 +1720,7 @@ private fun ExpressiveSegmentedRow(
 }
 
 @Composable
-private fun ExpressiveRowIcon(
+fun ExpressiveRowIcon(
     icon: Painter,
     title: String,
     tint: Color,
@@ -1780,7 +1780,7 @@ private fun VersionStamp(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun TokenEditorDialog(
+fun TokenEditorDialog(
     innerTubeCookie: String,
     visitorData: String,
     dataSyncId: String,

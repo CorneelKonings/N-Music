@@ -62,6 +62,7 @@ import moe.rukamori.archivetune.ui.component.PreferenceEntry
 import moe.rukamori.archivetune.ui.component.PreferenceGroup
 import moe.rukamori.archivetune.ui.component.SwitchPreference
 import moe.rukamori.archivetune.ui.component.IconButton
+import moe.rukamori.archivetune.ui.component.PreferenceGroupScope
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.TestThemeWrapper
 import moe.rukamori.archivetune.ui.theme.ThemePreviews
@@ -198,20 +199,10 @@ fun PlayerSettings(navController: NavController) {
         ) {
             PreferenceGroup(title = stringResource(R.string.lossless_integration)) {
                 item {
-                    EnumListPreference(
-                        title = { Text(stringResource(R.string.playback_source)) },
-                        icon = { Icon(painterResource(R.drawable.album), null) },
-                        selectedValue = playbackSource,
-                        onValueSelected = { 
-                            onPlaybackSourceChange(it)
-                            onEnableLosslessChange(it == PlaybackSource.FLAC)
-                        },
-                        valueText = { source ->
-                            when (source) {
-                                PlaybackSource.YT_MUSIC -> stringResource(R.string.source_yt_music)
-                                PlaybackSource.FLAC -> stringResource(R.string.source_flac)
-                            }
-                        },
+                    PlaybackSourceSelector(
+                        playbackSource = playbackSource,
+                        onPlaybackSourceChange = onPlaybackSourceChange,
+                        onEnableLosslessChange = onEnableLosslessChange
                     )
                 }
                 if (playbackSource == PlaybackSource.FLAC) {
@@ -261,54 +252,20 @@ fun PlayerSettings(navController: NavController) {
                             onClick = { folderPickerLauncher.launch(null) },
                         )
                     }
-                    item {
-                        EditTextPreference(
-                            title = { Text(stringResource(R.string.squid_captcha_cookie)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = squidCaptchaCookie,
-                            onValueChange = onSquidCaptchaCookieChange,
-                        )
-                    }
-                    item {
-                        EditTextPreference(
-                            title = { Text(stringResource(R.string.arcod_stash_key)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = arcodStashKey,
-                            onValueChange = onArcodStashKeyChange,
-                        )
-                    }
-                    item {
-                        EditTextPreference(
-                            title = { Text(stringResource(R.string.arcod_bearer_token)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = arcodBearerToken,
-                            onValueChange = onArcodBearerTokenChange,
-                        )
-                    }
-                    item {
-                        EditTextPreference(
-                            title = { Text(stringResource(R.string.qobuz_app_id)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = qobuzAppId,
-                            onValueChange = onQobuzAppIdChange,
-                        )
-                    }
-                    item {
-                        EditTextPreference(
-                            title = { Text(stringResource(R.string.qobuz_app_secret)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = qobuzAppSecret,
-                            onValueChange = onQobuzAppSecretChange,
-                        )
-                    }
-                    item {
-                        EditTextPreference(
-                            title = { Text(stringResource(R.string.qobuz_user_auth_token)) },
-                            icon = { Icon(painterResource(R.drawable.lock), null) },
-                            value = qobuzUserAuthToken,
-                            onValueChange = onQobuzUserAuthTokenChange,
-                        )
-                    }
+                    FlacTokenInputs(
+                        squidCaptchaCookie = squidCaptchaCookie,
+                        onSquidCaptchaCookieChange = onSquidCaptchaCookieChange,
+                        arcodStashKey = arcodStashKey,
+                        onArcodStashKeyChange = onArcodStashKeyChange,
+                        arcodBearerToken = arcodBearerToken,
+                        onArcodBearerTokenChange = onArcodBearerTokenChange,
+                        qobuzAppId = qobuzAppId,
+                        onQobuzAppIdChange = onQobuzAppIdChange,
+                        qobuzAppSecret = qobuzAppSecret,
+                        onQobuzAppSecretChange = onQobuzAppSecretChange,
+                        qobuzUserAuthToken = qobuzUserAuthToken,
+                        onQobuzUserAuthTokenChange = onQobuzUserAuthTokenChange
+                    )
                 } else {
                     item {
                         EnumListPreference(
@@ -439,5 +396,93 @@ fun PlayerSettings(navController: NavController) {
 private fun PlayerSettingsPreview() {
     TestThemeWrapper {
         PlayerSettings(navController = rememberNavController())
+    }
+}
+
+@Composable
+fun PlaybackSourceSelector(
+    playbackSource: PlaybackSource,
+    onPlaybackSourceChange: (PlaybackSource) -> Unit,
+    onEnableLosslessChange: (Boolean) -> Unit
+) {
+    EnumListPreference(
+        title = { Text(stringResource(R.string.playback_source)) },
+        icon = { Icon(painterResource(R.drawable.album), null) },
+        selectedValue = playbackSource,
+        onValueSelected = { 
+            onPlaybackSourceChange(it)
+            onEnableLosslessChange(it == PlaybackSource.FLAC)
+        },
+        valueText = { source ->
+            when (source) {
+                PlaybackSource.YT_MUSIC -> stringResource(R.string.source_yt_music)
+                PlaybackSource.FLAC -> stringResource(R.string.source_flac)
+            }
+        },
+    )
+}
+
+
+fun PreferenceGroupScope.FlacTokenInputs(
+    squidCaptchaCookie: String,
+    onSquidCaptchaCookieChange: (String) -> Unit,
+    arcodStashKey: String,
+    onArcodStashKeyChange: (String) -> Unit,
+    arcodBearerToken: String,
+    onArcodBearerTokenChange: (String) -> Unit,
+    qobuzAppId: String,
+    onQobuzAppIdChange: (String) -> Unit,
+    qobuzAppSecret: String,
+    onQobuzAppSecretChange: (String) -> Unit,
+    qobuzUserAuthToken: String,
+    onQobuzUserAuthTokenChange: (String) -> Unit
+) {
+    item {
+        EditTextPreference(
+            title = { Text(stringResource(R.string.squid_captcha_cookie)) },
+            icon = { Icon(painterResource(R.drawable.lock), null) },
+            value = squidCaptchaCookie,
+            onValueChange = onSquidCaptchaCookieChange,
+        )
+    }
+    item {
+        EditTextPreference(
+            title = { Text(stringResource(R.string.arcod_stash_key)) },
+            icon = { Icon(painterResource(R.drawable.lock), null) },
+            value = arcodStashKey,
+            onValueChange = onArcodStashKeyChange,
+        )
+    }
+    item {
+        EditTextPreference(
+            title = { Text(stringResource(R.string.arcod_bearer_token)) },
+            icon = { Icon(painterResource(R.drawable.lock), null) },
+            value = arcodBearerToken,
+            onValueChange = onArcodBearerTokenChange,
+        )
+    }
+    item {
+        EditTextPreference(
+            title = { Text(stringResource(R.string.qobuz_app_id)) },
+            icon = { Icon(painterResource(R.drawable.lock), null) },
+            value = qobuzAppId,
+            onValueChange = onQobuzAppIdChange,
+        )
+    }
+    item {
+        EditTextPreference(
+            title = { Text(stringResource(R.string.qobuz_app_secret)) },
+            icon = { Icon(painterResource(R.drawable.lock), null) },
+            value = qobuzAppSecret,
+            onValueChange = onQobuzAppSecretChange,
+        )
+    }
+    item {
+        EditTextPreference(
+            title = { Text(stringResource(R.string.qobuz_user_auth_token)) },
+            icon = { Icon(painterResource(R.drawable.lock), null) },
+            value = qobuzUserAuthToken,
+            onValueChange = onQobuzUserAuthTokenChange,
+        )
     }
 }

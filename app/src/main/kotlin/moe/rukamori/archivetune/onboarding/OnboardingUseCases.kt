@@ -122,6 +122,12 @@ class BuildOnboardingUiStateUseCase
                         iconResId = R.drawable.security,
                     ),
                     OnboardingPageUiModel(
+                        id = OnboardingPageId.CUSTOMIZATION,
+                        titleResId = R.string.onboarding_customization_title,
+                        subtitleResId = R.string.onboarding_customization_subtitle,
+                        iconResId = R.drawable.format_paint,
+                    ),
+                    OnboardingPageUiModel(
                         id = OnboardingPageId.COMMUNITY,
                         titleResId = R.string.onboarding_community_title,
                         subtitleResId = R.string.onboarding_community_subtitle,

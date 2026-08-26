@@ -47,6 +47,7 @@ data class OnboardingPageUiModel(
 enum class OnboardingPageId {
     WELCOME,
     PERMISSIONS,
+    CUSTOMIZATION,
     COMMUNITY,
 }
 
