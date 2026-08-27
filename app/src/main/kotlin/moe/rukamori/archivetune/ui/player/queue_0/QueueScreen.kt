@@ -18,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -94,6 +95,7 @@ fun QueueScreen(
     val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
     var dragFromIndex by remember { mutableStateOf<Int?>(null) }
     var dragToIndex by remember { mutableStateOf<Int?>(null) }
+    var reorderHandleInUse by remember { mutableStateOf(false) }
 
     LaunchedEffect(lazyListState) {
         snapshotFlow {
@@ -142,6 +144,7 @@ fun QueueScreen(
     val fadeHeight = 24.dp
     LazyColumn(
         state = lazyListState,
+        userScrollEnabled = !(reorderableState.isAnyItemDragging || reorderHandleInUse),
         modifier =
             modifier
                 .fillMaxSize()
@@ -228,6 +231,8 @@ fun QueueScreen(
                                 Modifier
                                     .draggableHandle(
                                         onDragStarted = {
+                                            reorderHandleInUse = true
+                                            onReorderStateChange(true)
                                             if (enableHapticFeedback) {
                                                 ViewCompat.performHapticFeedback(
                                                     hapticView,
@@ -236,6 +241,8 @@ fun QueueScreen(
                                             }
                                         },
                                         onDragStopped = {
+                                            reorderHandleInUse = false
+                                            onReorderStateChange(false)
                                             if (enableHapticFeedback) {
                                                 ViewCompat.performHapticFeedback(
                                                     hapticView,
@@ -352,70 +359,74 @@ private fun QueueItem(
             Modifier
         }
 
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .onGloballyPositioned { coordinates ->
-                    val measuredWidth = coordinates.size.width.toFloat()
-                    if (measuredWidth != itemWidthPx) itemWidthPx = measuredWidth
-                },
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier.fillMaxWidth(),
     ) {
-        if (revealWidthPx > 0f && surfaceHeightPx > 0f) {
-            val revealWidthDp = with(density) { revealWidthPx.toDp() }
-            val surfaceHeightDp = with(density) { surfaceHeightPx.toDp() }
+        Box(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .onGloballyPositioned { coordinates ->
+                        val measuredWidth = coordinates.size.width.toFloat()
+                        if (measuredWidth != itemWidthPx) itemWidthPx = measuredWidth
+                    },
+        ) {
+            if (revealWidthPx > 0f && surfaceHeightPx > 0f) {
+                val revealWidthDp = with(density) { revealWidthPx.toDp() }
+                val surfaceHeightDp = with(density) { surfaceHeightPx.toDp() }
+                Box(
+                    modifier =
+                        Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 12.dp)
+                            .height(surfaceHeightDp)
+                            .width(revealWidthDp)
+                            .clip(CircleShape)
+                            .background(dismissBackgroundColor),
+                    contentAlignment = Alignment.CenterEnd,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = stringResource(R.string.remove_from_queue),
+                        modifier =
+                            Modifier
+                                .padding(end = 16.dp)
+                                .graphicsLayer {
+                                    alpha = dismissIconAlpha
+                                    scaleX = dismissIconScale
+                                    scaleY = dismissIconScale
+                                },
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                }
+            }
+
             Box(
                 modifier =
                     Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 12.dp)
-                        .height(surfaceHeightDp)
-                        .width(revealWidthDp)
-                        .clip(CircleShape)
-                        .background(dismissBackgroundColor),
-                contentAlignment = Alignment.CenterEnd,
+                        .fillMaxWidth()
+                        .graphicsLayer { translationX = currentOffsetPx }
+                        .onGloballyPositioned { coordinates ->
+                            val h = coordinates.size.height.toFloat()
+                            if (h != surfaceHeightPx) surfaceHeightPx = h
+                        }
+                        .then(dismissGestureModifier),
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.close),
-                    contentDescription = stringResource(R.string.remove_from_queue),
+                MediaMetadataListItem(
+                    mediaMetadata = metadata,
+                    isActive = isActive,
+                    isPlaying = isActive,
                     modifier =
                         Modifier
-                            .padding(end = 16.dp)
-                            .graphicsLayer {
-                                alpha = dismissIconAlpha
-                                scaleX = dismissIconScale
-                                scaleY = dismissIconScale
+                            .fillMaxWidth()
+                            .clickable(enabled = currentOffsetPx == 0f) {
+                                onPlay()
                             },
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
                 )
             }
         }
 
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer { translationX = currentOffsetPx }
-                    .onGloballyPositioned { coordinates ->
-                        val h = coordinates.size.height.toFloat()
-                        if (h != surfaceHeightPx) surfaceHeightPx = h
-                    }
-                    .then(dismissGestureModifier),
-        ) {
-            MediaMetadataListItem(
-                mediaMetadata = metadata,
-                isActive = isActive,
-                isPlaying = isActive,
-                trailingContent = {
-                    dragHandle()
-                },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = currentOffsetPx == 0f) {
-                            onPlay()
-                        },
-            )
-        }
+        dragHandle()
     }
 }
