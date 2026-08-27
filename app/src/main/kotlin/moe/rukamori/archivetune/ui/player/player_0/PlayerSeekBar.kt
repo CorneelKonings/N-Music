@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -135,9 +136,10 @@ fun PlayerSeekBar(
                         .background(Color.White.copy(alpha = 0.2f))
                         .drawBehind {
                             val fillWidth = size.width * fraction
-                            drawRect(
+                            drawRoundRect(
                                 color = if (isInteracting) animatedAccentColor else Color.White,
-                                size = Size(fillWidth, size.height)
+                                size = Size(fillWidth, size.height),
+                                cornerRadius = CornerRadius(100f, 100f)
                             )
                         }
                 )
