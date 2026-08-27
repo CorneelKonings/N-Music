@@ -1,5 +1,6 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
+import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -19,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -30,6 +32,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
@@ -98,13 +101,18 @@ fun PlayerBackgroundLayers(
     )
 
     val targetUrl = state.coverUrl.takeIf { it.isNotEmpty() }
+    val isHardwareBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     val blurImageRequest = remember(targetUrl) {
-        ImageRequest.Builder(context)
-            .data(targetUrl)
-            .size(96)
-            .transformations(FastBlurTransformation(radius = 25, sampling = 1f))
-            .build()
+        if (isHardwareBlur) {
+            null
+        } else {
+            ImageRequest.Builder(context)
+                .data(targetUrl)
+                .size(96)
+                .transformations(FastBlurTransformation(radius = 25, sampling = 1f))
+                .build()
+        }
     }
 
     val clearImageRequest = remember(targetUrl) {
@@ -176,7 +184,7 @@ fun PlayerBackgroundLayers(
 
         Box(modifier = Modifier.fillMaxSize()) {
             androidx.compose.animation.Crossfade(
-                targetState = currentBlurPainter,
+                targetState = if (isHardwareBlur) currentClearPainter else currentBlurPainter,
                 animationSpec = tween(500),
                 label = "BlurCrossfade"
             ) { painter ->
@@ -186,6 +194,7 @@ fun PlayerBackgroundLayers(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
+                            .then(if (isHardwareBlur) Modifier.blur(46.dp) else Modifier)
                             .graphicsLayer { alpha = blurOverlayAlpha },
                         contentScale = ContentScale.Crop
                     )
