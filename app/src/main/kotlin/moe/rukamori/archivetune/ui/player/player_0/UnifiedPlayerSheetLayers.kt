@@ -249,7 +249,8 @@ internal fun UnifiedPlayerSheetLayers(
                                     state = queueState,
                                     onAction = onAction,
                                     contentPadding = WindowInsets.systemBars.asPaddingValues(),
-                                    modifier = Modifier.fillMaxSize()
+                                    layerTwoFractionProvider = layerTwoFractionProvider,
+                                    modifier = Modifier.fillMaxSize(),
                                 )
                             }
                         }

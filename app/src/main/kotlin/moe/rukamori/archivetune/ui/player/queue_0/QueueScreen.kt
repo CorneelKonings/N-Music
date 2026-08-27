@@ -49,6 +49,7 @@ fun QueueScreen(
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    layerTwoFractionProvider: () -> Float = { 1f },
 ) {
     val fadeHeight = 24.dp
     LazyColumn(
@@ -56,7 +57,13 @@ fun QueueScreen(
             modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    compositingStrategy = CompositingStrategy.Offscreen
+                    val fraction = layerTwoFractionProvider()
+                    compositingStrategy =
+                        if (fraction > 0f && fraction < 1f) {
+                            CompositingStrategy.Auto
+                        } else {
+                            CompositingStrategy.Offscreen
+                        }
                 }
                 .drawWithContent {
                     drawContent()
