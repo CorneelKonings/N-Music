@@ -217,12 +217,16 @@ fun UnifiedPlayerSheetV2(
                 ): Outline {
                     val expansionFractionVal = expansionFraction.value
                     // Фикс скругления при 99%+ раскрытии шторки
-                    val radiusTop = if (expansionFractionVal > 0.99f) {
-                        0f
-                    } else {
-                        sheetVisualState.overallSheetTopCornerRadiusProvider().toPx()
+                    val radiusTop = with(density) {
+                        if (expansionFractionVal > 0.99f) {
+                            0f
+                        } else {
+                            sheetVisualState.overallSheetTopCornerRadiusProvider().toPx()
+                        }
                     }
-                    val radiusBottom = sheetVisualState.playerContentActualBottomRadiusProvider().toPx()
+                    val radiusBottom = with(density) {
+                        sheetVisualState.playerContentActualBottomRadiusProvider().toPx()
+                    }
                     val dynamicHeight = sheetVisualState.playerContentAreaHeightPxProvider()
 
                     val targetSize = if (expansionFractionVal > 0.99f) {
