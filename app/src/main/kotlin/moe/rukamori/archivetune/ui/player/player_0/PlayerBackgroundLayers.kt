@@ -137,7 +137,8 @@ fun PlayerBackgroundLayers(
                 currentClearPainter = clearState.painter
                 activeGradientColor = gradientColor
             }
-            is AsyncImagePainter.State.Error -> {
+            is AsyncImagePainter.State.Error,
+            is AsyncImagePainter.State.Empty -> {
                 currentClearPainter = null
                 activeGradientColor = Color(0xFF121212)
             }
@@ -152,7 +153,8 @@ fun PlayerBackgroundLayers(
             is AsyncImagePainter.State.Success -> {
                 currentBlurPainter = blurState.painter
             }
-            is AsyncImagePainter.State.Error -> {
+            is AsyncImagePainter.State.Error,
+            is AsyncImagePainter.State.Empty -> {
                 currentBlurPainter = null
             }
             else -> {

@@ -197,6 +197,12 @@ internal fun UnifiedPlayerSheetLayers(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
+                            .glassBorder(
+                                shape = cardShape,
+                                strokeWidth = SettingsDimensions.GlassBorderThickness,
+                                topAlpha = 0.20f,
+                                bottomAlpha = 0.04f,
+                            )
                             .clip(cardShape)
                             .background(
                                 if (state.isBlurBackgroundEnabled) {
@@ -204,12 +210,6 @@ internal fun UnifiedPlayerSheetLayers(
                                 } else {
                                     cardBackgroundBrush
                                 }
-                            )
-                            .glassBorder(
-                                shape = cardShape,
-                                strokeWidth = SettingsDimensions.GlassBorderThickness,
-                                topAlpha = 0.20f,
-                                bottomAlpha = 0.04f,
                             )
                     ) {
                         AnimatedContent(

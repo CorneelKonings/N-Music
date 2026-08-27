@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,16 +21,17 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Timeline
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
-import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.extensions.metadata
 import moe.rukamori.archivetune.ui.component.MediaMetadataListItem
@@ -51,25 +51,52 @@ fun QueueScreen(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     layerTwoFractionProvider: () -> Float = { 1f },
 ) {
-    val playerConnection = LocalPlayerConnection.current
-    val lazyListState = rememberLazyListState()
-
-    LaunchedEffect(lazyListState, state.queueWindows.size) {
-        snapshotFlow {
-            lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-        }
-            .filterNotNull()
-            .distinctUntilChanged()
-            .collect { lastVisibleIndex ->
-                if (state.queueWindows.isNotEmpty() && lastVisibleIndex >= state.queueWindows.size - 5) {
-                    playerConnection?.service?.onInfiniteQueueEnabled()
-                }
-            }
-    }
-
+    val fadeHeight = 24.dp
     LazyColumn(
-        state = lazyListState,
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    val fraction = layerTwoFractionProvider()
+                    compositingStrategy =
+                        if (fraction > 0f && fraction < 1f) {
+                            CompositingStrategy.Auto
+                        } else {
+                            CompositingStrategy.Offscreen
+                        }
+                }
+                .drawWithContent {
+                    drawContent()
+                    val fadeHeightPx = fadeHeight.toPx()
+                    if (size.height > 0f && fadeHeightPx > 0f) {
+                        drawRect(
+                            brush =
+                                Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            Color.Transparent,
+                                            Color.Black,
+                                        ),
+                                    startY = 0f,
+                                    endY = fadeHeightPx,
+                                ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                        drawRect(
+                            brush =
+                                Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            Color.Black,
+                                            Color.Transparent,
+                                        ),
+                                    startY = size.height - fadeHeightPx,
+                                    endY = size.height,
+                                ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    }
+                },
         contentPadding = contentPadding,
     ) {
         itemsIndexed(
