@@ -158,6 +158,9 @@ class PlayerViewModelHandleActionTest {
 
         viewModel.handleAction(PlayerAction.RemoveQueueItem(2))
         verify { audioPlayer.removeMediaItem(2) }
+
+        viewModel.handleAction(PlayerAction.MoveQueueItem(1, 4))
+        verify { audioPlayer.moveMediaItem(1, 4) }
     }
 
     @Test

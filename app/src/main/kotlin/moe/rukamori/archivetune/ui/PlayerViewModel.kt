@@ -372,6 +372,7 @@ class PlayerViewModel @Inject constructor(
             is PlayerAction.Previous, is PlayerAction.SkipPrevious -> playPrevious()
             is PlayerAction.PlayQueueItem -> audioPlayer?.seekToDefaultPosition(action.index)
             is PlayerAction.RemoveQueueItem -> audioPlayer?.removeMediaItem(action.index)
+            is PlayerAction.MoveQueueItem -> audioPlayer?.moveMediaItem(action.from, action.to)
             is PlayerAction.Like, is PlayerAction.ToggleLike -> toggleLike()
             is PlayerAction.Shuffle -> toggleShuffle()
             is PlayerAction.Repeat -> toggleRepeat()
