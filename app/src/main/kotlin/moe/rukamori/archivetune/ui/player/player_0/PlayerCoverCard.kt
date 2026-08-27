@@ -89,8 +89,7 @@ fun PlayerCoverCard(
                 currentPainter = state.painter
                 activeVibrantColor = vibrantColor
             }
-            is AsyncImagePainter.State.Error,
-            is AsyncImagePainter.State.Empty -> {
+            is AsyncImagePainter.State.Error -> {
                 currentPainter = null
                 activeVibrantColor = Color.Transparent
             }
