@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
@@ -39,21 +40,19 @@ import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.theme.transparentIconShadow
 import moe.rukamori.archivetune.ui.utils.bounceClick
 
-private val CapsuleHorizontalPad  = 20.dp
+private val CapsuleHorizontalPad  = 0.dp
 private val CapsuleHeight         = 96.dp
-private val CapsulePadHorizontal  = 24.dp
+private val CapsulePadHorizontal  = 22.dp
 private val CapsuleBorderWidth    = 0.5.dp
 
 private val OuterButtonSize       = 48.dp
 private val OuterIconSize         = 26.dp
-
 private val SideButtonSize        = 48.dp
-private val SideIconSize          = 36.dp
+private val SideIconSize          = 38.dp
 private val SideShadowAlpha       = 0.1f
 private val SideShadowRadius      = 15.dp
-
 private val CenterButtonSize      = 74.dp
-private val CenterIconSize        = 44.dp
+private val CenterIconSize        = 48.dp
 
 @Composable
 fun PlayerTransportControls(
@@ -139,7 +138,7 @@ fun PlayerTransportControls(
                         CircleShape,
                     )
                     .padding(horizontal = CapsulePadHorizontal),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(42.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
@@ -222,4 +221,20 @@ fun PlayerTransportControls(
             }
         }
     }
+
+
 }
+
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PlayerTransportControlsPreview() {
+    PlayerTransportControls(
+        state = PlayerUiState(),
+        isPlaying = true,
+        vibrantColor = Color(0xFFFFEB3B),
+        slideOffset = { 1f },
+        onAction = {}
+    )
+}
+
