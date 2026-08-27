@@ -44,7 +44,9 @@ import moe.rukamori.archivetune.utils.FastBlurTransformation
 fun PlayerBackgroundLayers(
     state: PlayerUiState,
     modifier: Modifier = Modifier,
-    gradientColor: Color = Color(state.gradientColor)
+    gradientColor: Color = Color(state.gradientColor),
+    lyricsFractionProvider: () -> Float = { if (state.isLyricsVisible) 1f else 0f },
+    queueFractionProvider: () -> Float = { 0f },
 ) {
     val context = LocalContext.current
     val colorScheme = MaterialTheme.colorScheme
@@ -94,8 +96,10 @@ fun PlayerBackgroundLayers(
         label = "BlurOverlayTransition"
     )
 
+    val isOverlayVisible = state.isLyricsVisible || lyricsFractionProvider() > 0.5f || queueFractionProvider() > 0.5f
+
     val immersiveTransitionAlpha by animateFloatAsState(
-        targetValue = if (state.isImmersiveEnabled && !state.isLyricsVisible) 1f else 0f,
+        targetValue = if (state.isImmersiveEnabled && !isOverlayVisible) 1f else 0f,
         animationSpec = tween(durationMillis = 450, easing = FastOutSlowInEasing),
         label = "ImmersiveThemeTransition"
     )

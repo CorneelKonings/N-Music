@@ -1,16 +1,25 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
-import androidx.compose.foundation.*
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,21 +39,21 @@ import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.theme.transparentIconShadow
 import moe.rukamori.archivetune.ui.utils.bounceClick
 
-private val CapsuleHorizontalPad  = 16.dp
-private val CapsuleHeight         = 64.dp
-private val CapsulePadHorizontal  = 16.dp
+private val CapsuleHorizontalPad  = 20.dp
+private val CapsuleHeight         = 96.dp
+private val CapsulePadHorizontal  = 24.dp
 private val CapsuleBorderWidth    = 0.5.dp
-
-private val SideButtonSize        = 44.dp
-private val SideIconSize          = 28.dp
-private val SideShadowAlpha       = 0.1f
-private val SideShadowRadius      = 15.dp
-
-private val CenterButtonSize      = 52.dp
-private val CenterIconSize        = 34.dp
 
 private val OuterButtonSize       = 48.dp
 private val OuterIconSize         = 26.dp
+
+private val SideButtonSize        = 48.dp
+private val SideIconSize          = 36.dp
+private val SideShadowAlpha       = 0.1f
+private val SideShadowRadius      = 15.dp
+
+private val CenterButtonSize      = 74.dp
+private val CenterIconSize        = 44.dp
 
 @Composable
 fun PlayerTransportControls(
@@ -62,6 +71,23 @@ fun PlayerTransportControls(
         label = "AccentPaletteColor"
     )
 
+    val playPauseIcon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
+
+    val isShuffleActive = state.shuffleState != "off"
+    val shuffleColor = if (isShuffleActive) animatedAccentColor else Color.White.copy(alpha = 0.5f)
+    val shuffleIcon = when (state.shuffleState) {
+        "smart" -> R.drawable.ic_shuffle_mix
+        else -> R.drawable.ic_shuffle
+    }
+
+    val isRepeatActive = state.repeatState != "off"
+    val repeatColor = if (isRepeatActive) animatedAccentColor else Color.White.copy(alpha = 0.5f)
+    val repeatIcon = when (state.repeatState) {
+        "one" -> R.drawable.ic_repeat_one
+        "all", "on" -> R.drawable.ic_repeat_on
+        else -> R.drawable.ic_repeat
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -78,26 +104,9 @@ fun PlayerTransportControls(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val playPauseIcon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
-
-            val isShuffleActive = state.shuffleState != "off"
-            val shuffleColor = if (isShuffleActive) animatedAccentColor else Color.White.copy(alpha = 0.5f)
-            val shuffleIcon = when (state.shuffleState) {
-                "smart" -> R.drawable.ic_shuffle_mix
-                else -> R.drawable.ic_shuffle
-            }
-
-            val isRepeatActive = state.repeatState != "off"
-            val repeatColor = if (isRepeatActive) animatedAccentColor else Color.White.copy(alpha = 0.5f)
-            val repeatIcon = when (state.repeatState) {
-                "one" -> R.drawable.ic_repeat_one
-                "all", "on" -> R.drawable.ic_repeat_on
-                else -> R.drawable.ic_repeat
-            }
-
             Box(
                 modifier = Modifier
-                    .bounceClick(pressedScale = 0.85f) {
+                    .bounceClick(pressedScale = 0.90f) {
                         onAction(PlayerAction.Shuffle)
                     }
                     .size(OuterButtonSize)
@@ -130,7 +139,7 @@ fun PlayerTransportControls(
                         CircleShape,
                     )
                     .padding(horizontal = CapsulePadHorizontal),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
@@ -197,7 +206,7 @@ fun PlayerTransportControls(
 
             Box(
                 modifier = Modifier
-                    .bounceClick(pressedScale = 0.85f) {
+                    .bounceClick(pressedScale = 0.90f) {
                         onAction(PlayerAction.Repeat)
                     }
                     .size(OuterButtonSize)

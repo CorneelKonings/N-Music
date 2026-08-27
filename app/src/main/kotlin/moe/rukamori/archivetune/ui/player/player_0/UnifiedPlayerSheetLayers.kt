@@ -19,7 +19,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -83,10 +85,11 @@ internal fun UnifiedPlayerSheetLayers(
         )
     }
 
+    var isQueueReordering by remember { mutableStateOf(false) }
     val queueListState = rememberLazyListState()
-    val canDragQueue by remember(queueListState) {
+    val canDragQueue by remember(queueListState, isQueueReordering) {
         derivedStateOf {
-            queueListState.firstVisibleItemIndex == 0 && queueListState.firstVisibleItemScrollOffset == 0
+            !isQueueReordering && queueListState.firstVisibleItemIndex == 0 && queueListState.firstVisibleItemScrollOffset == 0
         }
     }
     val queueNestedScrollConnection = remember(dragHandler, canDragQueue) {
@@ -104,7 +107,11 @@ internal fun UnifiedPlayerSheetLayers(
                     alpha = expansionFractionProvider()
                 }
         ) {
-            moe.rukamori.archivetune.ui.player.player_0.PlayerBackgroundLayers(state = state)
+            moe.rukamori.archivetune.ui.player.player_0.PlayerBackgroundLayers(
+                state = state,
+                lyricsFractionProvider = lyricsFractionProvider,
+                queueFractionProvider = queueFractionProvider,
+            )
         }
 
         if (expansionFractionProvider() < 1f) {
@@ -168,26 +175,6 @@ internal fun UnifiedPlayerSheetLayers(
                         translationY = if (fraction <= 0f) size.height else (1f - fraction) * (200f * density)
                     }
             ) {
-                val animatedDarkMuted by animateColorAsState(
-                    targetValue = Color(state.darkMutedColor),
-                    animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
-                    label = "LyricsDarkMutedAnimation",
-                )
-
-                val cardBackgroundBrush = remember(animatedDarkMuted) {
-                    val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
-                    val midColor = animatedDarkMuted
-                    val endColor = Color(0xFF121212)
-
-                    Brush.verticalGradient(
-                        0.0f to startColor,
-                        0.2f to midColor,
-                        1.0f to endColor,
-                    )
-                }
-
-                val cardShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-
                 Column(modifier = Modifier.fillMaxSize()) {
                     LyricsHeader(
                         state = state,
@@ -209,20 +196,7 @@ internal fun UnifiedPlayerSheetLayers(
                                     Modifier
                                 }
                             )
-                            .glassBorder(
-                                shape = cardShape,
-                                strokeWidth = SettingsDimensions.GlassBorderThickness,
-                                topAlpha = 0.20f,
-                                bottomAlpha = 0.04f,
-                            )
-                            .clip(cardShape)
-                            .background(
-                                if (state.isBlurBackgroundEnabled) {
-                                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.2f), Color.Black.copy(alpha = 0.2f)))
-                                } else {
-                                    cardBackgroundBrush
-                                }
-                            )
+                            .sheetBackground(state)
                     ) {
                         LyricsColumn(
                             state = state,
@@ -250,26 +224,6 @@ internal fun UnifiedPlayerSheetLayers(
                         translationY = if (fraction <= 0f) size.height else (1f - fraction) * (200f * density)
                     }
             ) {
-                val animatedDarkMuted by animateColorAsState(
-                    targetValue = Color(state.darkMutedColor),
-                    animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
-                    label = "QueueDarkMutedAnimation",
-                )
-
-                val cardBackgroundBrush = remember(animatedDarkMuted) {
-                    val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
-                    val midColor = animatedDarkMuted
-                    val endColor = Color(0xFF121212)
-
-                    Brush.verticalGradient(
-                        0.0f to startColor,
-                        0.2f to midColor,
-                        1.0f to endColor,
-                    )
-                }
-
-                val cardShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-
                 Column(modifier = Modifier.fillMaxSize()) {
                     LyricsHeader(
                         state = state,
@@ -285,26 +239,13 @@ internal fun UnifiedPlayerSheetLayers(
                             .fillMaxWidth()
                             .weight(1f)
                             .then(
-                                if (queueNestedScrollConnection != null) {
+                                if (queueNestedScrollConnection != null && !isQueueReordering) {
                                     Modifier.nestedScroll(queueNestedScrollConnection)
                                 } else {
                                     Modifier
                                 }
                             )
-                            .glassBorder(
-                                shape = cardShape,
-                                strokeWidth = SettingsDimensions.GlassBorderThickness,
-                                topAlpha = 0.20f,
-                                bottomAlpha = 0.04f,
-                            )
-                            .clip(cardShape)
-                            .background(
-                                if (state.isBlurBackgroundEnabled) {
-                                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.2f), Color.Black.copy(alpha = 0.2f)))
-                                } else {
-                                    cardBackgroundBrush
-                                }
-                            )
+                            .sheetBackground(state)
                     ) {
                         QueueScreen(
                             state = queueState,
@@ -315,6 +256,7 @@ internal fun UnifiedPlayerSheetLayers(
                                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp
                             ),
                             queueFractionProvider = queueFractionProvider,
+                            onReorderStateChange = { isQueueReordering = it },
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -322,5 +264,44 @@ internal fun UnifiedPlayerSheetLayers(
             }
         }
     }
+}
+
+@Composable
+private fun Modifier.sheetBackground(state: PlayerUiState): Modifier {
+    val animatedDarkMuted by animateColorAsState(
+        targetValue = Color(state.darkMutedColor),
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        label = "SheetDarkMutedAnimation",
+    )
+
+    val cardBackgroundBrush = remember(animatedDarkMuted) {
+        val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
+        val midColor = animatedDarkMuted
+        val endColor = Color(0xFF121212)
+
+        Brush.verticalGradient(
+            0.0f to startColor,
+            0.2f to midColor,
+            1.0f to endColor,
+        )
+    }
+
+    val cardShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+
+    return this
+        .glassBorder(
+            shape = cardShape,
+            strokeWidth = SettingsDimensions.GlassBorderThickness,
+            topAlpha = 0.20f,
+            bottomAlpha = 0.04f,
+        )
+        .clip(cardShape)
+        .background(
+            if (state.isBlurBackgroundEnabled || state.isImmersiveEnabled) {
+                Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.2f), Color.Black.copy(alpha = 0.2f)))
+            } else {
+                cardBackgroundBrush
+            }
+        )
 }
 
