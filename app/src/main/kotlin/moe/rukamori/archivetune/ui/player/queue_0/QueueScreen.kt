@@ -4,71 +4,41 @@
  * GPL-3.0 License | Contributors: see git history
  */
 
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package moe.rukamori.archivetune.ui.player.queue_0
 
-import android.view.View
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.view.HapticFeedbackConstantsCompat
-import androidx.core.view.ViewCompat
 import androidx.media3.common.Timeline
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.constants.EnableHapticFeedbackKey
 import moe.rukamori.archivetune.extensions.metadata
 import moe.rukamori.archivetune.ui.component.MediaMetadataListItem
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.QueueUiState
-import moe.rukamori.archivetune.utils.rememberPreference
-import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.rememberReorderableLazyListState
 
 private val Timeline.Window.queueItemKey: Long
     get() =
@@ -84,44 +54,6 @@ fun QueueScreen(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     queueFractionProvider: () -> Float = { 1f },
 ) {
-    val (enableHapticFeedback) = rememberPreference(EnableHapticFeedbackKey, true)
-    val hapticView = LocalView.current
-
-    val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
-    var dragFromIndex by remember { mutableStateOf<Int?>(null) }
-    var dragToIndex by remember { mutableStateOf<Int?>(null) }
-
-    val reorderableState =
-        rememberReorderableLazyListState(
-            lazyListState = lazyListState,
-            onMove = { from, to ->
-                if (dragFromIndex == null) {
-                    dragFromIndex = from.index
-                }
-                dragToIndex = to.index
-                mutableQueueWindows.add(to.index, mutableQueueWindows.removeAt(from.index))
-            },
-        )
-
-    LaunchedEffect(state.queueWindows) {
-        if (!reorderableState.isAnyItemDragging) {
-            mutableQueueWindows.clear()
-            mutableQueueWindows.addAll(state.queueWindows)
-        }
-    }
-
-    LaunchedEffect(reorderableState.isAnyItemDragging) {
-        if (!reorderableState.isAnyItemDragging) {
-            val from = dragFromIndex
-            val to = dragToIndex
-            if (from != null && to != null && from != to) {
-                onAction(PlayerAction.MoveQueueItem(from, to))
-            }
-            dragFromIndex = null
-            dragToIndex = null
-        }
-    }
-
     val fadeHeight = 24.dp
     LazyColumn(
         state = lazyListState,
@@ -173,227 +105,52 @@ fun QueueScreen(
         contentPadding = contentPadding,
     ) {
         itemsIndexed(
-            items = mutableQueueWindows,
-            key = { _, window -> window.queueItemKey },
+            items = state.queueWindows,
+            key = { index, window -> "${window.queueItemKey}_$index" },
             contentType = { _, _ -> "queue_item" },
         ) { index, window ->
-            ReorderableItem(
-                state = reorderableState,
-                key = window.queueItemKey,
-            ) { isDragging ->
-                val scale by animateFloatAsState(
-                    targetValue = if (isDragging) 1.02f else 1f,
-                    animationSpec =
-                        spring(
-                            dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessMediumLow,
-                        ),
-                    label = "queueItemScale",
+            val metadata = window.mediaItem.metadata ?: return@itemsIndexed
+            val isActive = index == state.currentWindowIndex
+
+            val dismissState =
+                rememberSwipeToDismissBoxState(
+                    confirmValueChange = { dismissValue ->
+                        if (dismissValue == SwipeToDismissBoxValue.StartToEnd || dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                            onAction(PlayerAction.RemoveQueueItem(index))
+                            true
+                        } else {
+                            false
+                        }
+                    },
+                    positionalThreshold = { totalDistance -> totalDistance * 0.5f },
                 )
 
-                QueueItem(
-                    window = window,
-                    index = index,
-                    isActive = index == state.currentWindowIndex,
-                    isDragging = isDragging,
-                    enableHapticFeedback = enableHapticFeedback,
-                    hapticView = hapticView,
-                    onPlay = { onAction(PlayerAction.PlayQueueItem(index)) },
-                    onRemove = { onAction(PlayerAction.RemoveQueueItem(index)) },
-                    dragHandle = {
+            SwipeToDismissBox(
+                state = dismissState,
+                backgroundContent = {},
+            ) {
+                MediaMetadataListItem(
+                    mediaMetadata = metadata,
+                    isActive = isActive,
+                    isPlaying = isActive,
+                    trailingContent = {
                         IconButton(
-                            onClick = {},
-                            modifier =
-                                Modifier
-                                    .draggableHandle(
-                                        onDragStarted = {
-                                            if (enableHapticFeedback) {
-                                                ViewCompat.performHapticFeedback(
-                                                    hapticView,
-                                                    HapticFeedbackConstantsCompat.GESTURE_START,
-                                                )
-                                            }
-                                        },
-                                        onDragStopped = {
-                                            if (enableHapticFeedback) {
-                                                ViewCompat.performHapticFeedback(
-                                                    hapticView,
-                                                    HapticFeedbackConstantsCompat.GESTURE_END,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    .size(40.dp),
+                            onClick = { onAction(PlayerAction.RemoveQueueItem(index)) },
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.drag_handle),
-                                contentDescription = null,
+                                painter = painterResource(R.drawable.close),
+                                contentDescription = stringResource(R.string.remove_from_queue),
                             )
                         }
                     },
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
+                            .clickable {
+                                onAction(PlayerAction.PlayQueueItem(index))
                             },
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun QueueItem(
-    window: Timeline.Window,
-    index: Int,
-    isActive: Boolean,
-    isDragging: Boolean,
-    enableHapticFeedback: Boolean,
-    hapticView: View,
-    onPlay: () -> Unit,
-    onRemove: () -> Unit,
-    dragHandle: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val metadata = window.mediaItem.metadata ?: return
-    val dismissScope = rememberCoroutineScope()
-    val density = LocalDensity.current
-    val dismissOffsetAnimatable = remember(window.queueItemKey) { Animatable(0f) }
-    var itemWidthPx by remember { mutableFloatStateOf(0f) }
-    var surfaceHeightPx by remember { mutableFloatStateOf(0f) }
-
-    val dismissEnabled = !isDragging
-    val dismissHandler =
-        remember(window.queueItemKey, dismissEnabled, itemWidthPx, enableHapticFeedback) {
-            if (dismissEnabled && itemWidthPx > 0f) {
-                QueueItemDismissGestureHandler(
-                    scope = dismissScope,
-                    density = density,
-                    hapticView = hapticView,
-                    hapticFeedbackEnabled = enableHapticFeedback,
-                    offsetAnimatable = dismissOffsetAnimatable,
-                    itemWidthPx = itemWidthPx,
-                    onDismiss = onRemove,
-                )
-            } else {
-                null
-            }
-        }
-
-    val isSwipeTargeted = dismissHandler?.isInDismissZone == true
-    val currentOffsetPx = dismissOffsetAnimatable.value
-    val revealWidthPx = (-currentOffsetPx).coerceAtLeast(0f)
-    val revealProgress =
-        if (density.density > 0f) {
-            (revealWidthPx / (56.dp.value * density.density)).coerceIn(0f, 1f)
-        } else {
-            0f
-        }
-
-    val dismissBackgroundColor by animateColorAsState(
-        targetValue =
-            if (isSwipeTargeted) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
-                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.82f)
-            },
-        animationSpec = tween(durationMillis = 150),
-        label = "dismissBackgroundColor",
-    )
-    val dismissIconAlpha by animateFloatAsState(
-        targetValue = revealProgress * if (isSwipeTargeted) 1f else 0.88f,
-        animationSpec = tween(durationMillis = 120),
-        label = "dismissIconAlpha",
-    )
-    val dismissIconScale by animateFloatAsState(
-        targetValue = if (isSwipeTargeted) 1.08f else 0.95f,
-        animationSpec = tween(durationMillis = 120),
-        label = "dismissIconScale",
-    )
-
-    val dismissGestureModifier =
-        if (dismissEnabled && dismissHandler != null) {
-            Modifier.pointerInput(window.queueItemKey, dismissHandler) {
-                detectHorizontalDragGestures(
-                    onDragStart = { dismissHandler.onDragStart() },
-                    onHorizontalDrag = { change, dragAmount ->
-                        change.consume()
-                        dismissHandler.onHorizontalDrag(dragAmount)
-                    },
-                    onDragEnd = { dismissHandler.onDragEnd() },
-                    onDragCancel = { dismissHandler.onDragCancel() },
-                )
-            }
-        } else {
-            Modifier
-        }
-
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .onGloballyPositioned { coordinates ->
-                    val measuredWidth = coordinates.size.width.toFloat()
-                    if (measuredWidth != itemWidthPx) itemWidthPx = measuredWidth
-                },
-    ) {
-        if (revealWidthPx > 0f && surfaceHeightPx > 0f) {
-            val revealWidthDp = with(density) { revealWidthPx.toDp() }
-            val surfaceHeightDp = with(density) { surfaceHeightPx.toDp() }
-            Box(
-                modifier =
-                    Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 12.dp)
-                        .height(surfaceHeightDp)
-                        .width(revealWidthDp)
-                        .clip(CircleShape)
-                        .background(dismissBackgroundColor),
-                contentAlignment = Alignment.CenterEnd,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.close),
-                    contentDescription = stringResource(R.string.remove_from_queue),
-                    modifier =
-                        Modifier
-                            .padding(end = 16.dp)
-                            .graphicsLayer {
-                                alpha = dismissIconAlpha
-                                scaleX = dismissIconScale
-                                scaleY = dismissIconScale
-                            },
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                )
-            }
-        }
-
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer { translationX = currentOffsetPx }
-                    .onGloballyPositioned { coordinates ->
-                        val h = coordinates.size.height.toFloat()
-                        if (h != surfaceHeightPx) surfaceHeightPx = h
-                    }
-                    .then(dismissGestureModifier),
-        ) {
-            MediaMetadataListItem(
-                mediaMetadata = metadata,
-                isActive = isActive,
-                isPlaying = isActive,
-                trailingContent = {
-                    dragHandle()
-                },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = currentOffsetPx == 0f) {
-                            onPlay()
-                        },
-            )
         }
     }
 }

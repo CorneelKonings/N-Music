@@ -28,7 +28,6 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 
 private val ButtonClickAreaSize = 48.dp
-private val StandardIconSize = 26.dp
 private val LyricsIconSize = 32.dp
 
 @Composable
@@ -42,12 +41,6 @@ fun PlayerBottomBar(
     val isImmersive = state.isImmersiveEnabled && !state.isLyricsVisible
     val isBlur = state.isBlurBackgroundEnabled
     val isDarkOrIsolated = !isLightTheme || isImmersive || isBlur
-
-    val inactiveColor = if (isDarkOrIsolated) {
-        Color.White.copy(alpha = 0.45f)
-    } else {
-        colorScheme.onSurface.copy(alpha = 0.45f)
-    }
 
     val inactiveButtonColor = if (isDarkOrIsolated) {
         Color.White.copy(alpha = 0.75f)
@@ -83,42 +76,17 @@ fun PlayerBottomBar(
         }
     }
 
-    val isShuffleActive = state.shuffleState != "off"
-    val isRepeatActive = state.repeatState != "off"
     val isLyricsActive = state.isLyricsVisible
-
-    val shuffleColor = if (isShuffleActive) activeColor else inactiveColor
-    val repeatColor = if (isRepeatActive) activeColor else inactiveColor
     val lyricsColor = if (isLyricsActive) activeColor else inactiveButtonColor
-
-    val repeatIcon = when (state.repeatState) {
-        "one" -> R.drawable.ic_repeat_one
-        "all", "on" -> R.drawable.ic_repeat_on
-        else -> R.drawable.ic_repeat
-    }
-
-    val shuffleIcon = when (state.shuffleState) {
-        "smart" -> R.drawable.ic_shuffle_mix
-        "on" -> R.drawable.ic_shuffle
-        else -> R.drawable.ic_shuffle
-    }
 
     Row(
         modifier = modifier
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AiryIconButton(iconRes = shuffleIcon, tint = shuffleColor, size = StandardIconSize) {
-            onAction(PlayerAction.Shuffle)
-        }
-
         AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = lyricsColor, size = LyricsIconSize) {
             onAction(PlayerAction.Lyrics)
-        }
-
-        AiryIconButton(iconRes = repeatIcon, tint = repeatColor, size = StandardIconSize) {
-            onAction(PlayerAction.Repeat)
         }
     }
 }

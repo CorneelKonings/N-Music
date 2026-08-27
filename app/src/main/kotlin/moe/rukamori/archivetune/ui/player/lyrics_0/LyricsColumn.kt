@@ -30,7 +30,7 @@ fun LyricsColumn(
     onSeekStarted: () -> Unit
 ) {
     val isReadyToParse by remember(animateProgressProvider) {
-        derivedStateOf { animateProgressProvider() > 0f }
+        derivedStateOf { animateProgressProvider() > 0.99f }
     }
 
     key(state.isLyricsVisible) {

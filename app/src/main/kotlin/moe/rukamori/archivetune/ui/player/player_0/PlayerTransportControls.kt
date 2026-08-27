@@ -22,26 +22,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.theme.transparentIconShadow
 import moe.rukamori.archivetune.ui.utils.bounceClick
 
-private val CapsuleHorizontalPad  = 20.dp
-private val CapsuleHeight         = 96.dp
-private val CapsulePadHorizontal  = 32.dp
+private val CapsuleHorizontalPad  = 16.dp
+private val CapsuleHeight         = 64.dp
+private val CapsulePadHorizontal  = 16.dp
 private val CapsuleBorderWidth    = 0.5.dp
 
-private val SideButtonSize        = 48.dp
-private val SideIconSize          = 36.dp
+private val SideButtonSize        = 44.dp
+private val SideIconSize          = 28.dp
 private val SideShadowAlpha       = 0.1f
 private val SideShadowRadius      = 15.dp
 
-private val CenterButtonSize      = 74.dp
-private val CenterIconSize        = 54.dp
-private val CenterShadowAlpha     = 0.3f
-private val CenterShadowRadius    = 45.dp
+private val CenterButtonSize      = 52.dp
+private val CenterIconSize        = 34.dp
+
+private val OuterButtonSize       = 48.dp
+private val OuterIconSize         = 26.dp
 
 @Composable
 fun PlayerTransportControls(
@@ -71,90 +74,141 @@ fun PlayerTransportControls(
         contentAlignment = Alignment.Center,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(CapsuleHeight)
-                .clip(CircleShape)
-                .background(animatedAccentColor.copy(alpha = 0.12f))
-                .border(
-                    BorderStroke(
-                        CapsuleBorderWidth,
-                        Brush.verticalGradient(
-                            listOf(
-                                animatedAccentColor.copy(alpha = 0.18f),
-                                animatedAccentColor.copy(alpha = 0.08f),
-                            ),
-                        ),
-                    ),
-                    CircleShape,
-                )
-                .padding(horizontal = CapsulePadHorizontal),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val playPauseIcon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
 
-            // Previous
+            val isShuffleActive = state.shuffleState != "off"
+            val shuffleColor = if (isShuffleActive) animatedAccentColor else Color.White.copy(alpha = 0.5f)
+            val shuffleIcon = when (state.shuffleState) {
+                "smart" -> R.drawable.ic_shuffle_mix
+                else -> R.drawable.ic_shuffle
+            }
+
+            val isRepeatActive = state.repeatState != "off"
+            val repeatColor = if (isRepeatActive) animatedAccentColor else Color.White.copy(alpha = 0.5f)
+            val repeatIcon = when (state.repeatState) {
+                "one" -> R.drawable.ic_repeat_one
+                "all", "on" -> R.drawable.ic_repeat_on
+                else -> R.drawable.ic_repeat
+            }
+
             Box(
                 modifier = Modifier
-                    .bounceClick(pressedScale = 0.90f) {
-                        onAction(PlayerAction.Previous)
+                    .bounceClick(pressedScale = 0.85f) {
+                        onAction(PlayerAction.Shuffle)
                     }
-                    .size(SideButtonSize)
-                    .transparentIconShadow(alpha = SideShadowAlpha, shadowRadius = SideShadowRadius)
+                    .size(OuterButtonSize)
                     .clip(CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
-                    painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
-                    contentDescription = "Previous Track",
-                    modifier = Modifier.size(SideIconSize),
-                    colorFilter = ColorFilter.tint(Color.White),
+                    painter = painterResource(id = shuffleIcon),
+                    contentDescription = "Shuffle",
+                    modifier = Modifier.size(OuterIconSize),
+                    colorFilter = ColorFilter.tint(shuffleColor),
                 )
             }
 
-            // Play / Pause
-            Box(
+            Row(
                 modifier = Modifier
-                    .bounceClick(pressedScale = 0.92f) { if (!state.isLoading) onAction(PlayerAction.PlayPause) }
-                    .size(CenterButtonSize)
+                    .height(CapsuleHeight)
                     .clip(CircleShape)
-                    .drawBehind {
-                        drawCircle(animatedAccentColor)
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                if (state.isLoading) {
-                    CircularWavyProgressIndicator(
-                        modifier = Modifier.size(CenterIconSize - 12.dp),
-                        color = Color(0xFF121212),
+                    .background(animatedAccentColor.copy(alpha = 0.12f))
+                    .border(
+                        BorderStroke(
+                            CapsuleBorderWidth,
+                            Brush.verticalGradient(
+                                listOf(
+                                    animatedAccentColor.copy(alpha = 0.18f),
+                                    animatedAccentColor.copy(alpha = 0.08f),
+                                ),
+                            ),
+                        ),
+                        CircleShape,
                     )
-                } else {
+                    .padding(horizontal = CapsulePadHorizontal),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .bounceClick(pressedScale = 0.90f) {
+                            onAction(PlayerAction.Previous)
+                        }
+                        .size(SideButtonSize)
+                        .transparentIconShadow(alpha = SideShadowAlpha, shadowRadius = SideShadowRadius)
+                        .clip(CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Image(
-                        painter = rememberVectorPainter(playPauseIcon),
-                        contentDescription = "Play/Pause",
-                        modifier = Modifier.size(CenterIconSize),
-                        colorFilter = ColorFilter.tint(Color(0xFF121212)),
+                        painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
+                        contentDescription = "Previous Track",
+                        modifier = Modifier.size(SideIconSize),
+                        colorFilter = ColorFilter.tint(Color.White),
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .bounceClick(pressedScale = 0.92f) { if (!state.isLoading) onAction(PlayerAction.PlayPause) }
+                        .size(CenterButtonSize)
+                        .clip(CircleShape)
+                        .drawBehind {
+                            drawCircle(animatedAccentColor)
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (state.isLoading) {
+                        CircularWavyProgressIndicator(
+                            modifier = Modifier.size(CenterIconSize - 10.dp),
+                            color = Color(0xFF121212),
+                        )
+                    } else {
+                        Image(
+                            painter = rememberVectorPainter(playPauseIcon),
+                            contentDescription = "Play/Pause",
+                            modifier = Modifier.size(CenterIconSize),
+                            colorFilter = ColorFilter.tint(Color(0xFF121212)),
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .bounceClick(pressedScale = 0.90f) {
+                            onAction(PlayerAction.Next)
+                        }
+                        .size(SideButtonSize)
+                        .transparentIconShadow(alpha = SideShadowAlpha, shadowRadius = SideShadowRadius)
+                        .clip(CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        painter = rememberVectorPainter(Icons.Rounded.SkipNext),
+                        contentDescription = "Next Track",
+                        modifier = Modifier.size(SideIconSize),
+                        colorFilter = ColorFilter.tint(Color.White),
                     )
                 }
             }
 
-            // Next
             Box(
                 modifier = Modifier
-                    .bounceClick(pressedScale = 0.90f) {
-                        onAction(PlayerAction.Next)
+                    .bounceClick(pressedScale = 0.85f) {
+                        onAction(PlayerAction.Repeat)
                     }
-                    .size(SideButtonSize)
-                    .transparentIconShadow(alpha = SideShadowAlpha, shadowRadius = SideShadowRadius)
+                    .size(OuterButtonSize)
                     .clip(CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
-                    painter = rememberVectorPainter(Icons.Rounded.SkipNext),
-                    contentDescription = "Next Track",
-                    modifier = Modifier.size(SideIconSize),
-                    colorFilter = ColorFilter.tint(Color.White),
+                    painter = painterResource(id = repeatIcon),
+                    contentDescription = "Repeat",
+                    modifier = Modifier.size(OuterIconSize),
+                    colorFilter = ColorFilter.tint(repeatColor),
                 )
             }
         }

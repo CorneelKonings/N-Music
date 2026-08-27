@@ -129,12 +129,12 @@ internal fun UnifiedPlayerSheetLayers(
             derivedStateOf { state.title.isNotEmpty() }
         }
 
-        val maxFraction = maxOf(lyricsFractionProvider(), queueFractionProvider())
-        if (hasTrack && expansionFractionProvider() > 0f) {
+        if (hasTrack) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
+                        val maxFraction = maxOf(lyricsFractionProvider(), queueFractionProvider())
                         val expansionFraction = expansionFractionProvider()
                         val baseAlpha = if (expansionFraction < 0.005f) 0f else fullPlayerVisualState.contentAlpha
                         alpha = baseAlpha * (1f - maxFraction)
