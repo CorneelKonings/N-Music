@@ -62,6 +62,7 @@ fun LyricsContentCard(
     onSearchClick: () -> Unit = {},
     lazyListState: LazyListState = rememberLazyListState(),
     onLineClick: (Long) -> Unit = {},
+    isReadyToParse: Boolean = true,
 ) {
     val (showPlayerControls) = rememberPreference(ShowLyricsPlayerControlsKey, defaultValue = true)
 
@@ -70,6 +71,7 @@ fun LyricsContentCard(
             sliderPositionProvider = progressMsProvider,
             lyricsSyncOffset = state.lyricsSyncOffset,
             textColorOverride = Color.White,
+            isReadyToParse = isReadyToParse,
             modifier = Modifier.fillMaxSize(),
         )
 

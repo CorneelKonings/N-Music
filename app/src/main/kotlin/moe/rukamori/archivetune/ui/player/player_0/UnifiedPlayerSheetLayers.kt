@@ -1,11 +1,17 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,8 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -35,7 +39,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,7 +53,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.player.lyrics_0.LyricsColumn
 import moe.rukamori.archivetune.ui.player.lyrics_0.LyricsHeader
@@ -69,7 +71,8 @@ internal fun UnifiedPlayerSheetLayers(
     state: PlayerUiState,
     queueState: QueueUiState,
     updateState: UpdateState,
-    pagerState: PagerState,
+    selectedPage: Int,
+    onPageSelected: (Int) -> Unit,
     expansionFractionProvider: () -> Float,
     layerTwoFractionProvider: () -> Float,
     progressMsProvider: () -> Long,
@@ -186,7 +189,8 @@ internal fun UnifiedPlayerSheetLayers(
             Column(modifier = Modifier.fillMaxSize()) {
                 UnifiedLayerTwoHeader(
                     state = state,
-                    pagerState = pagerState,
+                    selectedPage = selectedPage,
+                    onPageSelected = onPageSelected,
                     animateProgressProvider = layerTwoFractionProvider,
                     onCloseClick = onCloseLyricsClick,
                     onMoreClick = onMoreLyricsClick
@@ -211,9 +215,18 @@ internal fun UnifiedPlayerSheetLayers(
                             }
                         )
                 ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        beyondViewportPageCount = 1,
+                    AnimatedContent(
+                        targetState = selectedPage,
+                        transitionSpec = {
+                            if (targetState > initialState) {
+                                (slideInHorizontally(animationSpec = tween(300)) { width -> width } + fadeIn(animationSpec = tween(300)))
+                                    .togetherWith(slideOutHorizontally(animationSpec = tween(300)) { width -> -width } + fadeOut(animationSpec = tween(300)))
+                            } else {
+                                (slideInHorizontally(animationSpec = tween(300)) { width -> -width } + fadeIn(animationSpec = tween(300)))
+                                    .togetherWith(slideOutHorizontally(animationSpec = tween(300)) { width -> width } + fadeOut(animationSpec = tween(300)))
+                            }
+                        },
+                        label = "LayerTwoContentAnimation",
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         when (page) {
@@ -250,14 +263,13 @@ internal fun UnifiedPlayerSheetLayers(
 @Composable
 private fun UnifiedLayerTwoHeader(
     state: PlayerUiState,
-    pagerState: PagerState,
+    selectedPage: Int,
+    onPageSelected: (Int) -> Unit,
     animateProgressProvider: () -> Float,
     onCloseClick: () -> Unit,
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scope = rememberCoroutineScope()
-
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -269,7 +281,6 @@ private fun UnifiedLayerTwoHeader(
             onMoreClick = onMoreClick
         )
 
-        val selectedPage = pagerState.currentPage
         val indicatorOffset by animateFloatAsState(
             targetValue = if (selectedPage == 1) 1f else 0f,
             animationSpec = spring(
@@ -337,9 +348,7 @@ private fun UnifiedLayerTwoHeader(
                             .fillMaxHeight()
                             .clip(indicatorShape)
                             .clickable {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(0)
-                                }
+                                onPageSelected(0)
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -357,9 +366,7 @@ private fun UnifiedLayerTwoHeader(
                             .fillMaxHeight()
                             .clip(indicatorShape)
                             .clickable {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(1)
-                                }
+                                onPageSelected(1)
                             },
                         contentAlignment = Alignment.Center
                     ) {

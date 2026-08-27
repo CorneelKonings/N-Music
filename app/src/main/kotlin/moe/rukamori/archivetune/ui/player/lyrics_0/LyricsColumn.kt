@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.PlayerUiState
@@ -25,6 +28,9 @@ fun LyricsColumn(
     onSeekStarted: () -> Unit
 ) {
     val lazyListState = rememberLazyListState()
+    val isReadyToParse by remember(animateProgressProvider) {
+        derivedStateOf { animateProgressProvider() == 1f }
+    }
 
     key(state.isLyricsVisible) {
         BackHandler(enabled = state.isLyricsVisible) {
@@ -44,7 +50,8 @@ fun LyricsColumn(
             onLineClick = onLineClick,
             onAction = onAction,
             onSeek = onSeek,
-            onSeekStarted = onSeekStarted
+            onSeekStarted = onSeekStarted,
+            isReadyToParse = isReadyToParse
         )
     }
 }

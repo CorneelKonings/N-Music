@@ -1,5 +1,11 @@
 package moe.rukamori.archivetune.ui.player.player_0
 
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Intent
+import android.media.audiofx.AudioEffect
+import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -12,11 +18,11 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,16 +36,23 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import moe.rukamori.archivetune.LocalPlayerConnection
+import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.FloatingToolbarBottomPadding
 import moe.rukamori.archivetune.constants.MiniPlayerBottomSpacing
 import moe.rukamori.archivetune.constants.MiniPlayerHeight
+import moe.rukamori.archivetune.ui.menu.AddToPlaylistDialog
+import moe.rukamori.archivetune.ui.menu.EqualizerDialog
+import moe.rukamori.archivetune.ui.menu.TempoPitchDialog
 import moe.rukamori.archivetune.ui.player.lyrics_0.LyricsOptionsMenu
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.player.player_0.scoped.PlayerSheetPredictiveBackHandler
@@ -54,19 +67,6 @@ import moe.rukamori.archivetune.ui.state.PlayerSheetState
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.QueueUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
-import moe.rukamori.archivetune.ui.menu.EqualizerDialog
-import moe.rukamori.archivetune.ui.menu.TempoPitchDialog
-import moe.rukamori.archivetune.ui.menu.AddToPlaylistDialog
-import androidx.activity.compose.BackHandler
-import android.media.audiofx.AudioEffect
-import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
-import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.LocalPlayerConnection
-import kotlin.math.roundToInt
 
 @Composable
 fun UnifiedPlayerSheetV2(
@@ -148,7 +148,7 @@ fun UnifiedPlayerSheetV2(
             }
         }
 
-        val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
+        var selectedPage by remember { mutableIntStateOf(0) }
 
         val layerTwoFraction = remember { Animatable(0f) }
         LaunchedEffect(state.isLyricsVisible) {
@@ -238,9 +238,7 @@ fun UnifiedPlayerSheetV2(
                 onExpandSheetState = { currentSheetState = PlayerSheetState.EXPANDED },
                 onCollapseSheetState = { currentSheetState = PlayerSheetState.COLLAPSED },
                 onSelectLayerTwoPage = { targetPage ->
-                    scope.launch {
-                        pagerState.scrollToPage(targetPage)
-                    }
+                    selectedPage = targetPage
                 },
                 onExpandLayerTwo = {
                     onAction(PlayerAction.Lyrics)
@@ -249,6 +247,10 @@ fun UnifiedPlayerSheetV2(
                     onCloseLyricsClick()
                 }
             )
+        }
+
+        BackHandler(enabled = state.isLyricsVisible) {
+            onCloseLyricsClick()
         }
 
         PlayerSheetPredictiveBackHandler(
@@ -349,7 +351,8 @@ fun UnifiedPlayerSheetV2(
                     state = state,
                     queueState = queueState,
                     updateState = updateState,
-                    pagerState = pagerState,
+                    selectedPage = selectedPage,
+                    onPageSelected = { selectedPage = it },
                     expansionFractionProvider = { expansionFraction.value },
                     layerTwoFractionProvider = layerTwoFractionProvider,
                     progressMsProvider = progressMsProvider,

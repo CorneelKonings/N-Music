@@ -168,6 +168,7 @@ fun LyricsEnhanced(
     modifier: Modifier = Modifier,
     textColorOverride: Color? = null,
     lyricsLineBlurOverride: Boolean? = null,
+    isReadyToParse: Boolean = true,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val player = playerConnection.player
@@ -270,9 +271,13 @@ fun LyricsEnhanced(
         mutableIntStateOf(0)
     }
 
-    LaunchedEffect(lyricsEntries, romanizationPreferences) {
+    LaunchedEffect(lyricsEntries, isTtmlFormat) {
         syncedLyrics = buildSyncedLyrics(lyricsEntries, isTtmlFormat, emptyMap())
         syncedLyricsRenderVersion += 1
+    }
+
+    LaunchedEffect(lyricsEntries, romanizationPreferences, isReadyToParse) {
+        if (!isReadyToParse) return@LaunchedEffect
         if (!romanizationPreferences.isEnabled) return@LaunchedEffect
 
         val toRomanize =

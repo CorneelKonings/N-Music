@@ -23,8 +23,6 @@ import android.widget.Toast
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
-import androidx.compose.runtime.key
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -910,10 +908,6 @@ class MainActivity : ComponentActivity() {
                         this@MainActivity.navController = navController
                         onDispose {}
                     }
-
-                    val isLyricsVisible by remember(playerViewModel) {
-                        playerViewModel.uiState.map { it.isLyricsVisible }.distinctUntilChanged()
-                    }.collectAsStateWithLifecycle(false)
 
                     val updateViewModel: UpdateViewModel = hiltViewModel()
                     LaunchedEffect(updateChannel) {
@@ -2116,21 +2110,21 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         } else {
                                                             val slideOffset =
-                                                                navSlideDistance *
+                                                                navSlideDistance.toPx() *
                                                                     playerExpansionFraction.coerceIn(
                                                                         0f,
                                                                         1f,
                                                                     )
                                                             val hideOffset =
-                                                                navSlideDistance *
+                                                                navSlideDistance.toPx() *
                                                                     (
-                                                                        1 -
+                                                                        1f -
                                                                             bottomNavigationBarHeight.coerceAtMost(navVisibleHeight) /
                                                                             navVisibleHeight
                                                                     )
                                                             IntOffset(
                                                                 x = 0,
-                                                                y = (slideOffset + hideOffset).roundToPx(),
+                                                                y = (slideOffset + hideOffset).roundToInt(),
                                                             )
                                                         }
                                                     },
@@ -2420,15 +2414,6 @@ UpdateScreen(
                                         homeScrollConnection = homeScrollBehavior.nestedScrollConnection,
                                         searchScrollConnection = searchScrollBehavior.nestedScrollConnection,
                                     )
-                                }
-                            }
-                        }
-
-                        key(isLyricsVisible, playerExpansionFraction > 0.05f) {
-                            BackHandler(enabled = isLyricsVisible || playerExpansionFraction > 0.05f) {
-                                when {
-                                    isLyricsVisible -> playerViewModel.setLyricsVisible(false)
-                                    playerExpansionFraction > 0.05f -> playerViewModel.requestSheetCollapse()
                                 }
                             }
                         }
