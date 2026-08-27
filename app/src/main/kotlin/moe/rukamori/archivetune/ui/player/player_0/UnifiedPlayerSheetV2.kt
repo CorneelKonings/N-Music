@@ -208,6 +208,38 @@ fun UnifiedPlayerSheetV2(
             initialOffsetY = 150f
         )
 
+        val dynamicShape = remember(sheetVisualState) {
+            object : Shape {
+                override fun createOutline(
+                    size: Size,
+                    layoutDirection: LayoutDirection,
+                    density: Density
+                ): Outline {
+                    val expansionFractionVal = expansionFraction.value
+                    // Фикс скругления при 99%+ раскрытии шторки
+                    val radiusTop = if (expansionFractionVal > 0.99f) {
+                        0f
+                    } else {
+                        sheetVisualState.overallSheetTopCornerRadiusProvider().toPx()
+                    }
+                    val radiusBottom = sheetVisualState.playerContentActualBottomRadiusProvider().toPx()
+                    val dynamicHeight = sheetVisualState.playerContentAreaHeightPxProvider()
+
+                    val targetSize = if (expansionFractionVal > 0.99f) {
+                        size
+                    } else {
+                        Size(size.width, dynamicHeight)
+                    }
+                    return RoundedCornerShape(
+                        topStart = radiusTop,
+                        topEnd = radiusTop,
+                        bottomStart = radiusBottom,
+                        bottomEnd = radiusBottom
+                    ).createOutline(targetSize, layoutDirection, density)
+                }
+            }
+        }
+
         val dragHandler = remember(motionController, sheetVisualState, screenHeightPx, screenWidthPx) {
             SheetVerticalDragGestureHandler(
                 scope = scope,
@@ -314,35 +346,7 @@ fun UnifiedPlayerSheetV2(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        val expansionFractionVal = expansionFraction.value
-                        // Фикс скругления при 99%+ раскрытии шторки
-                        val radiusTop = if (expansionFractionVal > 0.99f) {
-                            0f
-                        } else {
-                            sheetVisualState.overallSheetTopCornerRadiusProvider().toPx()
-                        }
-                        val radiusBottom = sheetVisualState.playerContentActualBottomRadiusProvider().toPx()
-                        val dynamicHeight = sheetVisualState.playerContentAreaHeightPxProvider()
-
-                        shape = object : Shape {
-                            override fun createOutline(
-                                size: Size,
-                                layoutDirection: LayoutDirection,
-                                density: Density
-                            ): Outline {
-                                val targetSize = if (expansionFractionVal > 0.99f) {
-                                    size
-                                } else {
-                                    Size(size.width, dynamicHeight)
-                                }
-                                return RoundedCornerShape(
-                                    topStart = radiusTop,
-                                    topEnd = radiusTop,
-                                    bottomStart = radiusBottom,
-                                    bottomEnd = radiusBottom
-                                ).createOutline(targetSize, layoutDirection, density)
-                            }
-                        }
+                        shape = dynamicShape
                         clip = true
                     }
                     .background(Brush.verticalGradient(listOf(colorTop, colorBottom)))
