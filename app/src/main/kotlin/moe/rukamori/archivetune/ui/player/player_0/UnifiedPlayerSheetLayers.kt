@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -103,34 +102,32 @@ internal fun UnifiedPlayerSheetLayers(
             moe.rukamori.archivetune.ui.player.player_0.PlayerBackgroundLayers(state = state)
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .conditionalPlacement { expansionFractionProvider() < 0.99f }
-                .graphicsLayer {
-                    val fraction = expansionFractionProvider()
-                    alpha = (1f - (fraction / 0.3f)).coerceIn(0f, 1f)
-                }
-        ) {
-            MiniPlayerContentInternal(
-                state = state,
-                expansionFractionProvider = expansionFractionProvider,
-                onAction = onAction,
-                onMediaAreaClick = onExpandClick
-            )
+        if (expansionFractionProvider() < 1f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val fraction = expansionFractionProvider()
+                        alpha = (1f - (fraction / 0.3f)).coerceIn(0f, 1f)
+                    }
+            ) {
+                MiniPlayerContentInternal(
+                    state = state,
+                    expansionFractionProvider = expansionFractionProvider,
+                    onAction = onAction,
+                    onMediaAreaClick = onExpandClick
+                )
+            }
         }
 
         val hasTrack by remember(state.title) {
             derivedStateOf { state.title.isNotEmpty() }
         }
 
-        if (hasTrack) {
+        if (hasTrack && expansionFractionProvider() > 0f) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .conditionalPlacement {
-                        expansionFractionProvider() >= 0.005f && layerTwoFractionProvider() < 0.995f
-                    }
                     .graphicsLayer {
                         val expansionFraction = expansionFractionProvider()
                         val layerTwoFraction = layerTwoFractionProvider()
@@ -156,102 +153,103 @@ internal fun UnifiedPlayerSheetLayers(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .conditionalPlacement { layerTwoFractionProvider() > 0.005f }
-                .graphicsLayer {
-                    val fraction = layerTwoFractionProvider()
-                    alpha = fraction
-                    translationY = (1f - fraction) * (200f * density)
+        if (layerTwoFractionProvider() > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val fraction = layerTwoFractionProvider()
+                        alpha = fraction
+                        translationY = (1f - fraction) * (200f * density)
+                    }
+            ) {
+                val animatedDarkMuted by animateColorAsState(
+                    targetValue = Color(state.darkMutedColor),
+                    animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                    label = "LayerTwoDarkMutedAnimation",
+                )
+
+                val cardBackgroundBrush = remember(animatedDarkMuted) {
+                    val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
+                    val midColor = animatedDarkMuted
+                    val endColor = Color(0xFF121212)
+
+                    Brush.verticalGradient(
+                        0.0f to startColor,
+                        0.2f to midColor,
+                        1.0f to endColor,
+                    )
                 }
-        ) {
-            val animatedDarkMuted by animateColorAsState(
-                targetValue = Color(state.darkMutedColor),
-                animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
-                label = "LayerTwoDarkMutedAnimation",
-            )
 
-            val cardBackgroundBrush = remember(animatedDarkMuted) {
-                val startColor = lerp(animatedDarkMuted, Color.Black, 0.7f)
-                val midColor = animatedDarkMuted
-                val endColor = Color(0xFF121212)
+                val cardShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
 
-                Brush.verticalGradient(
-                    0.0f to startColor,
-                    0.2f to midColor,
-                    1.0f to endColor,
-                )
-            }
+                Column(modifier = Modifier.fillMaxSize()) {
+                    UnifiedLayerTwoHeader(
+                        state = state,
+                        selectedPage = selectedPage,
+                        onPageSelected = onPageSelected,
+                        animateProgressProvider = layerTwoFractionProvider,
+                        onCloseClick = onCloseLyricsClick,
+                        onMoreClick = onMoreLyricsClick
+                    )
 
-            val cardShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-
-            Column(modifier = Modifier.fillMaxSize()) {
-                UnifiedLayerTwoHeader(
-                    state = state,
-                    selectedPage = selectedPage,
-                    onPageSelected = onPageSelected,
-                    animateProgressProvider = layerTwoFractionProvider,
-                    onCloseClick = onCloseLyricsClick,
-                    onMoreClick = onMoreLyricsClick
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .glassBorder(
-                            shape = cardShape,
-                            strokeWidth = SettingsDimensions.GlassBorderThickness,
-                            topAlpha = 0.20f,
-                            bottomAlpha = 0.04f,
-                        )
-                        .clip(cardShape)
-                        .background(
-                            if (state.isBlurBackgroundEnabled) {
-                                Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.2f), Color.Black.copy(alpha = 0.2f)))
-                            } else {
-                                cardBackgroundBrush
-                            }
-                        )
-                ) {
-                    AnimatedContent(
-                        targetState = selectedPage,
-                        transitionSpec = {
-                            if (targetState > initialState) {
-                                (slideInHorizontally(animationSpec = tween(300)) { width -> width } + fadeIn(animationSpec = tween(300)))
-                                    .togetherWith(slideOutHorizontally(animationSpec = tween(300)) { width -> -width } + fadeOut(animationSpec = tween(300)))
-                            } else {
-                                (slideInHorizontally(animationSpec = tween(300)) { width -> -width } + fadeIn(animationSpec = tween(300)))
-                                    .togetherWith(slideOutHorizontally(animationSpec = tween(300)) { width -> width } + fadeOut(animationSpec = tween(300)))
-                            }
-                        },
-                        label = "LayerTwoContentAnimation",
-                        modifier = Modifier.fillMaxSize()
-                    ) { page ->
-                        when (page) {
-                            0 -> {
-                                LyricsColumn(
-                                    state = state,
-                                    animateProgressProvider = layerTwoFractionProvider,
-                                    progressMsProvider = progressMsProvider,
-                                    onCloseClick = onCloseLyricsClick,
-                                    onAction = onAction,
-                                    onMoreClick = onMoreLyricsClick,
-                                    onSearchClick = onSearchLyricsClick,
-                                    onLineClick = { timeMs -> onSeek(timeMs.toFloat()) },
-                                    onSeek = onSeek,
-                                    onSeekStarted = onSeekStarted
-                                )
-                            }
-                            1 -> {
-                                QueueScreen(
-                                    state = queueState,
-                                    onAction = onAction,
-                                    contentPadding = WindowInsets.systemBars.asPaddingValues(),
-                                    layerTwoFractionProvider = layerTwoFractionProvider,
-                                    modifier = Modifier.fillMaxSize(),
-                                )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .glassBorder(
+                                shape = cardShape,
+                                strokeWidth = SettingsDimensions.GlassBorderThickness,
+                                topAlpha = 0.20f,
+                                bottomAlpha = 0.04f,
+                            )
+                            .clip(cardShape)
+                            .background(
+                                if (state.isBlurBackgroundEnabled) {
+                                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.2f), Color.Black.copy(alpha = 0.2f)))
+                                } else {
+                                    cardBackgroundBrush
+                                }
+                            )
+                    ) {
+                        AnimatedContent(
+                            targetState = selectedPage,
+                            transitionSpec = {
+                                if (targetState > initialState) {
+                                    (slideInHorizontally(animationSpec = tween(300)) { width -> width } + fadeIn(animationSpec = tween(300)))
+                                        .togetherWith(slideOutHorizontally(animationSpec = tween(300)) { width -> -width } + fadeOut(animationSpec = tween(300)))
+                                } else {
+                                    (slideInHorizontally(animationSpec = tween(300)) { width -> -width } + fadeIn(animationSpec = tween(300)))
+                                        .togetherWith(slideOutHorizontally(animationSpec = tween(300)) { width -> width } + fadeOut(animationSpec = tween(300)))
+                                }
+                            },
+                            label = "LayerTwoContentAnimation",
+                            modifier = Modifier.fillMaxSize()
+                        ) { page ->
+                            when (page) {
+                                0 -> {
+                                    LyricsColumn(
+                                        state = state,
+                                        animateProgressProvider = layerTwoFractionProvider,
+                                        progressMsProvider = progressMsProvider,
+                                        onCloseClick = onCloseLyricsClick,
+                                        onAction = onAction,
+                                        onMoreClick = onMoreLyricsClick,
+                                        onSearchClick = onSearchLyricsClick,
+                                        onLineClick = { timeMs -> onSeek(timeMs.toFloat()) },
+                                        onSeek = onSeek,
+                                        onSeekStarted = onSeekStarted
+                                    )
+                                }
+                                1 -> {
+                                    QueueScreen(
+                                        state = queueState,
+                                        onAction = onAction,
+                                        contentPadding = WindowInsets.systemBars.asPaddingValues(),
+                                        layerTwoFractionProvider = layerTwoFractionProvider,
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
+                                }
                             }
                         }
                     }
@@ -384,11 +382,3 @@ private fun UnifiedLayerTwoHeader(
     }
 }
 
-private fun Modifier.conditionalPlacement(shouldPlace: () -> Boolean): Modifier = this.layout { measurable, constraints ->
-    val placeable = measurable.measure(constraints)
-    layout(placeable.width, placeable.height) {
-        if (shouldPlace()) {
-            placeable.placeRelative(0, 0)
-        }
-    }
-}
