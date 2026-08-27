@@ -69,27 +69,24 @@ fun FullPlayer(
     onImmersiveChanged: (Boolean) -> Unit,
     updateState: UpdateState,
     onOpenSettingsMenu: (PlayerMenuScreen) -> Unit,
+    lyricsFractionProvider: () -> Float = { if (state.isLyricsVisible) 1f else 0f },
+    queueFractionProvider: () -> Float = { 0f },
 ) {
     var showSettingsMenu by remember { mutableStateOf(false) }
     var menuInitialScreen by remember { mutableStateOf(PlayerMenuScreen.SETTINGS) }
-
-    // ── Lyrics visibility alpha ───────────────────────────────────────────────
-    val lyricsAlphaState by animateFloatAsState(
-        targetValue = if (state.isLyricsVisible) 0f else 1f,
-        animationSpec = tween(350),
-        label = "FullPlayerContentLyricsAlpha"
-    )
 
     // ── Immersive cover animations ────────────────────────────────────────────
     var prevLyricsVisible by remember { mutableStateOf(state.isLyricsVisible) }
     val isExitingLyrics = prevLyricsVisible && !state.isLyricsVisible
     LaunchedEffect(state.isLyricsVisible) { prevLyricsVisible = state.isLyricsVisible }
 
+    val isOverlayVisible = state.isLyricsVisible || lyricsFractionProvider() > 0.5f || queueFractionProvider() > 0.5f
+
     val immersiveCoverAlpha by animateFloatAsState(
         targetValue = if (state.isImmersiveEnabled) {
-            if (state.isLyricsVisible) 1f else 0f
+            if (isOverlayVisible) 1f else 0f
         } else {
-            if (state.isLyricsVisible) 0f else 1f
+            if (isOverlayVisible) 0f else 1f
         },
         animationSpec = if (isExitingLyrics && state.isImmersiveEnabled) {
             snap()
@@ -100,9 +97,9 @@ fun FullPlayer(
     )
     val immersiveCoverScale by animateFloatAsState(
         targetValue = if (state.isImmersiveEnabled) {
-            if (state.isLyricsVisible) 1f else 1.35f
+            if (isOverlayVisible) 1f else 1.35f
         } else {
-            if (state.isLyricsVisible) 0.8f else 1f
+            if (isOverlayVisible) 0.8f else 1f
         },
         animationSpec = if (isExitingLyrics && state.isImmersiveEnabled) {
             snap()
@@ -129,7 +126,8 @@ fun FullPlayer(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    alpha = lyricsAlphaState
+                    val overlayFraction = maxOf(lyricsFractionProvider(), queueFractionProvider())
+                    alpha = (1f - overlayFraction).coerceIn(0f, 1f)
                 },
             toolbar = {
                 PlayerToolbar(
@@ -160,7 +158,7 @@ fun FullPlayer(
                         placeholderResId = state.placeholderResId,
                         isAlbumCoverGlowEnabled = state.isAlbumCoverGlowEnabled,
                         vibrantColor = Color(state.vibrantColor),
-                        gestureEnabled = !state.isImmersiveEnabled && !state.isLyricsVisible,
+                        gestureEnabled = !state.isImmersiveEnabled && !state.isLyricsVisible && lyricsFractionProvider() < 0.05f && queueFractionProvider() < 0.05f,
                         onNext = { onAction(PlayerAction.Next) },
                         onPrevious = { onAction(PlayerAction.Previous) }
                     )

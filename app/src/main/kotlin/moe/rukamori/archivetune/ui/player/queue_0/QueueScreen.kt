@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,18 +50,20 @@ fun QueueScreen(
     state: QueueUiState,
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
+    lazyListState: LazyListState = rememberLazyListState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    layerTwoFractionProvider: () -> Float = { 1f },
+    queueFractionProvider: () -> Float = { 1f },
 ) {
     val fadeHeight = 24.dp
     LazyColumn(
+        state = lazyListState,
         modifier =
             modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    val fraction = layerTwoFractionProvider()
+                    val fraction = queueFractionProvider()
                     compositingStrategy =
-                        if (fraction > 0f && fraction < 1f) {
+                        if (fraction <= 0f || fraction < 1f) {
                             CompositingStrategy.Auto
                         } else {
                             CompositingStrategy.Offscreen
@@ -67,6 +71,7 @@ fun QueueScreen(
                 }
                 .drawWithContent {
                     drawContent()
+                    if (queueFractionProvider() <= 0f) return@drawWithContent
                     val fadeHeightPx = fadeHeight.toPx()
                     if (size.height > 0f && fadeHeightPx > 0f) {
                         drawRect(

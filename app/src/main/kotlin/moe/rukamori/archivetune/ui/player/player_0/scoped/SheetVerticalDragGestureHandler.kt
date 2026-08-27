@@ -18,6 +18,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.unit.Velocity
+
+internal enum class ActiveDragSheet {
+    LYRICS,
+    QUEUE
+}
+
 /**
  * Инкапсулирует состояние жеста вертикального перетаскивания и разрешение целевой точки для шторки плеера.
  * Поведение идентично оригинальной реализации, но отвязано от ViewModel.
@@ -29,7 +38,8 @@ internal class SheetVerticalDragGestureHandler(
     private val sheetMotionController: SheetMotionController,
     private val playerContentExpansionFraction: Animatable<Float, AnimationVector1D>,
     private val currentSheetTranslationY: Animatable<Float, AnimationVector1D>,
-    private val layerTwoFraction: Animatable<Float, AnimationVector1D>,
+    private val lyricsFraction: Animatable<Float, AnimationVector1D>,
+    private val queueFraction: Animatable<Float, AnimationVector1D>,
     private val expandedYProvider: () -> Float,
     private val collapsedYProvider: () -> Float,
     private val miniHeightPxProvider: () -> Float,
@@ -46,35 +56,41 @@ internal class SheetVerticalDragGestureHandler(
     ) -> Unit,
     private val onExpandSheetState: () -> Unit,
     private val onCollapseSheetState: () -> Unit,
-    private val onSelectLayerTwoPage: (Int) -> Unit,
-    private val onExpandLayerTwo: () -> Unit,
-    private val onCollapseLayerTwo: () -> Unit
+    private val onExpandLyrics: () -> Unit,
+    private val onCollapseLyrics: () -> Unit,
+    private val onExpandQueue: () -> Unit = {},
+    private val onCollapseQueue: () -> Unit = {}
 ) {
     private var initialFractionOnDragStart = 0f
     private var initialYOnDragStart = 0f
-    private var initialLayerTwoFractionOnDragStart = 0f
+    private var initialLyricsFractionOnDragStart = 0f
+    private var initialQueueFractionOnDragStart = 0f
     private var accumulatedDragYSinceStart = 0f
     private var dragSnapJob: Job? = null
+    private var activeDragSheet: ActiveDragSheet = ActiveDragSheet.LYRICS
 
     fun onDragStart(position: Offset = Offset.Zero) {
         dragSnapJob?.cancel()
         dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             sheetMotionController.stop()
-            layerTwoFraction.stop()
+            lyricsFraction.stop()
+            queueFraction.stop()
         }
         onDraggingChange(true)
         onDraggingPlayerAreaChange(true)
         velocityTracker.resetTracking()
         initialFractionOnDragStart = playerContentExpansionFraction.value
         initialYOnDragStart = currentSheetTranslationY.value
-        initialLayerTwoFractionOnDragStart = layerTwoFraction.value
+        initialLyricsFractionOnDragStart = lyricsFraction.value
+        initialQueueFractionOnDragStart = queueFraction.value
         accumulatedDragYSinceStart = 0f
 
-        val expandedY = expandedYProvider()
-        if (currentSheetTranslationY.value <= expandedY + 1f && layerTwoFraction.value < 0.05f) {
-            val screenWidth = screenWidthPxProvider()
-            val targetPage = if (position.x < screenWidth / 2f) 0 else 1
-            onSelectLayerTwoPage(targetPage)
+        val screenWidth = screenWidthPxProvider()
+        activeDragSheet = when {
+            lyricsFraction.value > 0.05f -> ActiveDragSheet.LYRICS
+            queueFraction.value > 0.05f -> ActiveDragSheet.QUEUE
+            position.x < screenWidth / 2f -> ActiveDragSheet.LYRICS
+            else -> ActiveDragSheet.QUEUE
         }
     }
 
@@ -92,7 +108,9 @@ internal class SheetVerticalDragGestureHandler(
         val layerTwoDistance = (screenHeightPxProvider() * 0.4f).coerceAtLeast(300f)
 
         val currentY = currentSheetTranslationY.value
-        val currentL2 = layerTwoFraction.value
+        val targetFractionAnimatable = if (activeDragSheet == ActiveDragSheet.LYRICS) lyricsFraction else queueFraction
+        val otherFractionAnimatable = if (activeDragSheet == ActiveDragSheet.LYRICS) queueFraction else lyricsFraction
+        val currentTargetFraction = targetFractionAnimatable.value
 
         if (dragAmount < 0) {
             if (currentY > expandedY) {
@@ -107,12 +125,15 @@ internal class SheetVerticalDragGestureHandler(
                 )
                 if (dragFrame.translationY < expandedY) {
                     val overshootPx = expandedY - dragFrame.translationY
-                    val deltaL2 = overshootPx / layerTwoDistance
-                    val newL2 = (currentL2 + deltaL2).coerceIn(0f, 1f)
+                    val delta = overshootPx / layerTwoDistance
+                    val newFraction = (currentTargetFraction + delta).coerceIn(0f, 1f)
                     dragSnapJob?.cancel()
                     dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
                         sheetMotionController.snapTo(expandedY, 1f)
-                        layerTwoFraction.snapTo(newL2)
+                        targetFractionAnimatable.snapTo(newFraction)
+                        if (otherFractionAnimatable.value > 0f) {
+                            otherFractionAnimatable.snapTo(0f)
+                        }
                     }
                 } else {
                     val safeTranslationY = dragFrame.translationY.coerceAtLeast(expandedY)
@@ -120,36 +141,41 @@ internal class SheetVerticalDragGestureHandler(
                     dragSnapJob?.cancel()
                     dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
                         sheetMotionController.snapTo(safeTranslationY, safeExpansionFraction)
-                        if (currentL2 > 0f) {
-                            layerTwoFraction.snapTo(0f)
-                        }
+                        if (lyricsFraction.value > 0f) lyricsFraction.snapTo(0f)
+                        if (queueFraction.value > 0f) queueFraction.snapTo(0f)
                     }
                 }
             } else {
-                val deltaL2 = -dragAmount / layerTwoDistance
-                val newL2 = (currentL2 + deltaL2).coerceIn(0f, 1f)
+                val delta = -dragAmount / layerTwoDistance
+                val newFraction = (currentTargetFraction + delta).coerceIn(0f, 1f)
                 dragSnapJob?.cancel()
                 dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
                     if (currentY != expandedY || playerContentExpansionFraction.value != 1f) {
                         sheetMotionController.snapTo(expandedY, 1f)
                     }
-                    layerTwoFraction.snapTo(newL2)
+                    targetFractionAnimatable.snapTo(newFraction)
+                    if (otherFractionAnimatable.value > 0f) {
+                        otherFractionAnimatable.snapTo(0f)
+                    }
                 }
             }
         } else {
-            if (currentL2 > 0f) {
-                val deltaL2 = dragAmount / layerTwoDistance
-                if (currentL2 >= deltaL2) {
-                    val newL2 = (currentL2 - deltaL2).coerceIn(0f, 1f)
+            if (currentTargetFraction > 0f) {
+                val delta = dragAmount / layerTwoDistance
+                if (currentTargetFraction >= delta) {
+                    val newFraction = (currentTargetFraction - delta).coerceIn(0f, 1f)
                     dragSnapJob?.cancel()
                     dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
                         if (currentY != expandedY || playerContentExpansionFraction.value != 1f) {
                             sheetMotionController.snapTo(expandedY, 1f)
                         }
-                        layerTwoFraction.snapTo(newL2)
+                        targetFractionAnimatable.snapTo(newFraction)
+                        if (otherFractionAnimatable.value > 0f) {
+                            otherFractionAnimatable.snapTo(0f)
+                        }
                     }
                 } else {
-                    val consumedPx = currentL2 * layerTwoDistance
+                    val consumedPx = currentTargetFraction * layerTwoDistance
                     val remainingDrag = dragAmount - consumedPx
                     val dragFrame = computeSheetVerticalDragFrame(
                         currentTranslationY = expandedY,
@@ -164,7 +190,10 @@ internal class SheetVerticalDragGestureHandler(
                     val safeExpansionFraction = dragFrame.expansionFraction.coerceIn(0f, 1f)
                     dragSnapJob?.cancel()
                     dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                        layerTwoFraction.snapTo(0f)
+                        targetFractionAnimatable.snapTo(0f)
+                        if (otherFractionAnimatable.value > 0f) {
+                            otherFractionAnimatable.snapTo(0f)
+                        }
                         sheetMotionController.snapTo(safeTranslationY, safeExpansionFraction)
                     }
                 }
@@ -182,36 +211,46 @@ internal class SheetVerticalDragGestureHandler(
                 val safeExpansionFraction = dragFrame.expansionFraction.coerceIn(0f, 1f)
                 dragSnapJob?.cancel()
                 dragSnapJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                    if (currentL2 > 0f) {
-                        layerTwoFraction.snapTo(0f)
-                    }
+                    if (lyricsFraction.value > 0f) lyricsFraction.snapTo(0f)
+                    if (queueFraction.value > 0f) queueFraction.snapTo(0f)
                     sheetMotionController.snapTo(safeTranslationY, safeExpansionFraction)
                 }
             }
         }
     }
 
-    fun onDragEnd() {
+    fun onDragEnd(customVelocity: Float? = null) {
         dragSnapJob?.cancel()
         dragSnapJob = null
         onDraggingChange(false)
         onDraggingPlayerAreaChange(false)
 
-        val rawVelocity = velocityTracker.calculateVelocity().y
+        val rawVelocity = customVelocity ?: velocityTracker.calculateVelocity().y
         val verticalVelocity = if (rawVelocity.isNaN()) 0f else rawVelocity
         val currentFraction = playerContentExpansionFraction.value
-        val currentL2 = layerTwoFraction.value
         val minDragThresholdPx = with(densityProvider()) { 5.dp.toPx() }
         val velocityThreshold = 500f
         val layerTwoDistance = (screenHeightPxProvider() * 0.4f).coerceAtLeast(300f)
         val l2Velocity = (-verticalVelocity / layerTwoDistance).coerceIn(-20f, 20f)
 
-        if (currentL2 > 0f) {
-            val targetLayerTwoExpanded = when {
+        val activeSheet = when {
+            lyricsFraction.value > 0f && queueFraction.value == 0f -> ActiveDragSheet.LYRICS
+            queueFraction.value > 0f && lyricsFraction.value == 0f -> ActiveDragSheet.QUEUE
+            else -> activeDragSheet
+        }
+
+        val targetFractionAnimatable = if (activeSheet == ActiveDragSheet.LYRICS) lyricsFraction else queueFraction
+        val currentTargetFraction = targetFractionAnimatable.value
+        val initialFraction = if (activeSheet == ActiveDragSheet.LYRICS) initialLyricsFractionOnDragStart else initialQueueFractionOnDragStart
+        val onExpandTarget = if (activeSheet == ActiveDragSheet.LYRICS) onExpandLyrics else onExpandQueue
+        val onCollapseTarget = if (activeSheet == ActiveDragSheet.LYRICS) onCollapseLyrics else onCollapseQueue
+
+        if (currentTargetFraction > 0f) {
+            val targetExpanded = when {
                 verticalVelocity < -velocityThreshold -> true
                 verticalVelocity > velocityThreshold -> false
-                initialLayerTwoFractionOnDragStart > 0.5f -> currentL2 > 0.5f
-                else -> currentL2 > 0.3f
+                initialFraction > 0.5f -> currentTargetFraction > 0.5f
+                else -> currentTargetFraction > 0.3f
             }
 
             scope.launch {
@@ -225,9 +264,9 @@ internal class SheetVerticalDragGestureHandler(
                     )
                 }
 
-                if (targetLayerTwoExpanded) {
+                if (targetExpanded) {
                     launch {
-                        layerTwoFraction.animateTo(
+                        targetFractionAnimatable.animateTo(
                             targetValue = 1f,
                             animationSpec = spring(
                                 dampingRatio = 0.78f,
@@ -249,10 +288,10 @@ internal class SheetVerticalDragGestureHandler(
                         }
                     }
                     onExpandSheetState()
-                    onExpandLayerTwo()
+                    onExpandTarget()
                 } else {
                     launch {
-                        layerTwoFraction.animateTo(
+                        targetFractionAnimatable.animateTo(
                             targetValue = 0f,
                             animationSpec = spring(
                                 dampingRatio = 0.78f,
@@ -261,7 +300,7 @@ internal class SheetVerticalDragGestureHandler(
                             initialVelocity = l2Velocity
                         )
                     }
-                    onCollapseLayerTwo()
+                    onCollapseTarget()
                     if (currentFraction < 0.99f || currentSheetTranslationY.value > expandedYProvider()) {
                         val targetState = resolveVerticalSheetTargetState(
                             currentSheetContentState = currentSheetStateProvider(),
@@ -345,7 +384,8 @@ internal class SheetVerticalDragGestureHandler(
                         )
                     }
                     onExpandSheetState()
-                    onCollapseLayerTwo()
+                    onCollapseLyrics()
+                    onCollapseQueue()
                 } else {
                     val dynamicDamping = collapseSpringDampingForFraction(currentFraction)
                     launch {
@@ -370,7 +410,8 @@ internal class SheetVerticalDragGestureHandler(
                         )
                     }
                     onCollapseSheetState()
-                    onCollapseLayerTwo()
+                    onCollapseLyrics()
+                    onCollapseQueue()
                 }
             }
         }
@@ -380,6 +421,115 @@ internal class SheetVerticalDragGestureHandler(
 
     fun onDragCancel() {
         onDragEnd()
+    }
+
+    fun createNestedScrollConnection(
+        canDragProvider: () -> Boolean,
+        targetSheet: ActiveDragSheet = ActiveDragSheet.LYRICS
+    ): NestedScrollConnection {
+        return object : NestedScrollConnection {
+            private var isDraggingFromList = false
+            private var accumulatedListDrag = 0f
+
+            private fun finalizeListDrag(velocity: Float = 0f) {
+                if (isDraggingFromList) {
+                    onDragEnd(velocity)
+                    isDraggingFromList = false
+                    accumulatedListDrag = 0f
+                }
+            }
+
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val targetFractionAnimatable = if (targetSheet == ActiveDragSheet.LYRICS) lyricsFraction else queueFraction
+
+                if (isDraggingFromList) {
+                    if (available.y < 0f && targetFractionAnimatable.value >= 0.99f && currentSheetTranslationY.value <= expandedYProvider()) {
+                        finalizeListDrag()
+                        return Offset.Zero
+                    }
+                    accumulatedListDrag += available.y
+                    onVerticalDrag(
+                        uptimeMillis = System.currentTimeMillis(),
+                        position = Offset.Zero,
+                        dragAmount = available.y
+                    )
+                    return available
+                }
+
+                if (available.y > 0f && canDragProvider()) {
+                    if (!isDraggingFromList) {
+                        isDraggingFromList = true
+                        accumulatedListDrag = 0f
+                        val screenWidth = screenWidthPxProvider()
+                        val startX = if (targetSheet == ActiveDragSheet.LYRICS) 0f else screenWidth
+                        onDragStart(position = Offset(startX, 0f))
+                    }
+                    accumulatedListDrag += available.y
+                    onVerticalDrag(
+                        uptimeMillis = System.currentTimeMillis(),
+                        position = Offset.Zero,
+                        dragAmount = available.y
+                    )
+                    return Offset(0f, available.y)
+                }
+
+                return Offset.Zero
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (isDraggingFromList) {
+                    if (available.y < 0f) {
+                        finalizeListDrag(available.y)
+                        return Velocity.Zero
+                    }
+                    if (available.y > 0f) {
+                        finalizeListDrag(available.y)
+                        return available
+                    }
+                }
+
+                if (available.y > 0f && canDragProvider()) {
+                    if (!isDraggingFromList) {
+                        isDraggingFromList = true
+                        val screenWidth = screenWidthPxProvider()
+                        val startX = if (targetSheet == ActiveDragSheet.LYRICS) 0f else screenWidth
+                        onDragStart(position = Offset(startX, 0f))
+                    }
+                    finalizeListDrag(available.y)
+                    return available
+                }
+
+                return Velocity.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (isDraggingFromList && source == NestedScrollSource.UserInput && available.y != 0f) {
+                    accumulatedListDrag += available.y
+                    onVerticalDrag(
+                        uptimeMillis = System.currentTimeMillis(),
+                        position = Offset.Zero,
+                        dragAmount = available.y
+                    )
+                    return Offset(0f, available.y)
+                }
+                return Offset.Zero
+            }
+
+            override suspend fun onPostFling(
+                consumed: Velocity,
+                available: Velocity
+            ): Velocity {
+                if (isDraggingFromList) {
+                    finalizeListDrag(available.y)
+                    return available
+                }
+                return Velocity.Zero
+            }
+        }
     }
 }
 

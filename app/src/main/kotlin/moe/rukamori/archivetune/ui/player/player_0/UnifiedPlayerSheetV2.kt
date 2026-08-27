@@ -22,12 +22,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -148,22 +148,39 @@ fun UnifiedPlayerSheetV2(
             }
         }
 
-        var selectedPage by remember { mutableIntStateOf(0) }
+        val lyricsFraction = remember { Animatable(0f) }
+        val queueFraction = remember { Animatable(0f) }
 
-        val layerTwoFraction = remember { Animatable(0f) }
         LaunchedEffect(state.isLyricsVisible) {
-            layerTwoFraction.animateTo(
-                targetValue = if (state.isLyricsVisible) 1f else 0f,
-                animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow)
-            )
+            if (state.isLyricsVisible) {
+                withFrameNanos { }
+                lyricsFraction.animateTo(
+                    targetValue = 1f,
+                    animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow)
+                )
+            } else {
+                lyricsFraction.animateTo(
+                    targetValue = 0f,
+                    animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow)
+                )
+            }
         }
 
-        val layerTwoFractionProvider = { layerTwoFraction.value }
+        val lyricsFractionProvider = { lyricsFraction.value }
+        val queueFractionProvider = { queueFraction.value }
 
         LaunchedEffect(Unit) {
             snapshotFlow { expansionFraction.value }.collect { fraction ->
-                if (fraction == 0f && state.isLyricsVisible) {
-                    onCloseLyricsClick()
+                if (fraction == 0f) {
+                    if (state.isLyricsVisible) {
+                        onCloseLyricsClick()
+                    }
+                    if (lyricsFraction.value > 0f) {
+                        lyricsFraction.snapTo(0f)
+                    }
+                    if (queueFraction.value > 0f) {
+                        queueFraction.snapTo(0f)
+                    }
                 }
             }
         }
@@ -252,7 +269,8 @@ fun UnifiedPlayerSheetV2(
                 sheetMotionController = motionController,
                 playerContentExpansionFraction = expansionFraction,
                 currentSheetTranslationY = translationY,
-                layerTwoFraction = layerTwoFraction,
+                lyricsFraction = lyricsFraction,
+                queueFraction = queueFraction,
                 expandedYProvider = { expandedY },
                 collapsedYProvider = { collapsedY },
                 miniHeightPxProvider = { miniHeightPx },
@@ -273,24 +291,40 @@ fun UnifiedPlayerSheetV2(
                 },
                 onExpandSheetState = { currentSheetState = PlayerSheetState.EXPANDED },
                 onCollapseSheetState = { currentSheetState = PlayerSheetState.COLLAPSED },
-                onSelectLayerTwoPage = { targetPage ->
-                    selectedPage = targetPage
-                },
-                onExpandLayerTwo = {
+                onExpandLyrics = {
                     onAction(PlayerAction.Lyrics)
                 },
-                onCollapseLayerTwo = {
+                onCollapseLyrics = {
                     onCloseLyricsClick()
+                },
+                onExpandQueue = {},
+                onCollapseQueue = {
+                    scope.launch {
+                        queueFraction.animateTo(
+                            0f,
+                            spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
+                        )
+                    }
                 }
             )
         }
 
-        BackHandler(enabled = state.isLyricsVisible) {
-            onCloseLyricsClick()
+        BackHandler(enabled = state.isLyricsVisible || lyricsFraction.value > 0.01f || queueFraction.value > 0.01f) {
+            if (lyricsFraction.value > 0.01f || state.isLyricsVisible) {
+                scope.launch {
+                    lyricsFraction.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
+                }
+                onCloseLyricsClick()
+            }
+            if (queueFraction.value > 0.01f) {
+                scope.launch {
+                    queueFraction.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
+                }
+            }
         }
 
         PlayerSheetPredictiveBackHandler(
-            enabled = currentSheetState == PlayerSheetState.EXPANDED && !state.isLyricsVisible && layerTwoFraction.value < 0.01f,
+            enabled = currentSheetState == PlayerSheetState.EXPANDED && !state.isLyricsVisible && lyricsFraction.value < 0.01f && queueFraction.value < 0.01f,
             currentSheetState = currentSheetState,
             predictiveBackFractionValue = predictiveBackProgress,
             onPredictiveBackFractionChanged = { predictiveBackProgress = it },
@@ -359,14 +393,21 @@ fun UnifiedPlayerSheetV2(
                     state = state,
                     queueState = queueState,
                     updateState = updateState,
-                    selectedPage = selectedPage,
-                    onPageSelected = { selectedPage = it },
                     expansionFractionProvider = { expansionFraction.value },
-                    layerTwoFractionProvider = layerTwoFractionProvider,
+                    lyricsFractionProvider = lyricsFractionProvider,
+                    queueFractionProvider = queueFractionProvider,
                     progressMsProvider = progressMsProvider,
                     fullPlayerVisualState = fullPlayerVisualState,
                     onAction = onAction,
                     onCloseLyricsClick = onCloseLyricsClick,
+                    onCloseQueueClick = {
+                        scope.launch {
+                            queueFraction.animateTo(
+                                0f,
+                                spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
+                            )
+                        }
+                    },
                     onMoreLyricsClick = { isLyricsMenuVisible = true },
                     onSearchLyricsClick = onSearchLyricsClick,
                     onCollapseClick = {
@@ -388,7 +429,8 @@ fun UnifiedPlayerSheetV2(
                     onOpenSettingsMenu = { screen ->
                         menuInitialScreen = screen
                         showSettingsMenu = true
-                    }
+                    },
+                    dragHandler = dragHandler
                 )
             }
         }

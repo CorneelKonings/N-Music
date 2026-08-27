@@ -169,6 +169,7 @@ fun LyricsEnhanced(
     textColorOverride: Color? = null,
     lyricsLineBlurOverride: Boolean? = null,
     isReadyToParse: Boolean = true,
+    lazyListState: LazyListState? = null,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val player = playerConnection.player
@@ -342,7 +343,8 @@ fun LyricsEnhanced(
         }
     var isManualScrolling by remember { mutableStateOf(false) }
     var lastManualScrollTime by remember { mutableLongStateOf(0L) }
-    val listState = key(lyricsSessionKey) { rememberLazyListState() }
+    val defaultListState = key(lyricsSessionKey) { rememberLazyListState() }
+    val listState = lazyListState ?: defaultListState
 
     LaunchedEffect(lyricsSessionKey) {
         playbackPositionMs.longValue = player.currentPosition.coerceAtLeast(0L)
@@ -352,7 +354,11 @@ fun LyricsEnhanced(
         selectedLineKeys.clear()
     }
 
-    LaunchedEffect(player, lyricsSessionKey, animationsDisabled, playbackParameters.speed) {
+    LaunchedEffect(player, lyricsSessionKey, animationsDisabled, playbackParameters.speed, isReadyToParse) {
+        if (!isReadyToParse) {
+            playbackPositionMs.longValue = player.currentPosition.coerceAtLeast(0L)
+            return@LaunchedEffect
+        }
         var wasSliderActive = false
         var anchorPlayerPositionMs = player.currentPosition.coerceAtLeast(0L)
         var anchorFrameNanos = 0L
@@ -472,8 +478,8 @@ fun LyricsEnhanced(
         }
     }
 
-    LaunchedEffect(lyricsSessionKey, syncedLyrics, isSynced) {
-        if (!isSynced || syncedLyrics.lines.isEmpty()) return@LaunchedEffect
+    LaunchedEffect(lyricsSessionKey, syncedLyrics, isSynced, isReadyToParse) {
+        if (!isReadyToParse || !isSynced || syncedLyrics.lines.isEmpty()) return@LaunchedEffect
         snapshotFlow {
             listState.layoutInfo.viewportEndOffset > listState.layoutInfo.viewportStartOffset
         }.first { it }
@@ -746,7 +752,7 @@ fun LyricsEnhanced(
                             accompanimentLineTextStyle = accompanimentTextStyle,
                             phoneticTextStyle = phoneticTextStyle,
                             blendMode = BlendMode.SrcOver,
-                            useBlurEffect = lyricsLineBlur,
+                            useBlurEffect = lyricsLineBlur && isReadyToParse,
                             showTranslation = showTranslations,
                             showPhonetic = romanizationPreferences.isEnabled,
                             offset = lyricsViewportOffset,

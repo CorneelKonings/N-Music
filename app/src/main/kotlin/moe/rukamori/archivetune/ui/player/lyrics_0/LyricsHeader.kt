@@ -66,9 +66,12 @@ fun LyricsHeader(
     val capsuleShape = RoundedCornerShape(24.dp)
     val capsuleColor = if (state.isBlurBackgroundEnabled) Color.Black else Color(state.darkMutedColor)
 
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val topPadding = if (statusBarTop > 0.dp) statusBarTop + 8.dp else 44.dp
+
     Box(
         modifier = modifier
-            .padding(top = 44.dp, start = 24.dp, end = 24.dp)
+            .padding(top = topPadding, start = 24.dp, end = 24.dp)
             .fillMaxWidth()
             .height(64.dp)
             .shadow(elevation = 12.dp, shape = capsuleShape, clip = false)

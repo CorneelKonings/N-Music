@@ -3,6 +3,7 @@ package moe.rukamori.archivetune.ui.player.lyrics_0
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -22,14 +23,14 @@ fun LyricsColumn(
     onMoreClick: () -> Unit,
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier,
+    lazyListState: LazyListState = rememberLazyListState(),
     onAction: (PlayerAction) -> Unit,
     onLineClick: (Long) -> Unit,
     onSeek: (Float) -> Unit,
     onSeekStarted: () -> Unit
 ) {
-    val lazyListState = rememberLazyListState()
     val isReadyToParse by remember(animateProgressProvider) {
-        derivedStateOf { animateProgressProvider() == 1f }
+        derivedStateOf { animateProgressProvider() > 0f }
     }
 
     key(state.isLyricsVisible) {

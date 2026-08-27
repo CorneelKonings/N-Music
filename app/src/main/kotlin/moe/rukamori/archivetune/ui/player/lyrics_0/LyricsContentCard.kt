@@ -72,6 +72,7 @@ fun LyricsContentCard(
             lyricsSyncOffset = state.lyricsSyncOffset,
             textColorOverride = Color.White,
             isReadyToParse = isReadyToParse,
+            lazyListState = lazyListState,
             modifier = Modifier.fillMaxSize(),
         )
 
