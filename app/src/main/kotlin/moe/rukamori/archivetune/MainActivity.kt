@@ -1560,8 +1560,12 @@ class MainActivity : ComponentActivity() {
                         LocalSyncUtils provides syncUtils,
                         moe.rukamori.archivetune.ui.component.LocalBottomSheetPageState provides bottomSheetPageState,
                         moe.rukamori.archivetune.ui.component.LocalMenuState provides menuState,
+                        LocalGlobalVisibility provides isHomeScreenVisible,
                     ) {
-                        ScreenBackground(modifier = Modifier.fillMaxSize())
+                        ScreenBackground(
+                            isVisible = LocalGlobalVisibility.current,
+                            modifier = Modifier.fillMaxSize(),
+                        )
                         Row {
                             AnimatedVisibility(
                                 visible = useRail && shouldShowNavigationBar,
@@ -2306,9 +2310,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
 
-                                CompositionLocalProvider(LocalGlobalVisibility provides isHomeScreenVisible) {
-                                    NavHost(
-                                        navController = navController,
+                                NavHost(
+                                    navController = navController,
                                         startDestination =
                                             if (launchMusicRecognitionFromShortcut) {
                                                 MusicRecognitionRoute
@@ -2425,7 +2428,6 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                        }
 
                         BottomSheetMenu(
                             state = LocalMenuState.current,
