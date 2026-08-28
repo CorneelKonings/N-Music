@@ -206,6 +206,7 @@ import moe.rukamori.archivetune.constants.MiniPlayerLastAnchorKey
 import moe.rukamori.archivetune.constants.MiniPlayerOnlyOffset
 import moe.rukamori.archivetune.constants.MiniPlayerWithNavBarOffset
 import moe.rukamori.archivetune.constants.NavigationBarAnimationSpec
+import moe.rukamori.archivetune.constants.OnboardingCompletedKey
 import moe.rukamori.archivetune.constants.PauseSearchHistoryKey
 import moe.rukamori.archivetune.constants.PlayerBackgroundStyle
 import moe.rukamori.archivetune.constants.PlayerBackgroundStyleKey
@@ -551,6 +552,12 @@ class MainActivity : ComponentActivity() {
         }
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[OnboardingCompletedKey] = false
+            }
+        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val initialLocale =

@@ -63,7 +63,9 @@ import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,9 +83,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import moe.rukamori.archivetune.App.Companion.forgetAccount
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.onboarding.OnboardingCommunityActionUiModel
 import moe.rukamori.archivetune.onboarding.OnboardingEvent
@@ -93,17 +99,27 @@ import moe.rukamori.archivetune.onboarding.OnboardingPermissionStatus
 import moe.rukamori.archivetune.onboarding.OnboardingPermissionUiModel
 import moe.rukamori.archivetune.onboarding.OnboardingScreenState
 import moe.rukamori.archivetune.onboarding.OnboardingUiState
+import moe.rukamori.archivetune.spotify.SpotifyAccountViewModel
+import moe.rukamori.archivetune.ui.screens.LoginScreen
 import moe.rukamori.archivetune.ui.screens.settings.DarkMode
 import moe.rukamori.archivetune.constants.HomeBackgroundStyle
 import moe.rukamori.archivetune.constants.PlaybackSource
 import moe.rukamori.archivetune.onboarding.OnboardingViewModel
 import moe.rukamori.archivetune.ui.screens.settings.FlacTokenInputs
+import moe.rukamori.archivetune.ui.screens.settings.SpotifyLoginSheet
+import moe.rukamori.archivetune.ui.screens.settings.TokenEditorDialog
 import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.YumaSegmentPosition
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.ui.theme.yumaSegmentPosition
+import moe.rukamori.archivetune.utils.PreferenceStore
+import moe.rukamori.archivetune.utils.SavedAccount
+import moe.rukamori.archivetune.utils.dataStore
+import moe.rukamori.archivetune.utils.encodeSavedAccounts
+import moe.rukamori.archivetune.utils.putLegacyPoToken
+import java.util.UUID
 
 private val OnboardingContentMaxWidth = 540.dp
 private val OnboardingPagePadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
@@ -1084,21 +1100,26 @@ private fun CustomizationPage(
     pageIndex: Int,
 ) {
     val page = uiState.pages[pageIndex]
+    val context = LocalContext.current
 
     val accountSettingsViewModel: moe.rukamori.archivetune.ui.screens.settings.account.AccountSettingsViewModel = hiltViewModel()
     val accountUiState by accountSettingsViewModel.uiState.collectAsStateWithLifecycle()
+
+    val spotifyAccountViewModel: SpotifyAccountViewModel = hiltViewModel()
+    val spotifyState by spotifyAccountViewModel.uiState.collectAsStateWithLifecycle()
 
     val homeViewModel: moe.rukamori.archivetune.viewmodels.HomeViewModel = hiltViewModel()
     val accountNameFromViewModel by homeViewModel.accountName.collectAsStateWithLifecycle()
     val accountImageUrl by homeViewModel.accountImageUrl.collectAsStateWithLifecycle()
     val accountChannelsState by homeViewModel.accountChannelsState.collectAsStateWithLifecycle()
 
-    val (accountNamePref, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountNameKey, "")
-    val (accountEmail, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountEmailKey, "")
-    val (accountChannelHandle, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountChannelHandleKey, "")
-    val (innerTubeCookie, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.InnerTubeCookieKey, "")
-    val (dataSyncId, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.DataSyncIdKey, "")
-    val (savedAccountsJson, _) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.SavedAccountsKey, "")
+    val (accountNamePref, onAccountNameChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountNameKey, "")
+    val (accountEmail, onAccountEmailChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountEmailKey, "")
+    val (accountChannelHandle, onAccountChannelHandleChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.AccountChannelHandleKey, "")
+    val (innerTubeCookie, onInnerTubeCookieChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.InnerTubeCookieKey, "")
+    val (visitorData, onVisitorDataChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.VisitorDataKey, "")
+    val (dataSyncId, onDataSyncIdChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.DataSyncIdKey, "")
+    val (savedAccountsJson, onSavedAccountsJsonChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.SavedAccountsKey, "")
     
     val savedAccounts = remember(savedAccountsJson) {
         moe.rukamori.archivetune.utils.SavedAccountCollection(moe.rukamori.archivetune.utils.decodeSavedAccounts(savedAccountsJson))
@@ -1132,6 +1153,41 @@ private fun CustomizationPage(
     val (qobuzAppId, onQobuzAppIdChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.QobuzAppIdKey, "")
     val (qobuzAppSecret, onQobuzAppSecretChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.QobuzAppSecretKey, "")
     val (qobuzUserAuthToken, onQobuzUserAuthTokenChange) = moe.rukamori.archivetune.utils.rememberPreference(moe.rukamori.archivetune.constants.QobuzUserAuthTokenKey, "")
+
+    var showTokenEditor by remember { mutableStateOf(false) }
+    var showSpotifyLogin by remember { mutableStateOf(false) }
+    var showWebViewLogin by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            showWebViewLogin = false
+        }
+    }
+
+    val onLegacyPoTokenChange: (String) -> Unit = { value ->
+        PreferenceStore.launchEdit(context.dataStore) {
+            putLegacyPoToken(value)
+        }
+    }
+
+    val saveCurrentAccount: () -> Unit = {
+        val existing = moe.rukamori.archivetune.utils.decodeSavedAccounts(savedAccountsJson)
+        if (isLoggedIn && existing.none { it.innerTubeCookie == innerTubeCookie }) {
+            val newAccount =
+                SavedAccount(
+                    id = UUID.randomUUID().toString(),
+                    name = if (accountNameFromViewModel.isNotBlank()) accountNameFromViewModel else accountNamePref,
+                    email = accountEmail,
+                    channelHandle = accountChannelHandle,
+                    innerTubeCookie = innerTubeCookie,
+                    visitorData = visitorData,
+                    dataSyncId = dataSyncId,
+                    ytmSync = true,
+                    selectedYtmPlaylists = "",
+                )
+            onSavedAccountsJsonChange(encodeSavedAccounts(existing + newAccount))
+        }
+    }
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
 
@@ -1175,13 +1231,39 @@ private fun CustomizationPage(
                         accountChannelsState = accountChannelsState,
                         extractedColorHex = accountUiState.extractedColorHex,
                         onAvatarPixelsReady = accountSettingsViewModel::processAvatarPixels,
-                        onPrimaryAction = {},
-                        onSecondaryAction = {},
-                        onSaveAccount = {},
-                        onSwitchAccount = {},
-                        onSwitchAccountChannel = {},
-                        onRemoveAccount = {},
-                        onAddAnotherAccount = {},
+                        onPrimaryAction = {
+                            if (!isLoggedIn) {
+                                showWebViewLogin = true
+                            }
+                        },
+                        onSecondaryAction = {
+                            if (isLoggedIn) {
+                                onInnerTubeCookieChange("")
+                                forgetAccount(context, clearWebAuthSession = true)
+                            } else {
+                                showTokenEditor = true
+                            }
+                        },
+                        onSaveAccount = saveCurrentAccount,
+                        onSwitchAccount = { account ->
+                            homeViewModel.switchToAccount(
+                                account = account,
+                                forceSyncOnSwitch = false,
+                            )
+                        },
+                        onSwitchAccountChannel = { channel ->
+                            homeViewModel.switchToAccountChannel(
+                                channel = channel,
+                                forceSyncOnSwitch = false,
+                            )
+                        },
+                        onRemoveAccount = { account ->
+                            val existing = moe.rukamori.archivetune.utils.decodeSavedAccounts(savedAccountsJson)
+                            onSavedAccountsJsonChange(encodeSavedAccounts(existing.filter { it.id != account.id }))
+                        },
+                        onAddAnotherAccount = {
+                            showWebViewLogin = true
+                        },
                     )
                 }
 
@@ -1191,7 +1273,13 @@ private fun CustomizationPage(
                         title = stringResource(R.string.home_screen_provider),
                         subtitle = stringResource(R.string.home_screen_provider_desc),
                         selectedValue = useSpotifyHome,
-                        onValueSelected = onUseSpotifyHomeChange
+                        onValueSelected = { isSpotify ->
+                            if (isSpotify && !spotifyState.isAuthenticated) {
+                                showSpotifyLogin = true
+                            } else {
+                                onUseSpotifyHomeChange(isSpotify)
+                            }
+                        },
                     )
                 }
 
@@ -1240,6 +1328,65 @@ private fun CustomizationPage(
                     )
                 }
             }
+        }
+    }
+
+    if (showTokenEditor) {
+        TokenEditorDialog(
+            innerTubeCookie = innerTubeCookie,
+            visitorData = visitorData,
+            dataSyncId = dataSyncId,
+            accountNamePref = accountNamePref,
+            accountEmail = accountEmail,
+            accountChannelHandle = accountChannelHandle,
+            onInnerTubeCookieChange = onInnerTubeCookieChange,
+            onPoTokenChange = onLegacyPoTokenChange,
+            onVisitorDataChange = onVisitorDataChange,
+            onDataSyncIdChange = onDataSyncIdChange,
+            onAccountNameChange = onAccountNameChange,
+            onAccountEmailChange = onAccountEmailChange,
+            onAccountChannelHandleChange = onAccountChannelHandleChange,
+            onDismiss = { showTokenEditor = false },
+        )
+    }
+
+    if (showSpotifyLogin) {
+        SpotifyLoginSheet(
+            onDismiss = { showSpotifyLogin = false },
+            onCookiesCaptured = { spDc, spKey ->
+                spotifyAccountViewModel.connectWithCookies(spDc = spDc, spKey = spKey)
+                onUseSpotifyHomeChange(true)
+                showSpotifyLogin = false
+            },
+        )
+    }
+
+    if (showWebViewLogin) {
+        Dialog(
+            onDismissRequest = { showWebViewLogin = false },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
+        ) {
+            val loginNavController = remember(context) {
+                object : NavHostController(context) {
+                    override fun navigateUp(): Boolean {
+                        showWebViewLogin = false
+                        return true
+                    }
+                    override fun popBackStack(): Boolean {
+                        showWebViewLogin = false
+                        return true
+                    }
+                }.apply {
+                    navigatorProvider.addNavigator(androidx.navigation.compose.ComposeNavigator())
+                    navigatorProvider.addNavigator(androidx.navigation.compose.DialogNavigator())
+                }
+            }
+            LoginScreen(
+                navController = loginNavController,
+            )
         }
     }
 }
