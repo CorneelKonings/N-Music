@@ -284,6 +284,7 @@ import moe.rukamori.archivetune.ui.theme.ArchiveTuneTheme
 import moe.rukamori.archivetune.ui.theme.ColorSaver
 import moe.rukamori.archivetune.ui.theme.DefaultThemeColor
 import moe.rukamori.archivetune.ui.theme.extractSeedColor
+import moe.rukamori.archivetune.ui.utils.LocalGlobalVisibility
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.resetHeightOffset
@@ -599,6 +600,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var playerExpansionFraction by remember { mutableFloatStateOf(0f) }
+            val isHomeScreenVisible by remember {
+                derivedStateOf { playerExpansionFraction < 0.99f }
+            }
 
             val updateChannel by rememberEnumPreference(UpdateChannelKey, defaultValue = defaultUpdateChannel)
 
@@ -2299,121 +2303,123 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
 
-                                NavHost(
-                                    navController = navController,
-                                    startDestination =
-                                        if (launchMusicRecognitionFromShortcut) {
-                                            MusicRecognitionRoute
-                                        } else {
-                                            when (tabOpenedFromShortcut ?: defaultOpenTab) {
-                                                NavigationTab.HOME -> Screens.Home.route
-                                                NavigationTab.LIBRARY -> Screens.Library.route
-                                                else -> Screens.Home.route
+                                CompositionLocalProvider(LocalGlobalVisibility provides isHomeScreenVisible) {
+                                    NavHost(
+                                        navController = navController,
+                                        startDestination =
+                                            if (launchMusicRecognitionFromShortcut) {
+                                                MusicRecognitionRoute
+                                            } else {
+                                                when (tabOpenedFromShortcut ?: defaultOpenTab) {
+                                                    NavigationTab.HOME -> Screens.Home.route
+                                                    NavigationTab.LIBRARY -> Screens.Library.route
+                                                    else -> Screens.Home.route
+                                                }
+                                            },
+                                        enterTransition = {
+                                            if (disableAnimations) {
+                                                fadeIn(tween(0))
+                                            } else if (initialState.destination.route in topLevelScreens &&
+                                                targetState.destination.route in topLevelScreens
+                                            ) {
+                                                fadeIn(tween(250))
+                                            } else {
+                                                fadeIn(tween(250)) + slideInHorizontally { it / 2 }
                                             }
                                         },
-                                    enterTransition = {
-                                        if (disableAnimations) {
-                                            fadeIn(tween(0))
-                                        } else if (initialState.destination.route in topLevelScreens &&
-                                            targetState.destination.route in topLevelScreens
-                                        ) {
-                                            fadeIn(tween(250))
-                                        } else {
-                                             fadeIn(tween(250)) + slideInHorizontally { it / 2 }
-                                        }
-                                    },
-                                    exitTransition = {
-                                        if (disableAnimations) {
-                                            fadeOut(tween(0))
-                                        } else if (initialState.destination.route in topLevelScreens &&
-                                            targetState.destination.route in topLevelScreens
-                                        ) {
-                                            fadeOut(tween(200))
-                                        } else {
-                                             fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
-                                        }
-                                    },
-                                    popEnterTransition = {
-                                        if (disableAnimations) {
-                                            fadeIn(tween(0))
-                                        } else if ((
-                                                initialState.destination.route in topLevelScreens ||
-                                                    initialState.destination.route?.startsWith(OnlineSearchResultRoutePrefix) == true
-                                            ) &&
-                                            targetState.destination.route in topLevelScreens
-                                        ) {
-                                            fadeIn(tween(250))
-                                        } else {
-                                            fadeIn(tween(250)) + slideInHorizontally { -it }
-                                        }
-                                    },
-                                    popExitTransition = {
-                                        if (disableAnimations) {
-                                            fadeOut(tween(0))
-                                        } else if ((
-                                                initialState.destination.route in topLevelScreens ||
-                                                    initialState.destination.route?.startsWith(OnlineSearchResultRoutePrefix) == true
-                                            ) &&
-                                            targetState.destination.route in topLevelScreens
-                                        ) {
-                                            fadeOut(tween(200))
-                                        } else {
-                                            fadeOut(tween(200)) + slideOutHorizontally { it }
-                                        }
-                                    },
-                                    modifier =
-                                        Modifier
-                                            .then(
-                                                if (isTvDevice) {
-                                                    Modifier
-                                                        .focusRequester(contentAreaFocusRequester)
-                                                        .focusGroup()
-                                                        .focusable()
-                                                } else {
-                                                    Modifier
-                                                },
-                                            ).nestedScroll(
-                                                // Step 2b: the NavHost-level connection now serves
-                                                // ONLY shell-driven sub-screens (Album/Artist/
-                                                // Playlist/...). Home and Search attach their own
-                                                // per-route connection inside their screen, so a
-                                                // departing screen's fling can no longer reach the
-                                                // incoming route's header state (fling carry-over is
-                                                // severed structurally). Library is self-contained
-                                                // and OnlineSearchResult is gated by canScroll=false,
-                                                // so routing them through this shared arm is harmless.
-                                                topAppBarScrollBehavior.nestedScrollConnection,
-                                            ),
-                                ) {
-                                    if (BuildConfig.UPDATER_AVAILABLE) {
-                                        composable("settings/update") {
-                                            val updateViewModel: UpdateViewModel = hiltViewModel()
-                                            val updateChannel by rememberEnumPreference(UpdateChannelKey, defaultValue = defaultUpdateChannel)
+                                        exitTransition = {
+                                            if (disableAnimations) {
+                                                fadeOut(tween(0))
+                                            } else if (initialState.destination.route in topLevelScreens &&
+                                                targetState.destination.route in topLevelScreens
+                                            ) {
+                                                fadeOut(tween(200))
+                                            } else {
+                                                fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
+                                            }
+                                        },
+                                        popEnterTransition = {
+                                            if (disableAnimations) {
+                                                fadeIn(tween(0))
+                                            } else if ((
+                                                    initialState.destination.route in topLevelScreens ||
+                                                        initialState.destination.route?.startsWith(OnlineSearchResultRoutePrefix) == true
+                                                ) &&
+                                                targetState.destination.route in topLevelScreens
+                                            ) {
+                                                fadeIn(tween(250))
+                                            } else {
+                                                fadeIn(tween(250)) + slideInHorizontally { -it }
+                                            }
+                                        },
+                                        popExitTransition = {
+                                            if (disableAnimations) {
+                                                fadeOut(tween(0))
+                                            } else if ((
+                                                    initialState.destination.route in topLevelScreens ||
+                                                        initialState.destination.route?.startsWith(OnlineSearchResultRoutePrefix) == true
+                                                ) &&
+                                                targetState.destination.route in topLevelScreens
+                                            ) {
+                                                fadeOut(tween(200))
+                                            } else {
+                                                fadeOut(tween(200)) + slideOutHorizontally { it }
+                                            }
+                                        },
+                                        modifier =
+                                            Modifier
+                                                .then(
+                                                    if (isTvDevice) {
+                                                        Modifier
+                                                            .focusRequester(contentAreaFocusRequester)
+                                                            .focusGroup()
+                                                            .focusable()
+                                                    } else {
+                                                        Modifier
+                                                    },
+                                                ).nestedScroll(
+                                                    // Step 2b: the NavHost-level connection now serves
+                                                    // ONLY shell-driven sub-screens (Album/Artist/
+                                                    // Playlist/...). Home and Search attach their own
+                                                    // per-route connection inside their screen, so a
+                                                    // departing screen's fling can no longer reach the
+                                                    // incoming route's header state (fling carry-over is
+                                                    // severed structurally). Library is self-contained
+                                                    // and OnlineSearchResult is gated by canScroll=false,
+                                                    // so routing them through this shared arm is harmless.
+                                                    topAppBarScrollBehavior.nestedScrollConnection,
+                                                ),
+                                    ) {
+                                        if (BuildConfig.UPDATER_AVAILABLE) {
+                                            composable("settings/update") {
+                                                val updateViewModel: UpdateViewModel = hiltViewModel()
+                                                val updateChannel by rememberEnumPreference(UpdateChannelKey, defaultValue = defaultUpdateChannel)
 
-UpdateScreen(
-                                                 navController = navController,
-                                                 onUpToDate = { updateViewModel.dismissUpdate() },
-                                             )
+                                                UpdateScreen(
+                                                    navController = navController,
+                                                    onUpToDate = { updateViewModel.dismissUpdate() },
+                                                )
+                                            }
                                         }
-                                    }
 
-                                    composable("settings") {
-                                        SettingsScreen(
-                                            navController = navController,
-                                            updateState = updateState, // 👈 Добавлено
-                                            onClearUpdateBadge = { updateViewModel.dismissUpdate() }
+                                        composable("settings") {
+                                            SettingsScreen(
+                                                navController = navController,
+                                                updateState = updateState, // 👈 Добавлено
+                                                onClearUpdateBadge = { updateViewModel.dismissUpdate() }
+                                            )
+                                        }
+
+                                        navigationBuilder(
+                                            navController,
+                                            topAppBarScrollBehavior,
+                                            updateState,
+                                            disableAnimations,
+                                            onClearUpdateBadge = { updateViewModel.dismissUpdate() },
+                                            homeScrollConnection = homeScrollBehavior.nestedScrollConnection,
+                                            searchScrollConnection = searchScrollBehavior.nestedScrollConnection,
                                         )
                                     }
-
-                                    navigationBuilder(
-                                        navController,
-                                        topAppBarScrollBehavior,
-                                        updateState,
-                                        disableAnimations,
-                                        onClearUpdateBadge = { updateViewModel.dismissUpdate() },
-                                        homeScrollConnection = homeScrollBehavior.nestedScrollConnection,
-                                        searchScrollConnection = searchScrollBehavior.nestedScrollConnection,
-                                    )
                                 }
                             }
                         }
