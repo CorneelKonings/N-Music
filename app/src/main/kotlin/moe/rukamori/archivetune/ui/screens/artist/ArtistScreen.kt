@@ -322,7 +322,7 @@ fun ArtistScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor),
+                .background(Color.Transparent),
     ) {
         // Gradient background layer
         if (gradientColors.isNotEmpty() && gradientAlpha > 0f) {

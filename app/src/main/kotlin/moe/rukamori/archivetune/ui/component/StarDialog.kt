@@ -134,7 +134,7 @@ fun StarDialog(
                             .fillMaxWidth()
                             .height(52.dp)
                             .yumaClickable {
-                                uriHandler.openUri("https://koiiverse.cloud/donate")
+                                uriHandler.openUri("https://github.com/MuwMx/YumaPlayer")
                                 onSupport()
                             }
                             .clip(RoundedCornerShape(16.dp))
@@ -146,55 +146,17 @@ fun StarDialog(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.coffee),
+                                painter = painterResource(id = R.drawable.star),
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary,
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = stringResource(R.string.support_development_donate),
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        }
-                    }
-
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp)
-                            .yumaClickable {
-                                uriHandler.openUri("https://github.com/MuwMx/YumaPlayer")
-                                onSupport()
-                            }
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
-                                shape = RoundedCornerShape(16.dp),
-                            ),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.star),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
                                 text = stringResource(R.string.support_development_star),
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                color = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
                     }

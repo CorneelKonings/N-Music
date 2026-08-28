@@ -9,6 +9,8 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import moe.rukamori.archivetune.constants.HomeBackgroundStyle
 
@@ -26,7 +28,9 @@ fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
     if (!isVisible) return
     val homeBackground = LocalHomeBackgroundStyle.current
     Box(
-        modifier = modifier.clipToBounds()
+        modifier = modifier
+            .clipToBounds()
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
     ) {
         when (homeBackground.style) {
             HomeBackgroundStyle.TONAL -> {

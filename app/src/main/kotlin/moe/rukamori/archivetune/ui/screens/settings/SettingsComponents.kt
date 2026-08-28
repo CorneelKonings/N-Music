@@ -624,27 +624,10 @@ fun SettingsScreenBackground(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val primaryAccent = MaterialTheme.colorScheme.primary
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val bgTopColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = SettingsDimensions.BackgroundTopAlpha).compositeOver(surfaceColor)
-    }
-    val bgMidColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = SettingsDimensions.BackgroundMidAlpha).compositeOver(surfaceColor)
-    }
-
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        bgTopColor,
-                        bgMidColor,
-                        surfaceColor,
-                    )
-                )
-            )
+            .background(Color.Transparent)
     ) {
         content()
     }

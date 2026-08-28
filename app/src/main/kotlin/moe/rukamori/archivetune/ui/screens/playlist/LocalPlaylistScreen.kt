@@ -597,7 +597,7 @@ fun LocalPlaylistScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor),
+                .background(Color.Transparent),
     ) {
         // Mesh gradient background layer
         if (!isSearching && !disableBlur && gradientColors.isNotEmpty() && gradientAlpha > 0f) {
