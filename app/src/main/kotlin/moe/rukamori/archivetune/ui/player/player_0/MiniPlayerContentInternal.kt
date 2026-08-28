@@ -37,7 +37,8 @@ internal fun MiniPlayerContentInternal(
     expansionFractionProvider: () -> Float,
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
-    onMediaAreaClick: () -> Unit
+    onMediaAreaClick: () -> Unit,
+    isVisible: Boolean = true
 ) {
     val animatedBgColor by animateColorAsState(
         targetValue = Color(state.gradientColor),
@@ -46,10 +47,9 @@ internal fun MiniPlayerContentInternal(
     )
 
     val rotation = remember { Animatable(0f) }
-    val isMiniVisible = remember { derivedStateOf { expansionFractionProvider() < 0.99f } }
 
-    LaunchedEffect(state.isPlaying) {
-        if (state.isPlaying) {
+    LaunchedEffect(state.isPlaying, isVisible) {
+        if (state.isPlaying && isVisible) {
             while (true) {
                 rotation.animateTo(
                     targetValue = rotation.value + 360f,
@@ -138,7 +138,8 @@ internal fun MiniPlayerContentInternal(
                     shadow = SoftTextShadow
                 ),
                 maxLines = 1,
-                modifier = Modifier
+                modifier = Modifier,
+                isVisible = isVisible
             )
 
             // Исполнитель
@@ -150,7 +151,8 @@ internal fun MiniPlayerContentInternal(
                     shadow = SoftTextShadow
                 ),
                 maxLines = 1,
-                modifier = Modifier
+                modifier = Modifier,
+                isVisible = isVisible
             )
         }
 

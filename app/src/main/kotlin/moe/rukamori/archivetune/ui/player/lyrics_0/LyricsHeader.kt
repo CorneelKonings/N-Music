@@ -39,7 +39,8 @@ fun LyricsHeader(
     animateProgressProvider: () -> Float,
     onCloseClick: () -> Unit,
     onMoreClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isVisible: Boolean = true
 ) {
     // Пружинные отскоки кнопок
     val closeInteractionSource = remember { MutableInteractionSource() }
@@ -50,10 +51,14 @@ fun LyricsHeader(
     val morePressed by moreInteractionSource.collectIsPressedAsState()
     val moreScale by animateFloatAsState(if (morePressed) 0.92f else 1f, spring(dampingRatio = 0.5f))
 
+    val isHeaderVisible by remember(isVisible) {
+        derivedStateOf { isVisible && animateProgressProvider() > 0.05f }
+    }
+
     // Изолированная анимация вращения пластинки
     val rotation = remember { Animatable(0f) }
-    LaunchedEffect(state.isPlaying) {
-        if (state.isPlaying) {
+    LaunchedEffect(state.isPlaying, isHeaderVisible) {
+        if (state.isPlaying && isHeaderVisible) {
             while (true) {
                 rotation.animateTo(
                     targetValue = rotation.value + 360f,
@@ -147,7 +152,8 @@ fun LyricsHeader(
                             shadow = SoftTextShadow
                         ),
                         maxLines = 1,
-                        modifier = Modifier
+                        modifier = Modifier,
+                        isVisible = isHeaderVisible
                     )
 
                     // Исполнитель
@@ -159,7 +165,8 @@ fun LyricsHeader(
                             shadow = SoftTextShadow
                         ),
                         maxLines = 1,
-                        modifier = Modifier
+                        modifier = Modifier,
+                        isVisible = isHeaderVisible
                     )
                 }
             }

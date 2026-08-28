@@ -45,7 +45,8 @@ fun PlayerMetadata(
     state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
-    expansionFractionProvider: () -> Float = { 1f }
+    expansionFractionProvider: () -> Float = { 1f },
+    isVisible: Boolean = true
 ) {
     val gradientEdgeColor = Color.Black
     Row(
@@ -99,7 +100,8 @@ fun PlayerMetadata(
                         shadow = SoftTextShadow
                     ),
                     maxLines = 1,
-                    modifier = Modifier
+                    modifier = Modifier,
+                    isVisible = isVisible
                 )
             }
 
@@ -142,7 +144,8 @@ fun PlayerMetadata(
                         shadow = SoftTextShadow
                     ),
                     maxLines = 1,
-                    modifier = Modifier
+                    modifier = Modifier,
+                    isVisible = isVisible
                 )
             }
         }

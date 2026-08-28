@@ -50,10 +50,12 @@ fun PlayerSeekBar(
     onOpenSleepTimer: () -> Unit = {},
     onSeek: (Float) -> Unit,
     onSeekStarted: () -> Unit,
+    isVisible: Boolean = true,
 ) {
     var progressMs by remember { mutableLongStateOf(progressProvider()) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isVisible) {
+        if (!isVisible) return@LaunchedEffect
         while (isActive) {
             val current = progressProvider()
             if (progressMs != current) {

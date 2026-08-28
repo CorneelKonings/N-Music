@@ -71,6 +71,7 @@ fun FullPlayer(
     onOpenSettingsMenu: (PlayerMenuScreen) -> Unit,
     lyricsFractionProvider: () -> Float = { if (state.isLyricsVisible) 1f else 0f },
     queueFractionProvider: () -> Float = { 0f },
+    isVisible: Boolean = true,
 ) {
     var showSettingsMenu by remember { mutableStateOf(false) }
     var menuInitialScreen by remember { mutableStateOf(PlayerMenuScreen.SETTINGS) }
@@ -177,7 +178,8 @@ fun FullPlayer(
                         title = state.title,
                         artist = state.artist,
                         state = state,
-                        onAction = onAction
+                        onAction = onAction,
+                        isVisible = isVisible
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -193,7 +195,8 @@ fun FullPlayer(
                         sleepTimerRemainingSeconds = state.sleepTimerRemainingSeconds,
                         onOpenSleepTimer = { onOpenSettingsMenu(PlayerMenuScreen.SLEEP_TIMER) },
                         onSeek = onSeek,
-                        onSeekStarted = onSeekStarted
+                        onSeekStarted = onSeekStarted,
+                        isVisible = isVisible
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))

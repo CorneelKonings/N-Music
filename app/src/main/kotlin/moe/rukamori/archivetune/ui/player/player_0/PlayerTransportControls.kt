@@ -40,21 +40,25 @@ import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.theme.transparentIconShadow
 import moe.rukamori.archivetune.ui.utils.bounceClick
 
-private val CapsuleHorizontalPad = 12.dp
-private val CapsuleHeight = 76.dp
-private val CapsulePadHorizontal = 20.dp
-private val CapsuleBorderWidth = 0.5.dp
+private val ContainerHorizontalPad = 0.dp // Прижимаем shuffle/repeat ближе к краям экрана
+private val CapsuleHeight          = 92.dp // Высота капсулы
+private val CapsuleMarginHoriz     = 6.dp // Зазор между капсулой и внешними кнопками
+private val CapsulePadHorizontal   = 20.dp // Внутренний отступ внутри капсулы до кнопок переключения
+private val CapsuleBorderWidth     = 0.5.dp
 
-private val SideButtonSize = 40.dp
-private val SideIconSize = 24.dp
+// Внешние кнопки (Shuffle / Repeat) — компактные
+private val OuterButtonSize        = 40.dp
+private val OuterIconSize          = 22.dp
 
-private val OuterButtonSize = 48.dp
-private val OuterIconSize = 30.dp
-private val SideShadowAlpha = 0.1f
-private val SideShadowRadius = 15.dp
+// Кнопки переключения внутри капсулы (Previous / Next) — крупнее внешних
+private val SkipButtonSize         = 52.dp
+private val SkipIconSize           = 34.dp
+private val SideShadowAlpha        = 0.1f
+private val SideShadowRadius       = 15.dp
 
-private val CenterButtonSize = 64.dp
-private val CenterIconSize = 42.dp
+// Центральная кнопка (Play / Pause)
+private val CenterButtonSize       = 74.dp
+private val CenterIconSize         = 52.dp
 
 @Composable
 fun PlayerTransportControls(
@@ -92,7 +96,7 @@ fun PlayerTransportControls(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = CapsuleHorizontalPad)
+            .padding(horizontal = ContainerHorizontalPad)
             .graphicsLayer {
                 val offset = slideOffset()
                 translationY = 80f * (1f - offset)
@@ -105,6 +109,7 @@ fun PlayerTransportControls(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Shuffle
             Box(
                 modifier = Modifier
                     .bounceClick(pressedScale = 0.90f) {
@@ -124,6 +129,8 @@ fun PlayerTransportControls(
 
             Row(
                 modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = CapsuleMarginHoriz)
                     .height(CapsuleHeight)
                     .clip(CircleShape)
                     .background(animatedAccentColor.copy(alpha = 0.12f))
@@ -140,15 +147,16 @@ fun PlayerTransportControls(
                         CircleShape,
                     )
                     .padding(horizontal = CapsulePadHorizontal),
-                horizontalArrangement = Arrangement.spacedBy(22.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                // Previous
                 Box(
                     modifier = Modifier
                         .bounceClick(pressedScale = 0.90f) {
                             onAction(PlayerAction.Previous)
                         }
-                        .size(SideButtonSize)
+                        .size(SkipButtonSize)
                         .transparentIconShadow(alpha = SideShadowAlpha, shadowRadius = SideShadowRadius)
                         .clip(CircleShape),
                     contentAlignment = Alignment.Center,
@@ -156,11 +164,12 @@ fun PlayerTransportControls(
                     Image(
                         painter = rememberVectorPainter(Icons.Rounded.SkipPrevious),
                         contentDescription = "Previous Track",
-                        modifier = Modifier.size(SideIconSize),
+                        modifier = Modifier.size(SkipIconSize),
                         colorFilter = ColorFilter.tint(Color.White),
                     )
                 }
 
+                // Play / Pause
                 Box(
                     modifier = Modifier
                         .bounceClick(pressedScale = 0.92f) { if (!state.isLoading) onAction(PlayerAction.PlayPause) }
@@ -173,7 +182,7 @@ fun PlayerTransportControls(
                 ) {
                     if (state.isLoading) {
                         CircularWavyProgressIndicator(
-                            modifier = Modifier.size(CenterIconSize - 10.dp),
+                            modifier = Modifier.size(CenterIconSize - 12.dp),
                             color = Color(0xFF121212),
                         )
                     } else {
@@ -186,12 +195,13 @@ fun PlayerTransportControls(
                     }
                 }
 
+                // Next
                 Box(
                     modifier = Modifier
                         .bounceClick(pressedScale = 0.90f) {
                             onAction(PlayerAction.Next)
                         }
-                        .size(SideButtonSize)
+                        .size(SkipButtonSize)
                         .transparentIconShadow(alpha = SideShadowAlpha, shadowRadius = SideShadowRadius)
                         .clip(CircleShape),
                     contentAlignment = Alignment.Center,
@@ -199,12 +209,13 @@ fun PlayerTransportControls(
                     Image(
                         painter = rememberVectorPainter(Icons.Rounded.SkipNext),
                         contentDescription = "Next Track",
-                        modifier = Modifier.size(SideIconSize),
+                        modifier = Modifier.size(SkipIconSize),
                         colorFilter = ColorFilter.tint(Color.White),
                     )
                 }
             }
 
+            // Repeat
             Box(
                 modifier = Modifier
                     .bounceClick(pressedScale = 0.90f) {

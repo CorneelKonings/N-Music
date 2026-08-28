@@ -47,11 +47,12 @@ fun MarqueeText(
     maxLines: Int = 1,
     minLines: Int = 1,
     onTextLayout: ((TextLayoutResult) -> Unit)? = null,
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
+    isVisible: Boolean = true
 ) {
     var hasOverflow by remember(text) { mutableStateOf(false) }
 
-    val marqueeModifier = if (hasOverflow) {
+    val marqueeModifier = if (hasOverflow && isVisible) {
         Modifier
             .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
             .drawWithContent {

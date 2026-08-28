@@ -114,6 +114,10 @@ internal fun UnifiedPlayerSheetLayers(
             )
         }
 
+        val isMiniPlayerVisible by remember {
+            derivedStateOf { expansionFractionProvider() < 0.05f }
+        }
+
         if (expansionFractionProvider() < 1f) {
             Box(
                 modifier = Modifier
@@ -127,7 +131,8 @@ internal fun UnifiedPlayerSheetLayers(
                     state = state,
                     expansionFractionProvider = expansionFractionProvider,
                     onAction = onAction,
-                    onMediaAreaClick = onExpandClick
+                    onMediaAreaClick = onExpandClick,
+                    isVisible = isMiniPlayerVisible
                 )
             }
         }
@@ -137,6 +142,18 @@ internal fun UnifiedPlayerSheetLayers(
         }
 
         if (hasTrack) {
+            val isFullPlayerVisible by remember {
+                derivedStateOf {
+                    expansionFractionProvider() > 0.005f && maxOf(lyricsFractionProvider(), queueFractionProvider()) < 1f
+                }
+            }
+            val isLyricsVisible by remember {
+                derivedStateOf { lyricsFractionProvider() > 0.05f }
+            }
+            val isQueueVisible by remember {
+                derivedStateOf { queueFractionProvider() > 0.05f }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -162,7 +179,8 @@ internal fun UnifiedPlayerSheetLayers(
                     onOpenSettingsMenu = onOpenSettingsMenu,
                     onSeekStarted = onSeekStarted,
                     lyricsFractionProvider = lyricsFractionProvider,
-                    queueFractionProvider = queueFractionProvider
+                    queueFractionProvider = queueFractionProvider,
+                    isVisible = isFullPlayerVisible
                 )
             }
 
@@ -180,7 +198,8 @@ internal fun UnifiedPlayerSheetLayers(
                         state = state,
                         animateProgressProvider = lyricsFractionProvider,
                         onCloseClick = onCloseLyricsClick,
-                        onMoreClick = onMoreLyricsClick
+                        onMoreClick = onMoreLyricsClick,
+                        isVisible = isLyricsVisible
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -229,7 +248,8 @@ internal fun UnifiedPlayerSheetLayers(
                         state = state,
                         animateProgressProvider = queueFractionProvider,
                         onCloseClick = onCloseQueueClick,
-                        onMoreClick = onMoreLyricsClick
+                        onMoreClick = onMoreLyricsClick,
+                        isVisible = isQueueVisible
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
