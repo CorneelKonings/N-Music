@@ -17,6 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -443,6 +444,7 @@ class HomeViewModel
         }
 
         private suspend fun load() {
+            delay(300)
             if (isLoading.value) return
             isLoading.value = true
             loadError.value = null
@@ -926,7 +928,8 @@ class HomeViewModel
                                 }
 
                                 if (loginTransition) {
-                                    launch {
+                                    viewModelScope.launch(Dispatchers.IO) {
+                                        delay(8000)
                                         try {
                                             if (context.dataStore.get(YtmSyncKey, true)) {
                                                 syncUtils.performFullSync()
