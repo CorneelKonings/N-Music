@@ -28,15 +28,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import moe.rukamori.archivetune.ui.component.GlassDefaults
+import moe.rukamori.archivetune.ui.component.GlassScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -66,7 +69,7 @@ fun HiddenPlaylistsScreen(navController: NavController) {
 
     val hiddenPlaylists = allPlaylists.filter { it.playlist.isHidden }
 
-    Scaffold(
+    GlassScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.hidden_playlists)) },
@@ -81,6 +84,7 @@ fun HiddenPlaylistsScreen(navController: NavController) {
                         )
                     }
                 },
+                colors = GlassDefaults.topAppBarColors(),
             )
         },
     ) { innerPadding ->

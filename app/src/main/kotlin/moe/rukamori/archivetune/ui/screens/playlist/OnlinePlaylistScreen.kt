@@ -55,6 +55,7 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import moe.rukamori.archivetune.ui.component.GlassDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -313,10 +314,6 @@ fun OnlinePlaylistScreen(
         }
     }
 
-    val transparentAppBar by remember {
-        derivedStateOf { !disableBlur && !selection && !showTopBarTitle }
-    }
-
     val headerItems by remember {
         derivedStateOf {
             val current = playlist
@@ -346,7 +343,7 @@ fun OnlinePlaylistScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor),
+                .background(Color.Transparent),
     ) {
         // Mesh gradient background layer
         if (!disableBlur && gradientColors.isNotEmpty() && gradientAlpha > 0f) {
@@ -1238,25 +1235,8 @@ fun OnlinePlaylistScreen(
             headerItems = headerItems,
         )
 
-        // Top App Bar
-        val topAppBarColors =
-            if (transparentAppBar) {
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = Color.Transparent,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    actionIconContentColor = MaterialTheme.colorScheme.onBackground,
-                )
-            } else {
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                )
-            }
-
         TopAppBar(
-            colors = topAppBarColors,
+            colors = GlassDefaults.topAppBarColors(),
             title = {
                 if (selection) {
                     val count = wrappedSongs.count { it.isSelected }

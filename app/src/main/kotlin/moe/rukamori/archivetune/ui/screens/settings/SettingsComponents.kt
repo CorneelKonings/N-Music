@@ -50,12 +50,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
+import moe.rukamori.archivetune.ui.component.GlassDefaults
+import moe.rukamori.archivetune.ui.component.GlassScaffold
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.R
@@ -624,27 +625,10 @@ fun SettingsScreenBackground(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val primaryAccent = MaterialTheme.colorScheme.primary
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val bgTopColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = SettingsDimensions.BackgroundTopAlpha).compositeOver(surfaceColor)
-    }
-    val bgMidColor = remember(primaryAccent, surfaceColor) {
-        primaryAccent.copy(alpha = SettingsDimensions.BackgroundMidAlpha).compositeOver(surfaceColor)
-    }
-
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        bgTopColor,
-                        bgMidColor,
-                        surfaceColor,
-                    )
-                )
-            )
+            .background(Color.Transparent)
     ) {
         content()
     }
@@ -661,8 +645,7 @@ fun YumaSettingsScaffold(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     SettingsScreenBackground(modifier = modifier) {
-        Scaffold(
-            containerColor = Color.Transparent,
+        GlassScaffold(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
                 TopAppBar(
@@ -689,10 +672,7 @@ fun YumaSettingsScaffold(
                         }
                     },
                     actions = actions,
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent,
-                    ),
+                    colors = GlassDefaults.topAppBarColors(),
                 )
             },
         ) { innerPadding ->

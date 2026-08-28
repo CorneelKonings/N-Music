@@ -21,13 +21,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import moe.rukamori.archivetune.ui.component.GlassDefaults
+import moe.rukamori.archivetune.ui.component.GlassScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -170,7 +173,7 @@ fun PlayerSettings(navController: NavController) {
         }
     )
 
-    Scaffold(
+    GlassScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.player_and_audio)) },
@@ -185,6 +188,7 @@ fun PlayerSettings(navController: NavController) {
                         )
                     }
                 },
+                colors = GlassDefaults.topAppBarColors(),
             )
         },
     ) { innerPadding ->

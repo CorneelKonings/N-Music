@@ -46,6 +46,7 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import moe.rukamori.archivetune.ui.component.GlassDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -282,12 +283,6 @@ fun CachePlaylistScreen(
         }
     }
 
-    val transparentAppBar by remember {
-        derivedStateOf {
-            !disableBlur && !selection && !showTopBarTitle
-        }
-    }
-
     val headerItems by remember {
         derivedStateOf {
             if (filteredSongs.isNotEmpty() && !isSearching) 2 else 0
@@ -301,7 +296,7 @@ fun CachePlaylistScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor),
+                .background(Color.Transparent),
     ) {
         // Mesh gradient background layer
         if (!disableBlur && gradientColors.isNotEmpty() && gradientAlpha > 0f) {
@@ -716,11 +711,7 @@ fun CachePlaylistScreen(
         )
 
         TopAppBar(
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = if (transparentAppBar) Color.Transparent else MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                ),
+            colors = GlassDefaults.topAppBarColors(),
             title = {
                 when {
                     selection -> {

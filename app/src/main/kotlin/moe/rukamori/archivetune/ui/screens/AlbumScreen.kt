@@ -48,6 +48,7 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import moe.rukamori.archivetune.ui.component.GlassDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -277,17 +278,11 @@ fun AlbumScreen(
         }
     }
 
-    val transparentAppBar by remember {
-        derivedStateOf {
-            !selection && !showTopBarTitle
-        }
-    }
-
     Box(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor),
+                .background(Color.Transparent),
     ) {
         // Gradient background layer
         if (gradientColors.isNotEmpty() && gradientAlpha > 0f) {
@@ -1011,26 +1006,9 @@ fun AlbumScreen(
             }
         }
 
-        // Top App Bar
-        val topAppBarColors =
-            if (transparentAppBar) {
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = Color.Transparent,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    actionIconContentColor = MaterialTheme.colorScheme.onBackground,
-                )
-            } else {
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                )
-            }
-
         TopAppBar(
             modifier = Modifier.align(Alignment.TopCenter),
-            colors = topAppBarColors,
+            colors = GlassDefaults.topAppBarColors(),
             scrollBehavior = scrollBehavior,
             title = {
                 if (selection) {

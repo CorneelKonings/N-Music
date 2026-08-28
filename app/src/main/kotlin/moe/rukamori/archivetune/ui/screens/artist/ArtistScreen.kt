@@ -69,6 +69,7 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import moe.rukamori.archivetune.ui.component.GlassDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -322,7 +323,7 @@ fun ArtistScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor),
+                .background(Color.Transparent),
     ) {
         // Gradient background layer
         if (gradientColors.isNotEmpty() && gradientAlpha > 0f) {
@@ -1266,12 +1267,7 @@ fun ArtistScreen(
                 )
             }
         },
-        colors =
-            if (transparentAppBar) {
-                TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            } else {
-                TopAppBarDefaults.topAppBarColors()
-            },
+        colors = GlassDefaults.topAppBarColors(),
     )
 }
 

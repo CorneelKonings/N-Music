@@ -59,6 +59,7 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import moe.rukamori.archivetune.ui.component.GlassDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -412,12 +413,6 @@ fun AutoPlaylistScreen(
         }
     }
 
-    val transparentAppBar by remember {
-        derivedStateOf {
-            !selection && !isSearching && !showTopBarTitle
-        }
-    }
-
     val headerItems by remember {
         derivedStateOf {
             if (songs.isNotEmpty() && !isSearching) 2 else 0
@@ -431,7 +426,7 @@ fun AutoPlaylistScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor),
+                .background(Color.Transparent),
     ) {
         // Mesh gradient background layer
         if (!disableBlur && gradientColors.isNotEmpty() && gradientAlpha > 0f) {
@@ -1100,21 +1095,7 @@ fun AutoPlaylistScreen(
 
         TopAppBar(
             scrollBehavior = scrollBehavior,
-            colors =
-                if (transparentAppBar) {
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent,
-                        navigationIconContentColor = Color.White,
-                        titleContentColor = Color.White,
-                        actionIconContentColor = Color.White,
-                    )
-                } else {
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                    )
-                },
+            colors = GlassDefaults.topAppBarColors(),
             title = {
                 when {
                     selection -> {

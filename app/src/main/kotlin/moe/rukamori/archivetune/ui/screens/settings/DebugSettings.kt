@@ -64,13 +64,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import moe.rukamori.archivetune.ui.component.GlassDefaults
+import moe.rukamori.archivetune.ui.component.GlassScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -160,7 +162,7 @@ fun DebugSettings(navController: NavController) {
 
     val playerConnection = LocalPlayerConnection.current
 
-    Scaffold(
+    GlassScaffold(
         topBar = {
             TopAppBar(
                 title = {
@@ -179,6 +181,7 @@ fun DebugSettings(navController: NavController) {
                         Icon(painterResource(R.drawable.arrow_back), contentDescription = null)
                     }
                 },
+                colors = GlassDefaults.topAppBarColors(),
             )
         },
     ) { innerPadding: PaddingValues ->

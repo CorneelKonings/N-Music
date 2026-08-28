@@ -160,13 +160,7 @@ fun ArchiveTuneTheme(
 
     val colorScheme =
         remember(baseColorScheme, pureBlack, darkTheme) {
-            val resolvedScheme =
-                if (darkTheme && pureBlack) baseColorScheme.pureBlack(true) else baseColorScheme
-            resolvedScheme.copy(
-                background = Color.Transparent,
-                surface = Color.Transparent,
-                surfaceContainer = Color.Transparent,
-            )
+            if (darkTheme && pureBlack) baseColorScheme.pureBlack(true) else baseColorScheme
         }
 
     val animatedColorScheme =

@@ -48,6 +48,7 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import moe.rukamori.archivetune.ui.component.GlassDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -222,26 +223,6 @@ fun SpotifyPlaylistScreen(
         }
     }
 
-    val transparentAppBar by remember {
-        derivedStateOf { !disableBlur && !showTopBarTitle && !isSearching }
-    }
-
-    val topAppBarColors =
-        if (transparentAppBar) {
-            TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-                scrolledContainerColor = Color.Transparent,
-                navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                titleContentColor = MaterialTheme.colorScheme.onBackground,
-                actionIconContentColor = MaterialTheme.colorScheme.onBackground,
-            )
-        } else {
-            TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                scrolledContainerColor = MaterialTheme.colorScheme.surface,
-            )
-        }
-
     LaunchedEffect(isSearching) {
         if (isSearching) focusRequester.requestFocus()
     }
@@ -289,7 +270,7 @@ fun SpotifyPlaylistScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor),
+                .background(Color.Transparent),
     ) {
         if (!disableBlur && gradientColors.isNotEmpty() && gradientAlpha > 0f) {
             Box(
@@ -730,7 +711,7 @@ fun SpotifyPlaylistScreen(
         )
 
         TopAppBar(
-            colors = topAppBarColors,
+            colors = GlassDefaults.topAppBarColors(),
             title = {
                 if (isSearching) {
                     TextField(
