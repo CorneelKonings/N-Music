@@ -17,8 +17,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
@@ -72,6 +72,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -382,7 +383,7 @@ private fun OnboardingSuccessContent(
         HorizontalPager(
             state = pagerState,
             userScrollEnabled = false,
-            beyondViewportPageCount = 1,
+            beyondViewportPageCount = uiState.pages.size,
             key = { pageIndex -> uiState.pages[pageIndex].id },
             modifier = Modifier.weight(1f),
         ) { pageIndex ->
@@ -462,24 +463,29 @@ private fun GlassBottomNavigation(
         ) {
             repeat(pageCount) { index ->
                 val selected = index == currentPage
-                val dotWidth by animateDpAsState(
-                    targetValue = if (selected) 26.dp else 10.dp,
+                val scaleX by animateFloatAsState(
+                    targetValue = if (selected) 2f else 1f,
                     animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-                    label = "dotWidth",
+                    label = "dotScaleX",
                 )
-                Surface(
-                    shape = CircleShape,
-                    color =
-                        if (selected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                        },
+                Box(
                     modifier =
                         Modifier
-                            .height(10.dp)
-                            .width(dotWidth),
-                ) {}
+                            .width(8.dp)
+                            .height(8.dp)
+                            .graphicsLayer {
+                                this.scaleX = scaleX
+                                transformOrigin = TransformOrigin(0f, 0.5f)
+                            }
+                            .clip(CircleShape)
+                            .background(
+                                if (selected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                },
+                            ),
+                )
             }
         }
 

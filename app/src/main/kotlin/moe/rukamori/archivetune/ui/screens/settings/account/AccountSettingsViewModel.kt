@@ -33,7 +33,7 @@ class AccountSettingsViewModel @Inject constructor(
     }
 
     private fun observeAccountInfo() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             accountRepository.getAccountInfo().collect { info ->
                 _uiState.update { current ->
                     val status = if (info.isLoggedIn) {
@@ -65,7 +65,7 @@ class AccountSettingsViewModel @Inject constructor(
     }
 
     fun logout() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             accountRepository.logout()
         }
     }
