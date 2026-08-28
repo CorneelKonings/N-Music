@@ -31,11 +31,7 @@ fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
         modifier = modifier
             .clipToBounds()
             .graphicsLayer {
-                compositingStrategy = if (homeBackground.style == HomeBackgroundStyle.TONAL) {
-                    CompositingStrategy.Auto
-                } else {
-                    CompositingStrategy.Offscreen
-                }
+                compositingStrategy = CompositingStrategy.Auto
                 alpha = if (isVisible) 1f else 0f
             }
     ) {

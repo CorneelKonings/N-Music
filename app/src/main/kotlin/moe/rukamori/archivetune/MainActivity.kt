@@ -235,7 +235,6 @@ import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.musicrecognition.ACTION_MUSIC_RECOGNITION
 import moe.rukamori.archivetune.musicrecognition.MusicRecognitionRoute
 import moe.rukamori.archivetune.musicrecognition.openMusicRecognition
-import moe.rukamori.archivetune.onboarding.OnboardingScreenState
 import moe.rukamori.archivetune.onboarding.OnboardingViewModel
 import moe.rukamori.archivetune.playback.DownloadUtil
 import moe.rukamori.archivetune.playback.MusicService
@@ -358,6 +357,7 @@ class MainActivity : ComponentActivity() {
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
     private var isMusicServiceBound = false
     private var immersiveStatusBarsHidden = false
+    private var isOnboardingCompleted by mutableStateOf<Boolean?>(null)
     private val playerViewModel: PlayerViewModel by viewModels()
     private val onboardingViewModel: OnboardingViewModel by viewModels()
     private val serviceConnection =
@@ -548,7 +548,15 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         splashScreen.setKeepOnScreenCondition {
-            onboardingViewModel.screenState.value is OnboardingScreenState.Loading
+            isOnboardingCompleted == null
+        }
+        lifecycleScope.launch {
+            dataStore.data
+                .map { it[OnboardingCompletedKey] ?: false }
+                .distinctUntilChanged()
+                .collectLatest { completed ->
+                    isOnboardingCompleted = completed
+                }
         }
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -868,22 +876,13 @@ class MainActivity : ComponentActivity() {
                 fontPreference = fontPreference,
                 customFontUri = customFontUri,
             ) {
-                val onboardingState by onboardingViewModel.screenState.collectAsStateWithLifecycle()
+                if (isOnboardingCompleted == null) {
+                    return@ArchiveTuneTheme
+                }
 
-                when (val state = onboardingState) {
-                    OnboardingScreenState.Loading -> {
-                        return@ArchiveTuneTheme
-                    }
-
-                    is OnboardingScreenState.Success -> {
-                        if (state.uiState.shouldShowOnboarding || intent.getBooleanExtra("force_onboarding", false)) {
-                            OnboardingRoute(viewModel = onboardingViewModel)
-                            return@ArchiveTuneTheme
-                        }
-                    }
-
-                    OnboardingScreenState.Empty, is OnboardingScreenState.Error -> {
-                    }
+                if (isOnboardingCompleted == false || intent.getBooleanExtra("force_onboarding", false)) {
+                    OnboardingRoute(viewModel = onboardingViewModel)
+                    return@ArchiveTuneTheme
                 }
 
                 BoxWithConstraints(
