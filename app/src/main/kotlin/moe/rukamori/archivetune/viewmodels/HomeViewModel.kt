@@ -444,7 +444,7 @@ class HomeViewModel
         }
 
         private suspend fun load() {
-            delay(300)
+            delay(150)
             if (isLoading.value) return
             isLoading.value = true
             loadError.value = null
@@ -906,12 +906,18 @@ class HomeViewModel
             }
 
             viewModelScope.launch(Dispatchers.IO) {
+                var isFirstEmission = true
                 context.dataStore.data
                     .map { it[InnerTubeCookieKey] }
                     .distinctUntilChanged()
                     .collect { cookie ->
                         try {
                             val isLoggedIn = hasYouTubeLoginCookie(cookie)
+                            if (isFirstEmission) {
+                                wasLoggedIn = isLoggedIn
+                                isFirstEmission = false
+                                return@collect
+                            }
                             val loginTransition = isLoggedIn && !wasLoggedIn
                             wasLoggedIn = isLoggedIn
 
@@ -922,14 +928,13 @@ class HomeViewModel
                                 }
 
                                 supervisorScope {
-                                    kotlinx.coroutines.delay(100)
+                                    delay(100)
                                     launch { refreshAccountIdentity() }
                                     launch { refreshAccountPlaylistsInternal() }
                                 }
 
                                 if (loginTransition) {
                                     viewModelScope.launch(Dispatchers.IO) {
-                                        delay(8000)
                                         try {
                                             if (context.dataStore.get(YtmSyncKey, true)) {
                                                 syncUtils.performFullSync()
