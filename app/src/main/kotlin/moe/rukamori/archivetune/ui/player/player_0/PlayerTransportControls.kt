@@ -40,19 +40,21 @@ import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.theme.transparentIconShadow
 import moe.rukamori.archivetune.ui.utils.bounceClick
 
-private val CapsuleHorizontalPad  = 0.dp
-private val CapsuleHeight         = 96.dp
-private val CapsulePadHorizontal  = 22.dp
-private val CapsuleBorderWidth    = 0.5.dp
+private val CapsuleHorizontalPad = 12.dp
+private val CapsuleHeight = 76.dp
+private val CapsulePadHorizontal = 20.dp
+private val CapsuleBorderWidth = 0.5.dp
 
-private val OuterButtonSize       = 48.dp
-private val OuterIconSize         = 26.dp
-private val SideButtonSize        = 48.dp
-private val SideIconSize          = 38.dp
-private val SideShadowAlpha       = 0.1f
-private val SideShadowRadius      = 15.dp
-private val CenterButtonSize      = 74.dp
-private val CenterIconSize        = 48.dp
+private val SideButtonSize = 40.dp
+private val SideIconSize = 24.dp
+
+private val OuterButtonSize = 48.dp
+private val OuterIconSize = 30.dp
+private val SideShadowAlpha = 0.1f
+private val SideShadowRadius = 15.dp
+
+private val CenterButtonSize = 64.dp
+private val CenterIconSize = 42.dp
 
 @Composable
 fun PlayerTransportControls(
@@ -138,7 +140,7 @@ fun PlayerTransportControls(
                         CircleShape,
                     )
                     .padding(horizontal = CapsulePadHorizontal),
-                horizontalArrangement = Arrangement.spacedBy(42.dp),
+                horizontalArrangement = Arrangement.spacedBy(22.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
