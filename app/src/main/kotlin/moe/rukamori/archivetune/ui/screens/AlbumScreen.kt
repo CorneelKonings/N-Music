@@ -287,7 +287,7 @@ fun AlbumScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color.Transparent),
+                .background(surfaceColor),
     ) {
         // Gradient background layer
         if (gradientColors.isNotEmpty() && gradientAlpha > 0f) {

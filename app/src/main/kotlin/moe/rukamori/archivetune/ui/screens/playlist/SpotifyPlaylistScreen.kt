@@ -289,7 +289,7 @@ fun SpotifyPlaylistScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color.Transparent),
+                .background(surfaceColor),
     ) {
         if (!disableBlur && gradientColors.isNotEmpty() && gradientAlpha > 0f) {
             Box(
