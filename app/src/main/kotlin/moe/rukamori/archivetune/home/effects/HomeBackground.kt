@@ -25,12 +25,14 @@ val LocalHomeBackgroundStyle = compositionLocalOf { HomeBackgroundSettings() }
 
 @Composable
 fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
-    if (!isVisible) return
     val homeBackground = LocalHomeBackgroundStyle.current
     Box(
         modifier = modifier
             .clipToBounds()
-            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+            .graphicsLayer {
+                compositingStrategy = CompositingStrategy.Offscreen
+                alpha = if (isVisible) 1f else 0f
+            }
     ) {
         when (homeBackground.style) {
             HomeBackgroundStyle.TONAL -> {
@@ -75,6 +77,7 @@ fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
                     parallaxEnabled = homeBackground.parallaxEnabled,
                     parallaxSensitivity = homeBackground.parallaxSensitivity,
                     brightness = homeBackground.brightness,
+                    isVisible = isVisible,
                 )
             }
             HomeBackgroundStyle.SNOW -> {
@@ -89,6 +92,7 @@ fun ScreenBackground(modifier: Modifier = Modifier, isVisible: Boolean = true) {
                     parallaxEnabled = homeBackground.parallaxEnabled,
                     parallaxSensitivity = homeBackground.parallaxSensitivity,
                     brightness = homeBackground.brightness,
+                    isVisible = isVisible,
                 )
             }
         }

@@ -28,6 +28,7 @@ fun SpaceBackground(
     parallaxEnabled: Boolean = true,
     parallaxSensitivity: Float = 0.6f,
     brightness: Float = 1f,
+    isVisible: Boolean = true,
 ) {
     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val starColor = if (isDarkTheme) Color.White else Color(0xFF1A2530)
@@ -50,7 +51,8 @@ fun SpaceBackground(
     val targetSpeedState = remember { mutableFloatStateOf(speedMultiplier) }
     SideEffect { targetSpeedState.floatValue = speedMultiplier }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isVisible) {
+        if (!isVisible) return@LaunchedEffect
         var lastFrameMs = withInfiniteAnimationFrameMillis { it }
         var currentSpeed = targetSpeedState.floatValue
         while (true) {
@@ -85,7 +87,8 @@ fun SpaceBackground(
 
     var meteor by remember { mutableStateOf<MeteorState?>(null) }
     val meteorProgress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isVisible) {
+        if (!isVisible) return@LaunchedEffect
         while (true) {
             delay(Random.nextLong(40000, 60000))
             val direction = Random.nextInt(2)

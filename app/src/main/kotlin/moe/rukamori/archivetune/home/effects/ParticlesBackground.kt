@@ -28,6 +28,7 @@ fun ParticlesBackground(
     parallaxEnabled: Boolean = true,
     parallaxSensitivity: Float = 0.6f,
     brightness: Float = 1f,
+    isVisible: Boolean = true,
 ) {
     val primaryColor   = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
@@ -91,7 +92,8 @@ fun ParticlesBackground(
     SideEffect { targetSpeedState.floatValue = speedMultiplier }
 
     // Physics loop - runs every display frame independently of Compose animation clock
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isVisible) {
+        if (!isVisible) return@LaunchedEffect
         var lastFrameMs = withInfiniteAnimationFrameMillis { it }
         var currentSpeed = targetSpeedState.floatValue
         while (true) {
