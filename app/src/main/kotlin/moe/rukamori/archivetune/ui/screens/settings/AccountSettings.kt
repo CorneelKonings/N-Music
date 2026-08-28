@@ -109,6 +109,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -1090,6 +1091,7 @@ fun ProfileIdentityCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(resolvedShape)
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
             .drawWithCache {
                 val spot1X = size.width * (0.5f + 0.35f * kotlin.math.cos(time))
                 val spot1Y = size.height * (0.5f + 0.30f * kotlin.math.sin(time))

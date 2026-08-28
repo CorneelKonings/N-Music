@@ -130,6 +130,13 @@ fun LibrarySongsScreen(
     var filter by rememberEnumPreference(SongFilterKey, SongFilter.LIKED)
     val lazyListState = rememberLazyListState()
 
+    LaunchedEffect(filter) {
+        if (songs.isEmpty() && !isRefreshing) {
+            viewModel.refresh(filter)
+        }
+    }
+
+
     val playerAwareBottomPadding = LocalPlayerAwareWindowInsets.current
         .only(WindowInsetsSides.Bottom)
         .asPaddingValues()

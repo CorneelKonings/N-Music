@@ -17,6 +17,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -463,29 +464,25 @@ private fun GlassBottomNavigation(
         ) {
             repeat(pageCount) { index ->
                 val selected = index == currentPage
-                val scaleX by animateFloatAsState(
-                    targetValue = if (selected) 2f else 1f,
+                val dotWidth by animateDpAsState(
+                    targetValue = if (selected) 26.dp else 10.dp,
                     animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-                    label = "dotScaleX",
+                    label = "dotWidth",
                 )
-                Box(
+                Surface(
+                    shape = CircleShape,
+                    color =
+                        if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                        },
                     modifier =
                         Modifier
-                            .width(8.dp)
-                            .height(8.dp)
-                            .graphicsLayer {
-                                this.scaleX = scaleX
-                                transformOrigin = TransformOrigin(0f, 0.5f)
-                            }
-                            .clip(CircleShape)
-                            .background(
-                                if (selected) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                                },
-                            ),
-                )
+                            .height(10.dp)
+                            .width(dotWidth),
+                ) {}
+
             }
         }
 
