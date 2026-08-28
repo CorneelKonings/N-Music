@@ -552,13 +552,7 @@ class MainActivity : ComponentActivity() {
         }
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-//        lifecycleScope.launch(Dispatchers.IO) {
-//            dataStore.edit { preferences ->
-//                preferences[OnboardingCompletedKey] = false
-//            }
-//        }
-
+        
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val initialLocale =
                 PreferenceStore
