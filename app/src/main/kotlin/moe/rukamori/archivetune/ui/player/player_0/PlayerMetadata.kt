@@ -45,7 +45,6 @@ fun PlayerMetadata(
     state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
     modifier: Modifier = Modifier,
-    expansionFractionProvider: () -> Float = { 1f },
     isVisible: Boolean = true
 ) {
     val gradientEdgeColor = Color.Black
