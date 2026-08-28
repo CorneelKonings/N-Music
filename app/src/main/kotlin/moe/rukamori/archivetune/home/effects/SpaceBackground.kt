@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import moe.rukamori.archivetune.LocalAnimationsDisabled
 import kotlin.math.cos
 import kotlin.math.sin
@@ -51,12 +52,19 @@ fun SpaceBackground(
     val targetSpeedState = remember { mutableFloatStateOf(speedMultiplier) }
     SideEffect { targetSpeedState.floatValue = speedMultiplier }
 
-    LaunchedEffect(isVisible) {
-        if (!isVisible) return@LaunchedEffect
-        var lastFrameMs = withInfiniteAnimationFrameMillis { it }
+    val isVisibleState by rememberUpdatedState(isVisible)
+
+    LaunchedEffect(Unit) {
+        var lastFrameMs = -1L
         var currentSpeed = targetSpeedState.floatValue
         while (true) {
+            if (!isVisibleState) {
+                snapshotFlow { isVisibleState }.first { it }
+                lastFrameMs = -1L
+            }
+
             withInfiniteAnimationFrameMillis { frameMs ->
+                if (lastFrameMs == -1L) lastFrameMs = frameMs
                 val delta = (frameMs - lastFrameMs).coerceIn(0L, 64L).toFloat()
                 lastFrameMs = frameMs
 
@@ -87,10 +95,12 @@ fun SpaceBackground(
 
     var meteor by remember { mutableStateOf<MeteorState?>(null) }
     val meteorProgress = remember { Animatable(0f) }
-    LaunchedEffect(isVisible) {
-        if (!isVisible) return@LaunchedEffect
+    LaunchedEffect(Unit) {
         while (true) {
             delay(Random.nextLong(40000, 60000))
+            if (!isVisibleState) {
+                snapshotFlow { isVisibleState }.first { it }
+            }
             val direction = Random.nextInt(2)
             val angle = when (direction) {
                 0    -> 130f + Random.nextFloat() * 20f

@@ -14,9 +14,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.flow.first
 import moe.rukamori.archivetune.LocalAnimationsDisabled
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -91,13 +94,20 @@ fun ParticlesBackground(
     val targetSpeedState = remember { mutableFloatStateOf(speedMultiplier) }
     SideEffect { targetSpeedState.floatValue = speedMultiplier }
 
+    val isVisibleState by rememberUpdatedState(isVisible)
+
     // Physics loop - runs every display frame independently of Compose animation clock
-    LaunchedEffect(isVisible) {
-        if (!isVisible) return@LaunchedEffect
-        var lastFrameMs = withInfiniteAnimationFrameMillis { it }
+    LaunchedEffect(Unit) {
+        var lastFrameMs = -1L
         var currentSpeed = targetSpeedState.floatValue
         while (true) {
+            if (!isVisibleState) {
+                snapshotFlow { isVisibleState }.first { it }
+                lastFrameMs = -1L
+            }
+
             withInfiniteAnimationFrameMillis { frameMs ->
+                if (lastFrameMs == -1L) lastFrameMs = frameMs
                 val delta = (frameMs - lastFrameMs).coerceIn(0L, 64L).toFloat()
                 lastFrameMs = frameMs
 
