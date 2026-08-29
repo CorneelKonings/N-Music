@@ -146,6 +146,7 @@ import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.playback.queues.YouTubeQueue
 import moe.rukamori.archivetune.ui.component.AlbumGridItem
+import moe.rukamori.archivetune.ui.component.HeaderType
 import moe.rukamori.archivetune.ui.component.HideOnScrollFAB
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.LocalMenuState
@@ -463,9 +464,9 @@ fun ArtistScreen(
 
         if (thumbnail != null) {
             YumaMorphingHeader(
-                imageUrl = thumbnail.resize(ArtistHeroArtworkSizePx, ArtistHeroArtworkSizePx),
+                imageUrl = thumbnail,
                 collapseFraction = collapseFraction,
-                modifier = Modifier.align(Alignment.TopCenter),
+                type = HeaderType.ARTIST
             )
         }
 
