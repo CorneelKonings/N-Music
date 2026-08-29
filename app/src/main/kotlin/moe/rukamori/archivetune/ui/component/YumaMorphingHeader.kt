@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asComposeRenderEffect
@@ -24,6 +23,7 @@ import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
 
 fun lerp3(start: Float, mid: Float, end: Float, fraction: Float): Float {
+
     return if (fraction < 0.5f) {
         lerp(start, mid, fraction * 2f)
     } else {
@@ -53,28 +53,30 @@ fun YumaMorphingHeader(
                 .size(expandedSize)
                 .align(Alignment.TopCenter)
                 .graphicsLayer {
-                    transformOrigin = TransformOrigin(0.5f, 0f)
+                    transformOrigin = TransformOrigin(0.5f, 0.5f)
 
-                    val currentScaleX = lerp3(start = 1f, mid = 0.6f, end = 0f, fraction = fraction)
-                    val currentScaleY = lerp3(start = 1f, mid = 0.6f, end = 0.2f, fraction = fraction)
-                    scaleX = currentScaleX
-                    scaleY = currentScaleY
+                    // 1. Масштаб: сохраняет форму капли/бусины (без схлопывания в плоскую щель)
+                    // На 0.5: 32% (аккуратное превью)
+                    // На 1.0: синхронно стягивается в точку камеры
+                    scaleX = lerp3(start = 1f, mid = 0.48f, end = 0f, fraction = fraction)
+                    scaleY = lerp3(start = 1f, mid = 0.48f, end = 0.02f, fraction = fraction)
 
-                    val midY = -expandedSizePx * 0.05f
-                    val endY = -expandedSizePx * 0.5f
-                    translationY = lerp3(start = 0f, mid = midY, end = endY, fraction = fraction)
+                    // 2. Смещение Y: сбалансированные дельты (0 -> 16% -> 44%)
+                    // Устраняет резкий рывок скорости на второй фазе
+                    val midOffset = -expandedSizePx * 0.09f
+                    val endOffset = -expandedSizePx * 0.44f
+                    translationY = lerp3(start = 0f, mid = midOffset, end = endOffset, fraction = fraction)
 
-                    val midRadius = 32.dp.toPx()
-                    val endRadius = expandedSizePx / 2f
-                    val targetRadius = lerp3(start = 0f, mid = midRadius, end = endRadius, fraction = fraction)
-                    
-                    val adjustedRadius = if (currentScaleX > 0f) targetRadius / currentScaleX else 0f
-                    shape = RoundedCornerShape(adjustedRadius)
+                    // 3. Форма: уже к 0.5 переходит в почти идеальный круг (36%), во 2-й фазе остается круглой каплей
+                    val cornerPercent = lerp3(start = 0f, mid = 36f, end = 50f, fraction = fraction).toInt()
+                    shape = RoundedCornerShape(percent = cornerPercent)
                     clip = true
 
+                    // 4. Аппаратный блюр: полностью отключен до 0.70, мягко моет только перед самой камерой
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        if (fraction > 0.5f) {
-                            val blurRadius = lerp(0.1f, 40f, (fraction - 0.5f) * 2f)
+                        if (fraction > 0.70f) {
+                            val blurProgress = (fraction - 0.70f) / 0.30f
+                            val blurRadius = lerp(0.1f, 40f, blurProgress)
                             renderEffect = android.graphics.RenderEffect.createBlurEffect(
                                 blurRadius, blurRadius, android.graphics.Shader.TileMode.CLAMP
                             ).asComposeRenderEffect()
@@ -91,11 +93,12 @@ fun YumaMorphingHeader(
                 modifier = Modifier.fillMaxSize()
             )
 
+            // Черный оверлей: чистая картинка (alpha = 0) до 0.70, уход в черный только в финале
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        alpha = lerp3(start = 0f, mid = 0.3f, end = 1f, fraction = fraction)
+                        alpha = if (fraction < 0.70f) 0f else lerp(0f, 1f, (fraction - 0.70f) / 0.30f)
                     }
                     .background(Color.Black)
             )
