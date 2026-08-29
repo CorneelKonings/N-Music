@@ -33,8 +33,13 @@ import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import coil3.request.transformations
+import coil3.toBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.ui.state.PlayerUiState
+import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import moe.rukamori.archivetune.utils.FastBlurTransformation
 
 @Composable
@@ -44,6 +49,7 @@ fun PlayerBackgroundLayers(
     gradientColor: Color = Color(state.gradientColor),
     lyricsFractionProvider: () -> Float = { if (state.isLyricsVisible) 1f else 0f },
     queueFractionProvider: () -> Float = { 0f },
+    onColorsExtracted: (vibrant: Int, darkMuted: Int, gradient: Int) -> Unit = { _, _, _ -> },
 ) {
     val context = LocalContext.current
     val colorScheme = MaterialTheme.colorScheme
@@ -114,12 +120,13 @@ fun PlayerBackgroundLayers(
     val clearImageRequest = remember(targetUrl) {
         ImageRequest.Builder(context)
             .data(targetUrl)
+            .allowHardware(false)
             .build()
     }
 
     var currentClearPainter by remember { mutableStateOf<Painter?>(null) }
     var currentBlurPainter by remember { mutableStateOf<Painter?>(null) }
-    var activeGradientColor by remember { mutableStateOf(Color(0xFF121212)) }
+    var activeGradientColor by remember { mutableStateOf(gradientColor) }
 
     val clearPainter = rememberAsyncImagePainter(model = clearImageRequest)
     val clearState by clearPainter.state.collectAsState()
@@ -127,20 +134,36 @@ fun PlayerBackgroundLayers(
     val blurPainter = rememberAsyncImagePainter(model = blurImageRequest)
     val blurState by blurPainter.state.collectAsState()
 
-    LaunchedEffect(clearState, gradientColor) {
-        when (clearState) {
+    LaunchedEffect(clearState) {
+        when (val state = clearState) {
             is AsyncImagePainter.State.Success -> {
-                currentClearPainter = clearState.painter
-                activeGradientColor = gradientColor
+                currentClearPainter = state.painter
+                val bitmap = runCatching { state.result.image.toBitmap() }.getOrNull()
+                if (bitmap != null) {
+                    withContext(Dispatchers.Default) {
+                        val colors = PlayerColorExtractor.extractColors(bitmap)
+                        onColorsExtracted(colors.vibrant, colors.darkMuted, colors.gradient)
+                    }
+                }
             }
             is AsyncImagePainter.State.Error,
             is AsyncImagePainter.State.Empty -> {
                 currentClearPainter = null
+            }
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(clearState, gradientColor) {
+        when (clearState) {
+            is AsyncImagePainter.State.Success -> {
+                activeGradientColor = gradientColor
+            }
+            is AsyncImagePainter.State.Error,
+            is AsyncImagePainter.State.Empty -> {
                 activeGradientColor = Color(0xFF121212)
             }
-            else -> {
-                // Keep previous state during Loading
-            }
+            else -> {}
         }
     }
 

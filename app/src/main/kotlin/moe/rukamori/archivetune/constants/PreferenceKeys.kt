@@ -18,6 +18,10 @@ import java.time.ZoneOffset
 val ShowCodecInfoKey = booleanPreferencesKey("showCodecInfo")
 val AlbumCoverGlowKey = booleanPreferencesKey("albumCoverGlow")
 
+val LastVibrantColorKey = intPreferencesKey("lastVibrantColor")
+val LastDarkMutedColorKey = intPreferencesKey("lastDarkMutedColor")
+val LastGradientColorKey = intPreferencesKey("lastGradientColor")
+
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val CustomThemeColorKey = stringPreferencesKey("customThemeColor")
 val RandomThemeOnStartupKey = booleanPreferencesKey("randomThemeOnStartup")

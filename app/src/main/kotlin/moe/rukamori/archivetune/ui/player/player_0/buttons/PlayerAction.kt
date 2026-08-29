@@ -60,6 +60,8 @@ sealed interface PlayerAction {
     object OpenPlaybackSpeed : PlayerAction
     object ToggleCodecInfo : PlayerAction
     object ToggleAlbumCoverGlow : PlayerAction
+
+    data class UpdateColors(val vibrant: Int, val darkMuted: Int, val gradient: Int) : PlayerAction
 }
 
 enum class LyricsMenuScreen { MAIN, EDIT, TRANSLATE, SYNC_OFFSET }

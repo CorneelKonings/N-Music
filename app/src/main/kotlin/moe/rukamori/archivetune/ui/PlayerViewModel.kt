@@ -1,18 +1,11 @@
 package moe.rukamori.archivetune.ui
 
 import android.app.Application
-import android.graphics.drawable.BitmapDrawable
 import android.os.Build
-import android.util.LruCache
-import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import coil3.imageLoader
-import coil3.request.ImageRequest
-import coil3.request.allowHardware
-import coil3.toBitmap
 import moe.rukamori.archivetune.data.repository.SettingsRepository
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.innertube.YouTube
@@ -27,8 +20,6 @@ import moe.rukamori.archivetune.ui.state.PlayerEvent
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.QueueUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
-import moe.rukamori.archivetune.ui.theme.extractSeedColor
-import moe.rukamori.archivetune.ui.theme.generateDarkColorSchemeFromSeed
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +46,7 @@ import moe.rukamori.archivetune.db.entities.codecLabel
 import moe.rukamori.archivetune.db.entities.formattedQuality
 import moe.rukamori.archivetune.db.entities.formattedBitrate
 import moe.rukamori.archivetune.extensions.toEnum
+import moe.rukamori.archivetune.utils.PreferenceStore
 import moe.rukamori.archivetune.utils.dataStore
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.first
@@ -74,11 +66,6 @@ private val MascotAssets = listOf(
     moe.rukamori.archivetune.R.drawable.mascot_6,
     moe.rukamori.archivetune.R.drawable.mascot_7,
     moe.rukamori.archivetune.R.drawable.mascot_8
-)
-data class PaletteColors(
-    val vibrantColor: Int,
-    val darkMutedColor: Int,
-    val gradientColor: Int
 )
 
 /**
@@ -102,6 +89,9 @@ class PlayerViewModel @Inject constructor(
             isImmersiveEnabled = settingsRepository.isImmersiveEnabled(),
             showCodecInfo = settingsRepository.isShowCodecInfoEnabled(),
             isAlbumCoverGlowEnabled = settingsRepository.isAlbumCoverGlowEnabled(),
+            vibrantColor = PreferenceStore.get(LastVibrantColorKey) ?: android.graphics.Color.WHITE,
+            darkMutedColor = PreferenceStore.get(LastDarkMutedColorKey) ?: android.graphics.Color.parseColor("#282828"),
+            gradientColor = PreferenceStore.get(LastGradientColorKey) ?: android.graphics.Color.parseColor("#121212"),
         )
     )
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
@@ -125,12 +115,22 @@ class PlayerViewModel @Inject constructor(
     private var romanizationJob: Job? = null
     private val lyricsFetchGeneration = AtomicLong(0)
     private var likeJob: Job? = null
-    private var paletteJob: Job? = null
-    private val paletteCache = LruCache<String, PaletteColors>(30)
     private val _event = Channel<PlayerEvent>(Channel.BUFFERED)
     val event: Flow<PlayerEvent> = _event.receiveAsFlow()
 
     init {
+        val cachedVibrant = PreferenceStore.get(LastVibrantColorKey)
+        val cachedDarkMuted = PreferenceStore.get(LastDarkMutedColorKey)
+        val cachedGradient = PreferenceStore.get(LastGradientColorKey)
+        if (cachedVibrant != null || cachedDarkMuted != null || cachedGradient != null) {
+            _uiState.update { current ->
+                current.copy(
+                    vibrantColor = cachedVibrant ?: current.vibrantColor,
+                    darkMutedColor = cachedDarkMuted ?: current.darkMutedColor,
+                    gradientColor = cachedGradient ?: current.gradientColor,
+                )
+            }
+        }
         // Подписка на лирику из базы данных через холдер плеера
         viewModelScope.launch {
             connectionHolder.connection
@@ -196,7 +196,6 @@ class PlayerViewModel @Inject constructor(
                     }
 
                     val coverUrl = metadata.thumbnailUrl ?: ""
-                    val cachedPalette = paletteCache.get(coverUrl)
 
                     val oldId = _uiState.value.trackUrl
                     val newId = metadata.id
@@ -222,14 +221,7 @@ class PlayerViewModel @Inject constructor(
                             trackUrl = metadata.id,
                             durationMs = resolvedDuration,
                             coverUrl = coverUrl,
-                            vibrantColor = cachedPalette?.vibrantColor ?: currentUi.vibrantColor,
-                            darkMutedColor = cachedPalette?.darkMutedColor ?: currentUi.darkMutedColor,
-                            gradientColor = cachedPalette?.gradientColor ?: currentUi.gradientColor
                         )
-                    }
-
-                    if (coverUrl.isNotEmpty()) {
-                        loadCoverAndPalette(coverUrl, title, artist)
                     }
                 }
         }
@@ -411,6 +403,22 @@ class PlayerViewModel @Inject constructor(
                 settingsRepository.setAlbumCoverGlowEnabled(newValue)
                 _uiState.update { it.copy(isAlbumCoverGlowEnabled = newValue) }
             }
+            is PlayerAction.UpdateColors -> {
+                _uiState.update {
+                    it.copy(
+                        vibrantColor = action.vibrant,
+                        darkMutedColor = action.darkMuted,
+                        gradientColor = action.gradient,
+                    )
+                }
+                viewModelScope.launch(Dispatchers.IO) {
+                    application.dataStore.edit { prefs ->
+                        prefs[LastVibrantColorKey] = action.vibrant
+                        prefs[LastDarkMutedColorKey] = action.darkMuted
+                        prefs[LastGradientColorKey] = action.gradient
+                    }
+                }
+            }
             is PlayerAction.TranslateLyrics -> translateLyrics(action.langCode, action.useAi)
             is PlayerAction.DeleteLyrics -> deleteLyricsCache()
             is PlayerAction.OpenAlbum -> {
@@ -516,8 +524,6 @@ class PlayerViewModel @Inject constructor(
             return
         }
 
-        val cachedPalette = paletteCache.get(coverUrl)
-
         lyricsFetchGeneration.incrementAndGet()
         lyricsJob?.cancel()
         romanizationJob?.cancel()
@@ -534,22 +540,17 @@ class PlayerViewModel @Inject constructor(
                 currentLineIndex = -1,
                 isLoadingLyrics = false,
                 coverUrl = coverUrl,
-                vibrantColor = cachedPalette?.vibrantColor ?: android.graphics.Color.WHITE,
-                darkMutedColor = cachedPalette?.darkMutedColor ?: android.graphics.Color.parseColor("#282828"),
-                gradientColor = cachedPalette?.gradientColor ?: android.graphics.Color.parseColor("#121212")
             )
         }
 
         manageTicker(isPlaying)
 
-        if (cachedPalette == null && coverUrl.isNotEmpty()) {
-            loadCoverAndPalette(coverUrl, title, artist)
-        } else if (coverUrl.isEmpty()) {
+        if (coverUrl.isEmpty()) {
             _uiState.update {
                 it.copy(
                     vibrantColor = android.graphics.Color.WHITE,
                     darkMutedColor = android.graphics.Color.parseColor("#282828"),
-                    gradientColor = android.graphics.Color.parseColor("#121212")
+                    gradientColor = android.graphics.Color.parseColor("#121212"),
                 )
             }
         }
@@ -901,61 +902,6 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    private fun loadCoverAndPalette(url: String, targetTitle: String, targetArtist: String) {
-        paletteJob?.cancel()
-        paletteJob = viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val request = ImageRequest.Builder(application)
-                    .data(url)
-                    .allowHardware(false) // Обязательно false для анализа пикселей
-                    .build()
-
-                val result = application.imageLoader.execute(request)
-                val bitmap = result.image?.toBitmap()
-
-                if (bitmap != null) {
-                    val palette = paletteCache.get(url) ?: run {
-                        val seedColor = extractSeedColor(bitmap)
-                        val scheme = generateDarkColorSchemeFromSeed(seedColor)
-                        val newPalette = PaletteColors(
-                            vibrantColor = scheme.primary.toArgb(),
-                            darkMutedColor = scheme.secondaryContainer.toArgb(),
-                            gradientColor = scheme.primaryContainer.toArgb()
-                        )
-                        paletteCache.put(url, newPalette)
-                        newPalette
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        if (_uiState.value.title == targetTitle && _uiState.value.artist == targetArtist) {
-                            _uiState.update {
-                                it.copy(
-                                    coverUrl = url, // Сохраняем только чистый URL
-                                    vibrantColor = palette.vibrantColor,
-                                    darkMutedColor = palette.darkMutedColor,
-                                    gradientColor = palette.gradientColor
-                                )
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    if (_uiState.value.title == targetTitle && _uiState.value.artist == targetArtist) {
-                        _uiState.update {
-                            it.copy(
-                                coverUrl = url,
-                                vibrantColor = android.graphics.Color.WHITE,
-                                darkMutedColor = android.graphics.Color.parseColor("#282828"),
-                                gradientColor = android.graphics.Color.parseColor("#121212")
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
     fun fetchLyrics(force: Boolean = false) {
         val currentState = _uiState.value
         val trackUrl = currentState.trackUrl

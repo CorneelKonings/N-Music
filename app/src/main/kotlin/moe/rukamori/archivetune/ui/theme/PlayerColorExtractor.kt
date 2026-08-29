@@ -6,11 +6,18 @@
 
 package moe.rukamori.archivetune.ui.theme
 
+import android.graphics.Bitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+data class ExtractedColors(
+    val vibrant: Int,
+    val darkMuted: Int,
+    val gradient: Int,
+)
 
 /**
  * Player color extraction system for generating gradients from album artwork
@@ -19,6 +26,16 @@ import kotlinx.coroutines.withContext
  * to create visually appealing gradients for the music player interface.
  */
 object PlayerColorExtractor {
+    fun extractColors(bitmap: Bitmap): ExtractedColors {
+        val seedColor = extractSeedColor(bitmap)
+        val scheme = generateDarkColorSchemeFromSeed(seedColor)
+        return ExtractedColors(
+            vibrant = scheme.primary.toArgb(),
+            darkMuted = scheme.secondaryContainer.toArgb(),
+            gradient = scheme.primaryContainer.toArgb(),
+        )
+    }
+
     /**
      * Extracts colors from a palette and creates a gradient
      *

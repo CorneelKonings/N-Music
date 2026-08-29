@@ -112,6 +112,9 @@ internal fun UnifiedPlayerSheetLayers(
                 state = state,
                 lyricsFractionProvider = lyricsFractionProvider,
                 queueFractionProvider = queueFractionProvider,
+                onColorsExtracted = { vibrant, darkMuted, gradient ->
+                    onAction(PlayerAction.UpdateColors(vibrant, darkMuted, gradient))
+                },
             )
         }
 
