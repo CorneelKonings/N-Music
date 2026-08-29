@@ -172,8 +172,13 @@ class SpotifyHomeViewModel @Inject constructor(
 
                 homeResult.onSuccess { feed ->
                     feed.sections.forEach { raw ->
-                        if (raw.title?.contains("Jump back in", ignoreCase = true) == true || 
-                            raw.title?.contains("Recently", ignoreCase = true) == true) {
+                        if (raw.sectionUri.contains("recent", ignoreCase = true) ||
+                            raw.title?.contains("Jump back in", ignoreCase = true) == true || 
+                            raw.title?.contains("Recently", ignoreCase = true) == true ||
+                            raw.title?.contains("Недавно", ignoreCase = true) == true ||
+                            raw.title?.contains("Снова в деле", ignoreCase = true) == true ||
+                            raw.title?.contains("Недавние", ignoreCase = true) == true ||
+                            raw.title?.contains("Прослушано", ignoreCase = true) == true) {
                             recentItems = raw.items.mapNotNull { item ->
                                 when (item) {
                                     is SpotifyHomeFeedItem.Album -> SpotifyRecentItem.Album(
