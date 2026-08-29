@@ -40,6 +40,10 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.LocalDownloadUtil
 import moe.rukamori.archivetune.ui.utils.ShowMediaInfo
 import moe.rukamori.archivetune.download.FlacDownloader
@@ -116,10 +120,6 @@ fun FullPlayerOptionsMenu(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            val cardGradient = Brush.verticalGradient(
-                colors = listOf(Color(state.darkMutedColor), Color(0xFF161616))
-            )
-
             Box(
                 modifier = Modifier
                     .width(340.dp)
@@ -127,9 +127,12 @@ fun FullPlayerOptionsMenu(
                         this.translationY = translateY
                         this.alpha = alpha
                     }
-                    .clip(RoundedCornerShape(28.dp))
-                    .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(28.dp))
-                    .background(cardGradient)
+                    .yumaGlassCard(
+                        shape = RoundedCornerShape(28.dp),
+                        backgroundColor = Color(state.darkMutedColor).copy(alpha = 0.95f),
+                        borderColor = LocalYumaColors.current.glassBorder,
+                        strokeWidth = SettingsDimensions.GlassBorderThickness,
+                    )
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {})
                     .padding(20.dp)
             ) {
@@ -217,16 +220,13 @@ fun FullPlayerOptionsMenu(
                     // ==========================================
                     Text(
                         text = if (currentScreen == PlayerMenuScreen.SETTINGS) "Close" else "Back",
-                        color = Color.White.copy(alpha = 0.4f),
+                        color = Color.White.copy(alpha = SettingsDimensions.YumaRowSubtitleAlpha),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = GoogleSans,
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
+                            .yumaClickable {
                                 when {
                                     currentScreen != PlayerMenuScreen.SETTINGS -> currentScreen = PlayerMenuScreen.SETTINGS
                                     else -> onDismissRequest()
@@ -268,6 +268,10 @@ fun DownloadMenuContent(
         Font(R.font.google_sans_bold, FontWeight.Bold)
     )
 
+    val hasFlac = playbackSource == moe.rukamori.archivetune.constants.PlaybackSource.FLAC
+    val totalRows = 1 + (if (hasFlac) 1 else 0) + (if (externalDownloaderEnabled) 1 else 0)
+    var currentRow = 0
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Download",
@@ -293,7 +297,9 @@ fun DownloadMenuContent(
                             state.trackUrl,
                             false,
                         )
-                    }
+                    },
+                    index = currentRow++,
+                    count = totalRows,
                 )
             }
             Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
@@ -313,7 +319,9 @@ fun DownloadMenuContent(
                             state.trackUrl,
                             false,
                         )
-                    }
+                    },
+                    index = currentRow++,
+                    count = totalRows,
                 )
             }
             else -> {
@@ -333,13 +341,15 @@ fun DownloadMenuContent(
                             downloadRequest,
                             false,
                         )
-                    }
+                    },
+                    index = currentRow++,
+                    count = totalRows,
                 )
             }
         }
 
-        if (playbackSource == moe.rukamori.archivetune.constants.PlaybackSource.FLAC) {
-            Spacer(modifier = Modifier.height(8.dp))
+        if (hasFlac) {
+            Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
             val flacWorkInfos by WorkManager.getInstance(context)
                 .getWorkInfosForUniqueWorkFlow("flac_download_${state.trackUrl}")
                 .collectAsState(emptyList())
@@ -358,7 +368,9 @@ fun DownloadMenuContent(
                         },
                         onClick = {
                             WorkManager.getInstance(context).cancelUniqueWork("flac_download_${state.trackUrl}")
-                        }
+                        },
+                        index = currentRow++,
+                        count = totalRows,
                     )
                 }
                 WorkInfo.State.SUCCEEDED -> {
@@ -376,7 +388,9 @@ fun DownloadMenuContent(
                                 state.artist,
                                 "",
                             )
-                        }
+                        },
+                        index = currentRow++,
+                        count = totalRows,
                     )
                 }
                 else -> {
@@ -392,14 +406,16 @@ fun DownloadMenuContent(
                                 state.artist,
                                 "",
                             )
-                        }
+                        },
+                        index = currentRow++,
+                        count = totalRows,
                     )
                 }
             }
         }
 
         if (externalDownloaderEnabled) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
             CompactMenuRow(
                 title = "External Downloader",
                 subtitle = "Open in external download manager",
@@ -429,7 +445,9 @@ fun DownloadMenuContent(
                             android.widget.Toast.LENGTH_SHORT,
                         ).show()
                     }
-                }
+                },
+                index = currentRow++,
+                count = totalRows,
             )
         }
     }

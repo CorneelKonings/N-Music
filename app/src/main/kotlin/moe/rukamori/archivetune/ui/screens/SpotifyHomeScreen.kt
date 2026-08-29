@@ -585,31 +585,22 @@ private fun SpotifyQuickGridCell(
     onClick: () -> Unit,
     isArtist: Boolean
 ) {
-    val shape = if (isArtist) CircleShape else RoundedCornerShape(12.dp)
-    val gradient = remember {
-        Brush.verticalGradient(
-            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
-            startY = 100f
-        )
-    }
-
-    Box(
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f)
-            .clip(shape)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.White.copy(alpha = 0.1f))
             .yumaClickable(onClick = onClick)
     ) {
         AsyncImage(
             model = imageUrl,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(gradient)
+                .size(56.dp)
+                // Если артист - круг, если альбом - скругляем только левые углы под форму плашки
+                .clip(if (isArtist) CircleShape else RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
         )
         Text(
             text = title,
@@ -621,8 +612,8 @@ private fun SpotifyQuickGridCell(
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start,
             modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(8.dp)
+                .weight(1f)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
         )
     }
 }

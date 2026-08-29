@@ -1,12 +1,5 @@
 package moe.rukamori.archivetune.ui.player.player_0.sett
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -16,11 +9,11 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -31,16 +24,19 @@ import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.SpeedDialSongIdsKey
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.state.UpdateState
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.runtime.setValue
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaCombinedClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
+import moe.rukamori.archivetune.ui.theme.yumaSegmentPosition
 import moe.rukamori.archivetune.utils.SpeedDialPin
 import moe.rukamori.archivetune.utils.SpeedDialPinType
 import moe.rukamori.archivetune.utils.parseSpeedDialPins
+import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.utils.serializeSpeedDialPins
 import moe.rukamori.archivetune.utils.toggleSpeedDialPin
-import moe.rukamori.archivetune.utils.rememberPreference
 
 private val localFont = FontFamily(
     Font(R.font.google_sans_regular, FontWeight.Normal),
@@ -62,10 +58,6 @@ fun SettingsMenuContent(
     onAction: (PlayerAction) -> Unit
 ) {
     val uriHandler = LocalUriHandler.current
-
-    val softUpdateInteraction = remember { MutableInteractionSource() }
-    val isSoftUpdatePressed by softUpdateInteraction.collectIsPressedAsState()
-    val softUpdateScale by animateFloatAsState(if (isSoftUpdatePressed) 0.96f else 1f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium))
 
     val (speedDialSongIds, onSpeedDialSongIdsChange) = rememberPreference(SpeedDialSongIdsKey, "")
     val speedDialPins = remember(speedDialSongIds) { parseSpeedDialPins(speedDialSongIds) }
@@ -123,12 +115,15 @@ fun SettingsMenuContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 10.dp)
-                    .graphicsLayer { scaleX = softUpdateScale; scaleY = softUpdateScale }
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFB33A3A).copy(alpha = 0.8f))
-                    .clickable(interactionSource = softUpdateInteraction, indication = null) {
+                    .yumaCombinedClickable {
                         uriHandler.openUri(updateState.updateUrl)
                     }
+                    .yumaGlassCard(
+                        shape = RoundedCornerShape(SettingsDimensions.SegmentedCornerLarge),
+                        backgroundColor = Color(0xFFB33A3A).copy(alpha = 0.8f),
+                        borderColor = Color.White.copy(alpha = 0.2f),
+                        strokeWidth = SettingsDimensions.GlassBorderThickness
+                    )
                     .padding(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -142,80 +137,96 @@ fun SettingsMenuContent(
                     Column {
                         val formattedVer = if (updateState.versionName.startsWith("v", ignoreCase = true)) updateState.versionName else "v${updateState.versionName}"
                         Text(text = "Update Available ($formattedVer)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = localFont)
-                        Text(text = "Tap to download from Telegram", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp, fontFamily = localFont)
+                        Text(text = "Tap to download from Telegram", color = Color.White.copy(alpha = SettingsDimensions.YumaRowSubtitleAlpha), fontSize = 12.sp, fontFamily = localFont)
                     }
                 }
             }
         }
+
+        val rowCount = 8
 
         CompactMenuRow(
             title = "Interface & Visuals",
             subtitle = "Blur, Glow, and background styles",
             iconResId = R.drawable.ic_palette,
             onClick = onNavigateToCustomization,
-            showArrow = true
+            showArrow = true,
+            index = 0,
+            count = rowCount,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         CompactMenuRow(
             title = "Start Radio",
             subtitle = "Radio from current track",
             iconResId = R.drawable.radio,
-            onClick = { onAction(PlayerAction.StartRadio) }
+            onClick = { onAction(PlayerAction.StartRadio) },
+            index = 1,
+            count = rowCount,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         CompactMenuRow(
             title = "Add to Playlist",
             subtitle = "Add to custom playlist",
             iconResId = R.drawable.playlist_add,
             onClick = onOpenAddToPlaylist,
-            showArrow = true
+            showArrow = true,
+            index = 2,
+            count = rowCount,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         CompactMenuRow(
             title = "Download",
             subtitle = "Save track offline",
             iconResId = R.drawable.download,
             onClick = onNavigateToDownload,
-            showArrow = true
+            showArrow = true,
+            index = 3,
+            count = rowCount,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         CompactMenuRow(
             title = "Track Details",
             subtitle = "Codec, bitrate, file info",
             iconResId = R.drawable.ic_about,
             onClick = onNavigateToDetails,
-            showArrow = true
+            showArrow = true,
+            index = 4,
+            count = rowCount,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         CompactMenuRow(
             title = "Equalizer",
             subtitle = "System audio effects",
             iconResId = R.drawable.equalizer,
             onClick = onOpenEqualizer,
-            showArrow = true
+            showArrow = true,
+            index = 5,
+            count = rowCount,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         CompactMenuRow(
             title = "Playback Speed",
             subtitle = "Tempo and pitch settings",
             iconResId = R.drawable.speed,
             onClick = onOpenPlaybackSpeed,
-            showArrow = true
+            showArrow = true,
+            index = 6,
+            count = rowCount,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         CompactMenuRow(
             title = if (isPinned) "Unpin Track" else "Pin Track",
@@ -226,7 +237,9 @@ fun SettingsMenuContent(
             onClick = {
                 val updated = toggleSpeedDialPin(speedDialPins, songPin)
                 onSpeedDialSongIdsChange(serializeSpeedDialPins(updated))
-            }
+            },
+            index = 7,
+            count = rowCount,
         )
     }
 }
@@ -266,26 +279,34 @@ fun CompactMenuRow(
     showArrow: Boolean = false,
     isActive: Boolean = false,
     activeIconTint: Color = Color.White,
+    index: Int = 0,
+    count: Int = 1,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-        label = "CompactRowScale"
-    )
+    val shape = remember(index, count) {
+        val large = SettingsDimensions.SegmentedCornerLarge
+        val small = SettingsDimensions.SegmentedCornerSmall
+        when {
+            count <= 1 -> RoundedCornerShape(large)
+            index == 0 -> RoundedCornerShape(topStart = large, topEnd = large, bottomEnd = small, bottomStart = small)
+            index == count - 1 -> RoundedCornerShape(topStart = small, topEnd = small, bottomEnd = large, bottomStart = large)
+            else -> RoundedCornerShape(small)
+        }
+    }
+    val position = remember(index, count) { yumaSegmentPosition(index, count) }
+    val colors = LocalYumaColors.current
+    val containerBg = if (isActive) activeIconTint.copy(alpha = 0.15f) else colors.glassBackground
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 44.dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (isActive) activeIconTint.copy(alpha = 0.15f) else Color(0x0DFFFFFF))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
+            .yumaCombinedClickable(onClick = onClick)
+            .yumaGlassCard(
+                shape = shape,
+                backgroundColor = containerBg,
+                borderColor = if (isActive) activeIconTint.copy(alpha = 0.3f) else colors.glassBorder,
+                strokeWidth = SettingsDimensions.GlassBorderThickness,
+                position = position,
             )
             .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
@@ -299,7 +320,7 @@ fun CompactMenuRow(
                 Icon(
                     painter = painterResource(id = iconResId),
                     contentDescription = title,
-                    tint = if (isActive) activeIconTint else Color.White.copy(alpha = 0.8f),
+                    tint = if (isActive) activeIconTint else Color.White.copy(alpha = SettingsDimensions.YumaRowIconAlpha),
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -317,7 +338,7 @@ fun CompactMenuRow(
                 Spacer(modifier = Modifier.height(1.dp))
                 Text(
                     text = subtitle,
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = Color.White.copy(alpha = SettingsDimensions.YumaRowSubtitleAlpha),
                     fontSize = 11.sp,
                     lineHeight = 13.sp,
                     fontFamily = localFont
@@ -328,7 +349,7 @@ fun CompactMenuRow(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_arrow_right),
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.3f),
+                    tint = Color.White.copy(alpha = SettingsDimensions.YumaRowArrowAlpha),
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -345,29 +366,20 @@ private fun MenuRowButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.90f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-        label = "MenuButtonBounce"
-    )
-
     val contentColor = if (isActive && vibrantColor.luminance() > 0.5f) Color.Black else Color.White
+    val colors = LocalYumaColors.current
+    val backgroundColor = if (isActive) vibrantColor else colors.glassBackground
+    val borderColor = if (isActive) Color.Transparent else colors.glassBorder
 
     Box(
         modifier = modifier
             .height(48.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clip(RoundedCornerShape(16.dp))
-            .background(if (isActive) vibrantColor else Color(0x12FFFFFF))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
+            .yumaCombinedClickable(onClick = onClick)
+            .yumaGlassCard(
+                shape = RoundedCornerShape(16.dp),
+                backgroundColor = backgroundColor,
+                borderColor = borderColor,
+                strokeWidth = SettingsDimensions.GlassBorderThickness,
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -383,7 +395,7 @@ private fun MenuRowButton(
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
-                tint = if (isActive) contentColor else Color.White.copy(alpha = 0.8f),
+                tint = if (isActive) contentColor else Color.White.copy(alpha = SettingsDimensions.YumaRowIconAlpha),
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -407,14 +419,6 @@ fun SleepTimerMenuContent(
         selectedMinutes
     }
 
-    val startStopInteraction = remember { MutableInteractionSource() }
-    val isStartStopPressed by startStopInteraction.collectIsPressedAsState()
-    val startStopScale by animateFloatAsState(
-        targetValue = if (isStartStopPressed) 0.95f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-        label = "StartStopButtonBounce"
-    )
-
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Sleep Timer",
@@ -432,23 +436,22 @@ fun SleepTimerMenuContent(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val minusInteraction = remember { MutableInteractionSource() }
-            val isMinusPressed by minusInteraction.collectIsPressedAsState()
-            val minusScale by animateFloatAsState(if (isMinusPressed) 0.85f else 1f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium))
-
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .graphicsLayer { scaleX = minusScale; scaleY = minusScale }
-                    .clip(RoundedCornerShape(50))
-                    .background(Color(0x12FFFFFF))
-                    .clickable(interactionSource = minusInteraction, indication = null) {
+                    .yumaCombinedClickable {
                         if (isTimerActive) {
                             onAction(PlayerAction.AdjustSleepTimer(-5))
                         } else {
                             if (selectedMinutes > 5) selectedMinutes -= 5
                         }
-                    },
+                    }
+                    .yumaGlassCard(
+                        shape = RoundedCornerShape(50),
+                        backgroundColor = LocalYumaColors.current.glassBackground,
+                        borderColor = LocalYumaColors.current.glassBorder,
+                        strokeWidth = SettingsDimensions.GlassBorderThickness,
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text("-5", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = GoogleSans)
@@ -467,29 +470,28 @@ fun SleepTimerMenuContent(
                 )
                 Text(
                     text = "minutes",
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = Color.White.copy(alpha = SettingsDimensions.YumaRowSubtitleAlpha),
                     fontSize = 12.sp,
                     fontFamily = GoogleSans
                 )
             }
 
-            val plusInteraction = remember { MutableInteractionSource() }
-            val isPlusPressed by plusInteraction.collectIsPressedAsState()
-            val plusScale by animateFloatAsState(if (isPlusPressed) 0.85f else 1f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium))
-
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .graphicsLayer { scaleX = plusScale; scaleY = plusScale }
-                    .clip(RoundedCornerShape(50))
-                    .background(Color(0x12FFFFFF))
-                    .clickable(interactionSource = plusInteraction, indication = null) {
+                    .yumaCombinedClickable {
                         if (isTimerActive) {
                             onAction(PlayerAction.AdjustSleepTimer(5))
                         } else {
                             if (selectedMinutes < 120) selectedMinutes += 5
                         }
-                    },
+                    }
+                    .yumaGlassCard(
+                        shape = RoundedCornerShape(50),
+                        backgroundColor = LocalYumaColors.current.glassBackground,
+                        borderColor = LocalYumaColors.current.glassBorder,
+                        strokeWidth = SettingsDimensions.GlassBorderThickness,
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text("+5", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = GoogleSans)
@@ -504,23 +506,20 @@ fun SleepTimerMenuContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .graphicsLayer {
-                    scaleX = startStopScale
-                    scaleY = startStopScale
-                }
-                .clip(RoundedCornerShape(16.dp))
-                .background(actionColor)
-                .clickable(
-                    interactionSource = startStopInteraction,
-                    indication = null
-                ) {
+                .yumaCombinedClickable {
                     if (isTimerActive) {
                         onAction(PlayerAction.StopSleepTimer)
                     } else {
                         onAction(PlayerAction.StartSleepTimer(selectedMinutes))
                     }
                     onBackClick()
-                },
+                }
+                .yumaGlassCard(
+                    shape = RoundedCornerShape(16.dp),
+                    backgroundColor = actionColor,
+                    borderColor = Color.Transparent,
+                    strokeWidth = SettingsDimensions.GlassBorderThickness,
+                ),
             contentAlignment = Alignment.Center
         ) {
             Text(

@@ -12,8 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.ui.state.PlayerUiState
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
+import moe.rukamori.archivetune.ui.state.PlayerUiState
 
 private val localFont = FontFamily(
     Font(R.font.google_sans_regular, FontWeight.Normal),
@@ -27,6 +28,8 @@ fun CustomizationMenuContent(
     onImmersiveChanged: (Boolean) -> Unit,
     onAction: (PlayerAction) -> Unit
 ) {
+    val count = 4
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Customization",
@@ -46,10 +49,12 @@ fun CustomizationMenuContent(
             },
             checked = state.isBlurBackgroundEnabled,
             onCheckedChange = onBackgroundStyleChanged,
-            vibrantColor = Color(state.vibrantColor)
+            vibrantColor = Color(state.vibrantColor),
+            index = 0,
+            count = count,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         SettingsSwitchRow(
             title = stringResource(id = R.string.immersive_mode),
@@ -60,32 +65,38 @@ fun CustomizationMenuContent(
             },
             checked = state.isImmersiveEnabled,
             onCheckedChange = onImmersiveChanged,
-            vibrantColor = Color(state.vibrantColor)
+            vibrantColor = Color(state.vibrantColor),
+            index = 1,
+            count = count,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         SettingsSwitchRow(
             title = "Codec Info",
             subtitle = "Show audio format and sample rate above seekbar",
             checked = state.showCodecInfo,
             onCheckedChange = { onAction(PlayerAction.ToggleCodecInfo) },
-            vibrantColor = Color(state.vibrantColor)
+            vibrantColor = Color(state.vibrantColor),
+            index = 2,
+            count = count,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         SettingsSwitchRow(
             title = "Ambient Glow",
             subtitle = "Soft neon light around the player card",
             checked = state.isAlbumCoverGlowEnabled,
             onCheckedChange = { onAction(PlayerAction.ToggleAlbumCoverGlow) },
-            vibrantColor = Color(state.vibrantColor)
+            vibrantColor = Color(state.vibrantColor),
+            index = 3,
+            count = count,
         )
 
         Text(
             text = "More visual effects coming soon...",
-            color = Color.White.copy(alpha = 0.3f),
+            color = Color.White.copy(alpha = SettingsDimensions.YumaRowSubtitleAlpha),
             fontSize = 11.sp,
             lineHeight = 14.sp,
             modifier = Modifier.padding(start = 8.dp, top = 8.dp)

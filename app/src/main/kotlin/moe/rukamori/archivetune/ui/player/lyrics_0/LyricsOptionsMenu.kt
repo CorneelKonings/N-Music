@@ -26,6 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.rukamori.archivetune.R
+import moe.rukamori.archivetune.ui.settings.SettingsDimensions
+import moe.rukamori.archivetune.ui.theme.LocalYumaColors
+import moe.rukamori.archivetune.ui.theme.yumaClickable
+import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.player.player_0.buttons.LyricsMenuScreen
 import moe.rukamori.archivetune.ui.state.PlayerUiState
@@ -115,13 +119,6 @@ fun LyricsOptionsMenu(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            val cardGradient = Brush.verticalGradient(
-                colors = listOf(
-                    Color(state.darkMutedColor),
-                    Color(0xFF161616)
-                )
-            )
-
             Box(
                 modifier = Modifier
                     .width(320.dp)
@@ -129,9 +126,12 @@ fun LyricsOptionsMenu(
                         this.translationY = translateY
                         this.alpha = alpha
                     }
-                    .clip(RoundedCornerShape(28.dp))
-                    .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(28.dp))
-                    .background(cardGradient)
+                    .yumaGlassCard(
+                        shape = RoundedCornerShape(28.dp),
+                        backgroundColor = Color(state.darkMutedColor).copy(alpha = 0.95f),
+                        borderColor = LocalYumaColors.current.glassBorder,
+                        strokeWidth = SettingsDimensions.GlassBorderThickness,
+                    )
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -192,6 +192,8 @@ private fun LyricsMenuMain(
     onNavigateTo: (LyricsMenuScreen) -> Unit,
     font: FontFamily
 ) {
+    val count = 5
+
     Column {
         Text(
             text = "Lyrics Options",
@@ -207,10 +209,12 @@ private fun LyricsMenuMain(
             subtitle = "Automatically search and cache lyrics when a new track starts.",
             checked = state.isAutoDownloadEnabled,
             onCheckedChange = { onAction(PlayerAction.ToggleAutoDownload) },
-            vibrantColor = Color(state.vibrantColor)
+            vibrantColor = Color(state.vibrantColor),
+            index = 0,
+            count = count,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         SettingsMenuRow(
             title = "Edit Lyrics",
@@ -219,10 +223,12 @@ private fun LyricsMenuMain(
             onClick = {
                 onAction(PlayerAction.PrepareLyricsEdit)
                 onNavigateTo(LyricsMenuScreen.EDIT)
-            }
+            },
+            index = 1,
+            count = count,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         SettingsMenuRow(
             title = "Translate Lyrics",
@@ -230,10 +236,12 @@ private fun LyricsMenuMain(
             iconResId = R.drawable.translate,
             onClick = {
                 onNavigateTo(LyricsMenuScreen.TRANSLATE)
-            }
+            },
+            index = 2,
+            count = count,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         SettingsMenuRow(
             title = "Sync Offset",
@@ -241,10 +249,12 @@ private fun LyricsMenuMain(
             iconResId = R.drawable.speed,
             onClick = {
                 onNavigateTo(LyricsMenuScreen.SYNC_OFFSET)
-            }
+            },
+            index = 3,
+            count = count,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(SettingsDimensions.SegmentedItemGap))
 
         SettingsMenuRow(
             title = "Search / Refresh Lyrics",
@@ -253,23 +263,22 @@ private fun LyricsMenuMain(
             onClick = {
                 onAction(PlayerAction.SearchLyrics)
                 onDismiss()
-            }
+            },
+            index = 4,
+            count = count,
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
             text = "Close",
-            color = Color.White.copy(alpha = 0.4f),
+            color = Color.White.copy(alpha = SettingsDimensions.YumaRowSubtitleAlpha),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = font,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) { onDismiss() }
+                .yumaClickable { onDismiss() }
                 .padding(6.dp)
         )
     }
