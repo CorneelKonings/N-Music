@@ -310,7 +310,7 @@ fun SpotifyArtistSectionRow(
             contentType = { "spotify_artist" }
         ) { artist ->
             val thumbnail = remember(artist.id) {
-                artist.images.firstOrNull { it.width in 200..400 }?.url
+                artist.images.maxByOrNull { it.width ?: 0 }?.url
                     ?: artist.images.firstOrNull()?.url
             }
 
@@ -364,7 +364,7 @@ fun SpotifyAlbumSectionRow(
                     playlistId = album.id,
                     title = album.name,
                     artists = album.artists.map { Artist(it.name, it.id) },
-                    thumbnail = album.images.firstOrNull()?.url ?: "",
+                    thumbnail = album.images.maxByOrNull { it.width ?: 0 }?.url ?: album.images.firstOrNull()?.url ?: "",
                 )
             }
             YouTubeGridItem(
@@ -403,7 +403,7 @@ fun SpotifyPlaylistSectionRow(
                     title = playlist.name,
                     author = playlist.owner?.displayName?.let { Artist(it, null) },
                     songCountText = playlist.tracks?.total?.toString(),
-                    thumbnail = playlist.images.firstOrNull()?.url ?: "",
+                    thumbnail = playlist.images.maxByOrNull { it.width ?: 0 }?.url ?: playlist.images.firstOrNull()?.url ?: "",
                     playEndpoint = null,
                     shuffleEndpoint = null,
                     radioEndpoint = null,
@@ -523,7 +523,7 @@ fun SpotifyRecentPanel(
                 columns = 2
             ) { artist ->
                 val thumbnail = remember(artist.id) {
-                    artist.images.firstOrNull { it.width in 200..400 }?.url
+                    artist.images.maxByOrNull { it.width ?: 0 }?.url
                         ?: artist.images.firstOrNull()?.url
                 }
                 SpotifyQuickGridCell(

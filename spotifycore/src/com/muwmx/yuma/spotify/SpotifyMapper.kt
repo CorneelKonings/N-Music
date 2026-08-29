@@ -113,8 +113,7 @@ object SpotifyMapper {
      */
     fun getPlaylistThumbnail(playlist: SpotifyPlaylist): String? =
         playlist.images.let { images ->
-            // Prefer 300x300 or similar medium size, fallback to first
-            images.firstOrNull { it.width in 200..400 }?.url
+            images.maxByOrNull { it.width ?: 0 }?.url
                 ?: images.firstOrNull()?.url
         }
 
@@ -123,7 +122,7 @@ object SpotifyMapper {
      */
     fun getTrackThumbnail(track: SpotifyTrack): String? =
         track.album?.images?.let { images ->
-            images.firstOrNull { it.width in 200..400 }?.url
+            images.maxByOrNull { it.width ?: 0 }?.url
                 ?: images.firstOrNull()?.url
         }
 
