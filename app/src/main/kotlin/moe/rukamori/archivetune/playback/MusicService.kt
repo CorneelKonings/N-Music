@@ -6872,7 +6872,8 @@ class MusicService :
                 } ?: resolvedDataSpec
             }
 
-        val losslessResult = if (!lowDataModeActive) {
+        val playbackSource = dataStore.get(moe.rukamori.archivetune.constants.PlaybackSourceKey, moe.rukamori.archivetune.constants.PlaybackSource.YT_MUSIC.name).toEnum(moe.rukamori.archivetune.constants.PlaybackSource.YT_MUSIC)
+        val losslessResult = if (!lowDataModeActive && playbackSource == moe.rukamori.archivetune.constants.PlaybackSource.FLAC) {
             val cachedLossless = if (enableMemoryCache) losslessUrlCache.get(mediaId) else null
             val isOffline = connectivityManager.activeNetwork == null
             val hasLocalCache = runCatching {
