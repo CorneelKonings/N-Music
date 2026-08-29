@@ -29,6 +29,7 @@ import moe.rukamori.archivetune.ui.state.PlayerUiState
 
 private val ButtonClickAreaSize = 48.dp
 private val BottomBarIconSize = 32.dp
+private val ButtonSpacing= 120.dp
 
 @Composable
 fun PlayerBottomBar(
@@ -85,10 +86,10 @@ fun PlayerBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(ButtonSpacing, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = lyricsColor, size = BottomBarIconSize) {
+        AiryIconButton(iconRes = R.drawable.lyrics, tint = lyricsColor, size = BottomBarIconSize) {
             onAction(PlayerAction.Lyrics)
         }
         AiryIconButton(iconRes = R.drawable.queue_music, tint = queueColor, size = BottomBarIconSize) {
