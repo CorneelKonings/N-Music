@@ -34,8 +34,8 @@ fun lightYumaColorScheme(
 fun darkYumaColorScheme(
     colorScheme: ColorScheme
 ): YumaColorScheme = YumaColorScheme(
-    glassBackground = colorScheme.onSurface.copy(alpha = 0.06f),
-    glassBorder = colorScheme.primary.copy(alpha = 0.08f),
+    glassBackground = colorScheme.onSurface.copy(alpha = 0.08f),
+    glassBorder = colorScheme.primary.copy(alpha = 0.10f),
     cardBackgroundOpaque = Color(0xFF1C1C1E),
     textPrimary = colorScheme.onSurface,
     textSecondary = colorScheme.onSurface.copy(alpha = 0.65f),
