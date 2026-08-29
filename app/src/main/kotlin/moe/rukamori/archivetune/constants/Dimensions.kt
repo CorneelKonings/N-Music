@@ -18,6 +18,8 @@ const val CONTENT_TYPE_ARTIST = 3
 const val CONTENT_TYPE_ALBUM = 4
 const val CONTENT_TYPE_PLAYLIST = 5
 
+const val ArtistHeroArtworkSizePx = 1080
+
 val FloatingToolbarHeight = 72.dp
 val FloatingToolbarHorizontalPadding = 16.dp
 val FloatingToolbarBottomPadding = 8.dp

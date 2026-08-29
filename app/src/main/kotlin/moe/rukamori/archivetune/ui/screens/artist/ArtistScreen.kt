@@ -123,6 +123,7 @@ import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.AppBarHeight
+import moe.rukamori.archivetune.constants.ArtistHeroArtworkSizePx
 import moe.rukamori.archivetune.constants.CONTENT_TYPE_ALBUM
 import moe.rukamori.archivetune.constants.CONTENT_TYPE_ARTIST
 import moe.rukamori.archivetune.constants.CONTENT_TYPE_HEADER
@@ -166,6 +167,7 @@ import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.formatCompactCount
+import moe.rukamori.archivetune.ui.utils.resize
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.ArtistAction
 import moe.rukamori.archivetune.viewmodels.ArtistBlockState
@@ -461,7 +463,7 @@ fun ArtistScreen(
 
         if (thumbnail != null) {
             YumaMorphingHeader(
-                imageUrl = thumbnail,
+                imageUrl = thumbnail.resize(ArtistHeroArtworkSizePx, ArtistHeroArtworkSizePx),
                 collapseFraction = collapseFraction,
                 modifier = Modifier.align(Alignment.TopCenter),
             )
