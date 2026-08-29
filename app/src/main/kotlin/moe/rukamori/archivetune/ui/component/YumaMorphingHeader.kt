@@ -1,134 +1,104 @@
-/*
- * YumaPlayer (2026) | Modified work by MuwMix
- * GPL-3.0 License | Contributors: see git history
- */
-
 package moe.rukamori.archivetune.ui.component
 
+import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import coil3.request.transformations
-import moe.rukamori.archivetune.utils.FastBlurTransformation
+
+fun lerp3(start: Float, mid: Float, end: Float, fraction: Float): Float {
+    return if (fraction < 0.5f) {
+        lerp(start, mid, fraction * 2f)
+    } else {
+        lerp(mid, end, (fraction - 0.5f) * 2f)
+    }
+}
 
 @Composable
 fun YumaMorphingHeader(
     imageUrl: String,
     collapseFraction: Float,
-    expandedHeight: Dp,
-    collapsedSize: Dp,
-    topBarHeight: Dp,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-
-    val blurredImageRequest = remember(imageUrl) {
-        ImageRequest.Builder(context)
-            .data(imageUrl)
-            .size(100)
-            .transformations(FastBlurTransformation(radius = 24, sampling = 1f))
-            .crossfade(true)
-            .build()
-    }
-
-    val clearImageRequest = remember(imageUrl) {
-        ImageRequest.Builder(context)
-            .data(imageUrl)
-            .crossfade(true)
-            .build()
-    }
-
     val fraction = collapseFraction.coerceIn(0f, 1f)
-    val screenWidthPx = with(density) { screenWidth.toPx() }
-    val expandedHeightPx = with(density) { expandedHeight.toPx() }
-    val collapsedSizePx = with(density) { collapsedSize.toPx() }
-    val topBarHeightPx = with(density) { topBarHeight.toPx() }
+
+    val expandedSize = LocalConfiguration.current.screenWidthDp.dp
+    val expandedSizePx = with(density) { expandedSize.toPx() }
 
     Box(
         modifier = modifier
-            .size(screenWidth, expandedHeight)
-            .graphicsLayer {
-                val scaleX = if (screenWidthPx > 0f) {
-                    lerp(1f, collapsedSizePx / screenWidthPx, fraction)
-                } else {
-                    1f
-                }
-                val scaleY = if (expandedHeightPx > 0f) {
-                    lerp(1f, collapsedSizePx / expandedHeightPx, fraction)
-                } else {
-                    1f
-                }
-
-                this.scaleX = scaleX
-                this.scaleY = scaleY
-
-                val collapsedY = (topBarHeightPx - expandedHeightPx) / 2f
-                translationY = lerp(0f, collapsedY, fraction)
-
-                val targetRadiusPx = lerp(0f, collapsedSizePx / 2f, fraction)
-                val adjustedRadius = if (scaleY > 0f) targetRadiusPx / scaleY else 0f
-
-                shape = RoundedCornerShape(adjustedRadius)
-                clip = true
-            }
+            .fillMaxWidth()
+            .height(expandedSize)
     ) {
-        AsyncImage(
-            model = blurredImageRequest,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
+        Box(
             modifier = Modifier
-                .fillMaxSize()
+                .size(expandedSize)
+                .align(Alignment.TopCenter)
                 .graphicsLayer {
-                    alpha = 1f - fraction
-                }
-        )
+                    transformOrigin = TransformOrigin(0.5f, 0f)
 
-        AsyncImage(
-            model = clearImageRequest,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    compositingStrategy = CompositingStrategy.Offscreen
+                    val currentScaleX = lerp3(start = 1f, mid = 0.6f, end = 0f, fraction = fraction)
+                    val currentScaleY = lerp3(start = 1f, mid = 0.6f, end = 0.2f, fraction = fraction)
+                    scaleX = currentScaleX
+                    scaleY = currentScaleY
+
+                    val midY = -expandedSizePx * 0.05f
+                    val endY = -expandedSizePx * 0.5f
+                    translationY = lerp3(start = 0f, mid = midY, end = endY, fraction = fraction)
+
+                    val midRadius = 32.dp.toPx()
+                    val endRadius = expandedSizePx / 2f
+                    val targetRadius = lerp3(start = 0f, mid = midRadius, end = endRadius, fraction = fraction)
+                    
+                    val adjustedRadius = if (currentScaleX > 0f) targetRadius / currentScaleX else 0f
+                    shape = RoundedCornerShape(adjustedRadius)
+                    clip = true
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        if (fraction > 0.5f) {
+                            val blurRadius = lerp(0.1f, 40f, (fraction - 0.5f) * 2f)
+                            renderEffect = android.graphics.RenderEffect.createBlurEffect(
+                                blurRadius, blurRadius, android.graphics.Shader.TileMode.CLAMP
+                            ).asComposeRenderEffect()
+                        } else {
+                            renderEffect = null
+                        }
+                    }
                 }
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Black,
-                                Color.Black.copy(alpha = fraction)
-                            ),
-                            startY = size.height * 0.5f,
-                            endY = size.height
-                        ),
-                        blendMode = BlendMode.DstIn
-                    )
-                }
-        )
+        ) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = lerp3(start = 0f, mid = 0.3f, end = 1f, fraction = fraction)
+                    }
+                    .background(Color.Black)
+            )
+        }
     }
 }
