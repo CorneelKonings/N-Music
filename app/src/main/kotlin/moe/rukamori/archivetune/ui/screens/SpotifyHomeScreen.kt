@@ -2,6 +2,7 @@ package moe.rukamori.archivetune.ui.screens
 import moe.rukamori.archivetune.ui.screens.HomeSectionHeader
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,11 +38,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -484,7 +489,7 @@ fun SpotifyRecentPanel(
             SpotifyQuickGrid(
                 items = recentItems,
                 maxItems = 8,
-                columns = 4
+                columns = 2
             ) { item ->
                 when (item) {
                     is SpotifyRecentItem.Playlist -> {
@@ -515,7 +520,7 @@ fun SpotifyRecentPanel(
             SpotifyQuickGrid(
                 items = frequentArtists,
                 maxItems = 8,
-                columns = 4
+                columns = 2
             ) { artist ->
                 val thumbnail = remember(artist.id) {
                     artist.images.firstOrNull { it.width in 200..400 }?.url
@@ -536,7 +541,7 @@ fun SpotifyRecentPanel(
 private fun <T> SpotifyQuickGrid(
     items: List<T>,
     maxItems: Int = 8,
-    columns: Int = 4,
+    columns: Int = 2,
     itemContent: @Composable (T) -> Unit
 ) {
     val displayItems = items.take(maxItems)
@@ -550,6 +555,7 @@ private fun <T> SpotifyQuickGrid(
     ) {
         rows.forEachIndexed { rowIndex, rowItems ->
             Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 rowItems.forEach { item ->
@@ -566,7 +572,7 @@ private fun <T> SpotifyQuickGrid(
                 }
             }
             if (rowIndex < rows.lastIndex) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
@@ -579,29 +585,44 @@ private fun SpotifyQuickGridCell(
     onClick: () -> Unit,
     isArtist: Boolean
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    val shape = if (isArtist) CircleShape else RoundedCornerShape(12.dp)
+    val gradient = remember {
+        Brush.verticalGradient(
+            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
+            startY = 100f
+        )
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .aspectRatio(1f)
+            .clip(shape)
             .yumaClickable(onClick = onClick)
-            .padding(4.dp)
     ) {
         AsyncImage(
             model = imageUrl,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(56.dp)
-                .clip(if (isArtist) CircleShape else RoundedCornerShape(8.dp))
+            modifier = Modifier.fillMaxSize()
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradient)
+        )
         Text(
             text = title,
-            style = MaterialTheme.typography.labelMedium,
-            maxLines = 1,
+            style = MaterialTheme.typography.labelMedium.copy(
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            ),
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(8.dp)
         )
     }
 }
