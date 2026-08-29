@@ -403,14 +403,6 @@ fun AlbumScreen(
             )
         }
 
-        if (thumbnail != null) {
-            YumaMorphingHeader(
-                imageUrl = thumbnail,
-                collapseFraction = collapseFraction,
-                type = HeaderType.ALBUM
-            )
-        }
-
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
