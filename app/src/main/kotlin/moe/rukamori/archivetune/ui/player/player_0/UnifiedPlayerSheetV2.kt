@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.FloatingToolbarBottomPadding
+import moe.rukamori.archivetune.constants.FloatingToolbarHeight
 import moe.rukamori.archivetune.constants.MiniPlayerBottomSpacing
 import moe.rukamori.archivetune.constants.MiniPlayerHeight
 import moe.rukamori.archivetune.ui.menu.AddToPlaylistDialog
@@ -112,7 +113,10 @@ fun UnifiedPlayerSheetV2(
         val expandedY = 0f
 
         val totalOffsetPx = with(density) {
-            val bottomToolbarPadding = if (bottomBarHeight > 0.dp) FloatingToolbarBottomPadding else 0.dp
+            val progress = if (FloatingToolbarHeight > 0.dp) {
+                (bottomBarHeight / FloatingToolbarHeight).coerceIn(0f, 1f)
+            } else 0f
+            val bottomToolbarPadding = FloatingToolbarBottomPadding * progress
             (bottomBarHeight + bottomToolbarPadding + MiniPlayerBottomSpacing + MiniPlayerHeight).toPx()
         }
 
@@ -135,16 +139,6 @@ fun UnifiedPlayerSheetV2(
         LaunchedEffect(Unit) {
             snapshotFlow { expansionFraction.value }.collect { fraction ->
                 onExpansionFractionChanged(fraction)
-            }
-        }
-
-        LaunchedEffect(collapsedY) {
-            if (currentSheetState == PlayerSheetState.COLLAPSED) {
-                if (translationY.value == screenHeightPx && collapsedY < screenHeightPx) {
-                    translationY.animateTo(collapsedY, spring(stiffness = Spring.StiffnessMediumLow))
-                } else {
-                    translationY.snapTo(collapsedY)
-                }
             }
         }
 
@@ -193,6 +187,18 @@ fun UnifiedPlayerSheetV2(
                 defaultAnimationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow),
                 expandedY = expandedY
             )
+        }
+
+        LaunchedEffect(collapsedY, motionController) {
+            if (currentSheetState == PlayerSheetState.COLLAPSED) {
+                if (translationY.value >= screenHeightPx - 1f && collapsedY < screenHeightPx) {
+                    translationY.animateTo(collapsedY, spring(stiffness = Spring.StiffnessMediumLow))
+                } else {
+                    motionController.syncToExpansion(collapsedY)
+                }
+            } else {
+                motionController.syncToExpansion(collapsedY)
+            }
         }
 
         // Сворачивание по внешнему запросу из состояния
