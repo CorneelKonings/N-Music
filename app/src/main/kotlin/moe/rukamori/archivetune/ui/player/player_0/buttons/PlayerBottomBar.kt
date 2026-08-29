@@ -28,12 +28,13 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 
 private val ButtonClickAreaSize = 48.dp
-private val LyricsIconSize = 32.dp
+private val BottomBarIconSize = 32.dp
 
 @Composable
 fun PlayerBottomBar(
     state: PlayerUiState,
     onAction: (PlayerAction) -> Unit,
+    onOpenQueue: () -> Unit = {},
     modifier: Modifier = Modifier,
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
@@ -78,15 +79,20 @@ fun PlayerBottomBar(
 
     val isLyricsActive = state.isLyricsVisible
     val lyricsColor = if (isLyricsActive) activeColor else inactiveButtonColor
+    val queueColor = inactiveButtonColor
 
     Row(
         modifier = modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = lyricsColor, size = LyricsIconSize) {
+        AiryIconButton(iconRes = R.drawable.ic_lyrics, tint = lyricsColor, size = BottomBarIconSize) {
             onAction(PlayerAction.Lyrics)
+        }
+        AiryIconButton(iconRes = R.drawable.queue_music, tint = queueColor, size = BottomBarIconSize) {
+            onOpenQueue()
         }
     }
 }

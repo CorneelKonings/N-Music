@@ -129,7 +129,7 @@ fun FullPlayerOptionsMenu(
                     }
                     .yumaGlassCard(
                         shape = RoundedCornerShape(28.dp),
-                        backgroundColor = Color(state.darkMutedColor).copy(alpha = 0.95f),
+                        backgroundColor = Color(state.darkMutedColor).copy(alpha = 1f),
                         borderColor = LocalYumaColors.current.glassBorder,
                         strokeWidth = SettingsDimensions.GlassBorderThickness,
                     )
