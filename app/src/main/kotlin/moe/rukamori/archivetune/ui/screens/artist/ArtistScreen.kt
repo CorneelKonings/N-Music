@@ -109,7 +109,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.palette.graphics.Palette
-import coil3.compose.AsyncImage
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -153,6 +152,7 @@ import moe.rukamori.archivetune.ui.component.NavigationTitle
 import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.YouTubeGridItem
 import moe.rukamori.archivetune.ui.component.YouTubeListItem
+import moe.rukamori.archivetune.ui.component.YumaMorphingHeader
 import moe.rukamori.archivetune.ui.component.shimmer.ButtonPlaceholder
 import moe.rukamori.archivetune.ui.component.shimmer.ListItemPlaceHolder
 import moe.rukamori.archivetune.ui.component.shimmer.ShimmerHost
@@ -166,7 +166,6 @@ import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.formatCompactCount
-import moe.rukamori.archivetune.ui.utils.resize
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.ArtistAction
 import moe.rukamori.archivetune.viewmodels.ArtistBlockState
@@ -315,6 +314,23 @@ fun ArtistScreen(
         }
     }
 
+    val expandedHeight = 320.dp
+    val collapsedSize = 40.dp
+    val topBarHeight = systemBarsTopPadding + AppBarHeight
+
+    val collapseFraction by remember {
+        derivedStateOf {
+            val maxScrollPx = with(density) { (expandedHeight - topBarHeight).toPx() }
+            if (maxScrollPx <= 0f) {
+                1f
+            } else if (lazyListState.firstVisibleItemIndex > 0) {
+                1f
+            } else {
+                (lazyListState.firstVisibleItemScrollOffset / maxScrollPx).coerceIn(0f, 1f)
+            }
+        }
+    }
+
     LaunchedEffect(libraryArtist) {
         showLocal = libraryArtist?.artist?.isLocal == true
     }
@@ -444,6 +460,17 @@ fun ArtistScreen(
             )
         }
 
+        if (thumbnail != null) {
+            YumaMorphingHeader(
+                imageUrl = thumbnail,
+                collapseFraction = collapseFraction,
+                expandedHeight = expandedHeight,
+                collapsedSize = collapsedSize,
+                topBarHeight = topBarHeight,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+        }
+
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
@@ -459,17 +486,7 @@ fun ArtistScreen(
                                     .fillMaxWidth()
                                     .padding(top = systemBarsTopPadding + AppBarHeight),
                         ) {
-                            // Artist image placeholder - circular
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .padding(top = 8.dp)
-                                        .size(210.dp)
-                                        .align(Alignment.CenterHorizontally)
-                                        .shimmer()
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.onSurface),
-                            )
+                            Spacer(modifier = Modifier.height(expandedHeight * 0.6f))
 
                             Spacer(modifier = Modifier.height(24.dp))
 
@@ -554,41 +571,7 @@ fun ArtistScreen(
                                 .padding(top = systemBarsTopPadding + AppBarHeight),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        // Artist Image - Circular with shadow
-                        Box(
-                            modifier =
-                                Modifier
-                                    .padding(top = 8.dp, bottom = 16.dp),
-                        ) {
-                            if (thumbnail != null) {
-                                AsyncImage(
-                                    model = thumbnail.resize(600, 600),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier =
-                                        Modifier
-                                            .size(210.dp)
-                                            .clip(CircleShape),
-                                )
-                            } else {
-                                // Placeholder when no image
-                                Box(
-                                    modifier =
-                                        Modifier
-                                            .size(200.dp)
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.person),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(80.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                        }
+                        Spacer(modifier = Modifier.height(expandedHeight * 0.6f))
 
                         // Artist Name
                         Text(
