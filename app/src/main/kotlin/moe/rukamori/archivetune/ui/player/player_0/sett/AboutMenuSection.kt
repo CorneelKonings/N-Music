@@ -408,13 +408,14 @@ fun SleepTimerMenuContent(
     onAction: (PlayerAction) -> Unit,
     onBackClick: () -> Unit
 ) {
-    val isTimerActive = state.sleepTimerRemainingSeconds != null
+    val sleepTimerSecs = state.sleepTimerRemainingSeconds
+    val isTimerActive = sleepTimerSecs != null
 
     var selectedMinutes by remember { mutableIntStateOf(15) }
     val GoogleSans = localFont
 
-    val displayMinutes = if (isTimerActive) {
-        ((state.sleepTimerRemainingSeconds ?: 0) + 59) / 60
+    val displayMinutes = if (sleepTimerSecs != null) {
+        (sleepTimerSecs + 59) / 60
     } else {
         selectedMinutes
     }
