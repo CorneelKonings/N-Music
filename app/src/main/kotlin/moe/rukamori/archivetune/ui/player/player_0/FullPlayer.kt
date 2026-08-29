@@ -69,6 +69,7 @@ fun FullPlayer(
     onImmersiveChanged: (Boolean) -> Unit,
     updateState: UpdateState,
     onOpenSettingsMenu: (PlayerMenuScreen) -> Unit,
+    onOpenQueue: () -> Unit = {},
     lyricsFractionProvider: () -> Float = { if (state.isLyricsVisible) 1f else 0f },
     queueFractionProvider: () -> Float = { 0f },
     isVisible: Boolean = true,
@@ -214,7 +215,8 @@ fun FullPlayer(
 
                     PlayerBottomBar(
                         state = state,
-                        onAction = onAction
+                        onAction = onAction,
+                        onOpenQueue = onOpenQueue
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))

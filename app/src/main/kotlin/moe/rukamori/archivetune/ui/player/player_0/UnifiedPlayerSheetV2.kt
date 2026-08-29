@@ -408,6 +408,14 @@ fun UnifiedPlayerSheetV2(
                             )
                         }
                     },
+                    onOpenQueue = {
+                        scope.launch {
+                            queueFraction.animateTo(
+                                1f,
+                                spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow)
+                            )
+                        }
+                    },
                     onMoreLyricsClick = { isLyricsMenuVisible = true },
                     onSearchLyricsClick = onSearchLyricsClick,
                     onCollapseClick = {
