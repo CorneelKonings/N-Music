@@ -28,7 +28,7 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.state.PlayerUiState
 
 private val ButtonClickAreaSize = 48.dp
-private val BottomBarIconSize = 24.dp
+private val BottomBarIconSize = 28.dp
 private val ButtonSpacing= 120.dp
 
 @Composable
