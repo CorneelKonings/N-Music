@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
+import moe.rukamori.archivetune.ui.utils.resize
 
 /**
  * Единая конфигурация для всех типов экранов приложения
@@ -108,7 +110,11 @@ fun YumaMorphingHeader(
                 )
         ) {
             AsyncImage(
-                model = imageUrl.orEmpty(),
+                model = if (type == HeaderType.ARTIST) {
+                    imageUrl?.resize(1080, 1080).orEmpty()
+                } else {
+                    imageUrl.orEmpty()
+                },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 alignment = Alignment.Center,

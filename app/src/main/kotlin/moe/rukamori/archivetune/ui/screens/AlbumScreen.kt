@@ -70,7 +70,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -108,11 +110,13 @@ import moe.rukamori.archivetune.constants.HideExplicitKey
 import moe.rukamori.archivetune.db.entities.Album
 import moe.rukamori.archivetune.extensions.togglePlayPause
 import moe.rukamori.archivetune.playback.queues.LocalAlbumRadio
+import moe.rukamori.archivetune.ui.component.HeaderType
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.LocalMenuState
 import moe.rukamori.archivetune.ui.component.NavigationTitle
 import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.YouTubeGridItem
+import moe.rukamori.archivetune.ui.component.YumaMorphingHeader
 import moe.rukamori.archivetune.ui.component.shimmer.ButtonPlaceholder
 import moe.rukamori.archivetune.ui.component.shimmer.ListItemPlaceHolder
 import moe.rukamori.archivetune.ui.component.shimmer.ShimmerHost
@@ -139,6 +143,7 @@ import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.AlbumUiState
 import moe.rukamori.archivetune.viewmodels.AlbumViewModel
+
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -278,6 +283,23 @@ fun AlbumScreen(
         }
     }
 
+
+    val density = LocalDensity.current
+    val screenWidthDp = with(density) { LocalWindowInfo.current.containerSize.width.toDp() }
+
+    val collapseFraction by remember {
+        derivedStateOf {
+            val maxScrollPx = with(density) { screenWidthDp.toPx() }
+            if (maxScrollPx <= 0f) {
+                1f
+            } else if (lazyListState.firstVisibleItemIndex > 0) {
+                1f
+            } else {
+                (lazyListState.firstVisibleItemScrollOffset / maxScrollPx).coerceIn(0f, 1f)
+            }
+        }
+    }
+
     Box(
         modifier =
             Modifier
@@ -403,6 +425,16 @@ fun AlbumScreen(
             )
         }
 
+        val thumbnail = albumWithSongs?.album?.thumbnailUrl
+
+        if (thumbnail != null) {
+            YumaMorphingHeader(
+                imageUrl = thumbnail,
+                collapseFraction = collapseFraction,
+                type = HeaderType.ALBUM
+            )
+        }
+
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
@@ -419,33 +451,7 @@ fun AlbumScreen(
                                 .padding(top = systemBarsTopPadding + AppBarHeight),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        // Album Art - Large centered with shadow and rounded corners
-                        Box(
-                            modifier =
-                                Modifier
-                                    .padding(top = 8.dp, bottom = 20.dp),
-                        ) {
-                            Surface(
-                                modifier =
-                                    Modifier
-                                        .size(240.dp)
-                                        .shadow(
-                                            elevation = 24.dp,
-                                            shape = RoundedCornerShape(16.dp),
-                                            spotColor =
-                                                gradientColors.getOrNull(0)?.copy(alpha = 0.5f)
-                                                    ?: MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                        ),
-                                shape = RoundedCornerShape(16.dp),
-                            ) {
-                                AsyncImage(
-                                    model = albumWithSongs.album.thumbnailUrl,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize(),
-                                )
-                            }
-                        }
+                        Spacer(modifier = Modifier.height(screenWidthDp * 0.85f))
 
                         // Album Title
                         Text(

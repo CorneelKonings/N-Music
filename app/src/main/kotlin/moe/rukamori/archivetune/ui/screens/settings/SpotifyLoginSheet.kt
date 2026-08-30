@@ -57,7 +57,8 @@ import androidx.compose.ui.text.style.TextAlign
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.spotify.SpotifyAuth
 import moe.rukamori.archivetune.utils.resetAuthWebViewSession
-
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
 
@@ -105,8 +106,6 @@ fun SpotifyLoginFallback(
     }
 }
 
-private const val SpotifyLoginUserAgent =
-    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -275,8 +274,17 @@ private fun WebView.destroySpotifyLoginWebView() {
     destroy()
 }
 
+private fun getCleanChromeUserAgent(context: android.content.Context): String {
+    val defaultUa = WebSettings.getDefaultUserAgent(context)
+    return defaultUa
+        .replace("; wv", "")
+        .replace(Regex("Version/\\d+\\.\\d+\\s?"), "")
+}
+
 @SuppressLint("SetJavaScriptEnabled")
 private fun WebView.configureSpotifyLoginWebView() {
+    val cleanUa = getCleanChromeUserAgent(context)
+
     settings.apply {
         javaScriptEnabled = true
         domStorageEnabled = true
@@ -286,7 +294,8 @@ private fun WebView.configureSpotifyLoginWebView() {
         builtInZoomControls = true
         displayZoomControls = false
         mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-        userAgentString = SpotifyLoginUserAgent
+        cacheMode = WebSettings.LOAD_DEFAULT
+        userAgentString = cleanUa
     }
 }
 
