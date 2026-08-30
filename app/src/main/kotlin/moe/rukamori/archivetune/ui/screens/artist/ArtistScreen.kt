@@ -95,6 +95,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -154,6 +155,7 @@ import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.YouTubeGridItem
 import moe.rukamori.archivetune.ui.component.YouTubeListItem
 import moe.rukamori.archivetune.ui.component.YumaMorphingHeader
+import moe.rukamori.archivetune.ui.component.rememberCollapseFraction
 import moe.rukamori.archivetune.ui.component.shimmer.ButtonPlaceholder
 import moe.rukamori.archivetune.ui.component.shimmer.ListItemPlaceHolder
 import moe.rukamori.archivetune.ui.component.shimmer.ShimmerHost
@@ -220,6 +222,8 @@ fun ArtistScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showLocal by rememberSaveable { mutableStateOf(false) }
     val density = LocalDensity.current
+    val screenWidthDp = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
+    val expandedHeight = screenWidthDp * HeaderType.ARTIST.heightRatio
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -316,21 +320,9 @@ fun ArtistScreen(
         }
     }
 
-    val expandedHeight = 320.dp
     val topBarHeight = systemBarsTopPadding + AppBarHeight
 
-    val collapseFraction by remember {
-        derivedStateOf {
-            val maxScrollPx = with(density) { (expandedHeight - topBarHeight).toPx() }
-            if (maxScrollPx <= 0f) {
-                1f
-            } else if (lazyListState.firstVisibleItemIndex > 0) {
-                1f
-            } else {
-                (lazyListState.firstVisibleItemScrollOffset / maxScrollPx).coerceIn(0f, 1f)
-            }
-        }
-    }
+    val collapseFraction by rememberCollapseFraction(lazyListState)
 
     LaunchedEffect(libraryArtist) {
         showLocal = libraryArtist?.artist?.isLocal == true
@@ -484,9 +476,8 @@ fun ArtistScreen(
                                     .fillMaxWidth()
                                     .padding(top = systemBarsTopPadding + AppBarHeight),
                         ) {
-                            Spacer(modifier = Modifier.height(expandedHeight * 0.6f))
+                            Spacer(modifier = Modifier.height(expandedHeight * 0.55f))
 
-                            Spacer(modifier = Modifier.height(24.dp))
 
                             // Artist name placeholder
                             TextPlaceholder(

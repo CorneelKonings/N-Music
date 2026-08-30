@@ -117,6 +117,7 @@ import moe.rukamori.archivetune.ui.component.NavigationTitle
 import moe.rukamori.archivetune.ui.component.SongListItem
 import moe.rukamori.archivetune.ui.component.YouTubeGridItem
 import moe.rukamori.archivetune.ui.component.YumaMorphingHeader
+import moe.rukamori.archivetune.ui.component.rememberCollapseFraction
 import moe.rukamori.archivetune.ui.component.shimmer.ButtonPlaceholder
 import moe.rukamori.archivetune.ui.component.shimmer.ListItemPlaceHolder
 import moe.rukamori.archivetune.ui.component.shimmer.ShimmerHost
@@ -287,18 +288,7 @@ fun AlbumScreen(
     val density = LocalDensity.current
     val screenWidthDp = with(density) { LocalWindowInfo.current.containerSize.width.toDp() }
 
-    val collapseFraction by remember {
-        derivedStateOf {
-            val maxScrollPx = with(density) { screenWidthDp.toPx() }
-            if (maxScrollPx <= 0f) {
-                1f
-            } else if (lazyListState.firstVisibleItemIndex > 0) {
-                1f
-            } else {
-                (lazyListState.firstVisibleItemScrollOffset / maxScrollPx).coerceIn(0f, 1f)
-            }
-        }
-    }
+    val collapseFraction by rememberCollapseFraction(lazyListState)
 
     Box(
         modifier =
@@ -451,7 +441,7 @@ fun AlbumScreen(
                                 .padding(top = systemBarsTopPadding + AppBarHeight),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Spacer(modifier = Modifier.height(screenWidthDp * 0.85f))
+                        Spacer(modifier = Modifier.height(screenWidthDp * 0.55f))
 
                         // Album Title
                         Text(

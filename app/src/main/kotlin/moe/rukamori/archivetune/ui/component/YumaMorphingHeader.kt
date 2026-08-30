@@ -27,6 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
 import moe.rukamori.archivetune.ui.utils.resize
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.Dp
+
 
 /**
  * Единая конфигурация для всех типов экранов приложения
@@ -36,8 +42,8 @@ enum class HeaderType(
     val showBottomGradient: Boolean
 ) {
     ARTIST(heightRatio = 1.45f, showBottomGradient = true),
-    ALBUM(heightRatio = 1.0f, showBottomGradient = false),
-    PLAYLIST(heightRatio = 1.0f, showBottomGradient = false),
+    ALBUM(heightRatio = 1.35f, showBottomGradient = true),
+    PLAYLIST(heightRatio = 1.35f, showBottomGradient = true),
     SPOTIFY(heightRatio = 1.0f, showBottomGradient = false)
 }
 
@@ -149,6 +155,31 @@ fun YumaMorphingHeader(
                     }
                     .background(Color.Black)
             )
+        }
+    }
+}
+
+
+
+/**
+ * Единый расчет сжатия шапки с быстрой и отзывчивой динамикой (как на экране артиста).
+ */
+@Composable
+fun rememberCollapseFraction(
+    lazyListState: LazyListState,
+    maxScrollDistance: Dp = 420.dp // Дистанция быстрого схлопывания с артиста
+): State<Float> {
+    val density = LocalDensity.current
+    return remember(lazyListState, maxScrollDistance) {
+        derivedStateOf {
+            val maxScrollPx = with(density) { maxScrollDistance.toPx() }
+            if (maxScrollPx <= 0f) {
+                1f
+            } else if (lazyListState.firstVisibleItemIndex > 0) {
+                1f
+            } else {
+                (lazyListState.firstVisibleItemScrollOffset / maxScrollPx).coerceIn(0f, 1f)
+            }
         }
     }
 }
