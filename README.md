@@ -33,7 +33,7 @@
     <img src="https://img.shields.io/github/downloads/MuwMx/YumaPlayer/total?style=for-the-badge&color=6366f1&labelColor=1e1e2e&logo=github" alt="Downloads" />
     <img src="https://img.shields.io/badge/License-GPLv3-6366f1?style=for-the-badge&logo=gnu&logoColor=white&labelColor=1e1e2e" alt="License: GPLv3" />
     <img src="https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white&labelColor=1e1e2e" alt="Android 8.0+" />
-    <a href="https://t.me/spot_app_player"><img src="https://img.shields.io/badge/Telegram-Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white&labelColor=1e1e2e" alt="Telegram" /></a>
+    <a href="https://t.me/yumaplayer"><img src="https://img.shields.io/badge/Telegram-Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white&labelColor=1e1e2e" alt="Telegram" /></a>
   </div>
 
 </div>
@@ -145,7 +145,7 @@ YumaPlayer is localized into multiple languages thanks to community contribution
   <img src="https://img.shields.io/badge/Translations-Community_Driven-6366f1?style=for-the-badge&logo=weblate&labelColor=1e1e2e" alt="Translation Status" />
 </div>
 
-> If you would like to contribute translations or improve existing language strings, join the discussion in our [Telegram Community](https://t.me/spot_app_player).
+> If you would like to contribute translations or improve existing language strings, join the discussion in our [Telegram Community](https://t.me/yumaplayer).
 
 ---
 
@@ -204,7 +204,7 @@ YumaPlayer is structured into **13 independent Gradle modules** following Clean 
           </a>
         </td>
         <td align="center">
-          <a href="https://t.me/spot_app_player">
+          <a href="https://t.me/yumaplayer">
             <img src="https://img.shields.io/badge/Telegram-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" height="40" alt="Get on Telegram" />
           </a>
         </td>
