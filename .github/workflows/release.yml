@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   check-version:
-    if: contains(github.ref, 'refs/tags') == false
+    if: ${{ !contains(github.ref, 'refs/tags') }}
     runs-on: ubuntu-latest
     outputs:
       version_changed: ${{ steps.check_version.outputs.version_changed }}
@@ -84,7 +84,7 @@ jobs:
 
   fetch-tg:
     needs: check-version
-    if: needs.check-version.outputs.version_changed == 'true' || inputs.force == true
+    if: always() && (needs.check-version.outputs.version_changed == 'true' || inputs.force == 'true' || inputs.force == true)
     runs-on: ubuntu-latest
     outputs:
       found: ${{ steps.check_tg.outputs.found }}
@@ -107,7 +107,7 @@ jobs:
 
   reproducibility:
     needs: [check-version, fetch-tg]
-    if: (needs.check-version.outputs.version_changed == 'true' || inputs.force == true) && needs.fetch-tg.outputs.found != 'true'
+    if: always() && (needs.check-version.outputs.version_changed == 'true' || inputs.force == 'true' || inputs.force == true) && needs.fetch-tg.outputs.found != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -272,7 +272,7 @@ jobs:
   build:
     name: Build Release APKs
     needs: [check-version, fetch-tg, reproducibility]
-    if: (needs.check-version.outputs.version_changed == 'true' || inputs.force == true) && needs.fetch-tg.outputs.found != 'true'
+    if: always() && (needs.check-version.outputs.version_changed == 'true' || inputs.force == 'true' || inputs.force == true) && needs.fetch-tg.outputs.found != 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -472,7 +472,7 @@ jobs:
 
   create-release:
     needs: [check-version, fetch-tg, build]
-    if: needs.check-version.outputs.version_changed == 'true' || inputs.force == true
+    if: always() && (needs.check-version.outputs.version_changed == 'true' || inputs.force == 'true' || inputs.force == true)
     runs-on: ubuntu-latest
     permissions:
       contents: write
