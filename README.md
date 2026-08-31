@@ -1,5 +1,3 @@
-***
-
 <div align="center">
 
   <img src="assets/ic_launcher.webp" width="240" height="240" alt="YumaPlayer Icon" style="border-radius: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);" />
@@ -302,5 +300,3 @@ YumaPlayer is an independent third-party client. It is **not affiliated with, en
 <p align="center">
   Crafted with ❤️ and attention to every frame. Enjoy the music! 🎵
 </p>
-
-***

@@ -535,7 +535,7 @@
     <string name="library_top_mixes_loading">Bereite deine KI-Mixe vor…</string>
     <string name="widget_pause">Pause</string>
     <string name="widget_previous">Vorheriger</string>
-    <string name="widget_tap_to_open">Tippe um ArchiveTune zu öffnen</string>
+    <string name="widget_tap_to_open">Tippe um YumaPlayer zu öffnen</string>
     <string name="removed_n_songs_from_queue">%d Songs aus der Warteschlange entfernt</string>
     <string name="aod_mode">AOD-Modus</string>
     <string name="aod_mode_exit">AOD verlassen</string>
@@ -548,9 +548,9 @@
     <string name="haptics_desc">Haptisches Feedback bei interaktiven Elementen aktivieren</string>
     <string name="lyrics_line_spacing">Songtext Zeilenabstand</string>
     <string name="playback_confirmation_required">Wiedergabebestätigung erforderlich</string>
-    <string name="playback_requires_youtube_music_confirmation">Wiedergabe in YouTube Music bestätigten, dann zu ArchiveTune zurückkehren.</string>
+    <string name="playback_requires_youtube_music_confirmation">Wiedergabe in YouTube Music bestätigten, dann zu YumaPlayer zurückkehren.</string>
     <string name="playback_login_refresh_required">Erneuere YouTube Music Anmeldung</string>
-    <string name="playback_requires_youtube_music_login_refresh">Erneuere YouTube Music Anmeldung, dann zu ArchiveTune zurückkehren.</string>
+    <string name="playback_requires_youtube_music_login_refresh">Erneuere YouTube Music Anmeldung, dann zu YumaPlayer zurückkehren.</string>
     <string name="could_not_open_youtube_music">Konnte YouTube Music nicht öffnen</string>
     <string name="internet">Internet</string>
     <string name="internet_warning_title">Sicherheits- und Nutzungswarnung</string>
@@ -613,7 +613,7 @@
     <string name="romanization">Romanisierung</string>
     <string name="hide_video">Verstecke Musikvideos</string>
     <string name="restore_success">Sicherung erfolgreich wiederhergestellt</string>
-    <string name="discord_login_description">Verbinde dein Discord-Konto über OAuth, damit ArchiveTune Rich Presence über das offizielle Social SDK von Discord veröffentlichen kann.</string>
+    <string name="discord_login_description">Verbinde dein Discord-Konto über OAuth, damit YumaPlayer Rich Presence über das offizielle Social SDK von Discord veröffentlichen kann.</string>
     <string name="discord_open_authorization">Öffne Discord Autorisierung</string>
     <string name="discord_waiting_for_authorization">Warte auf Discord Autorisierung…</string>
     <string name="discord_authorization_success">Discord Konto verbunden</string>
@@ -684,7 +684,7 @@
     <string name="update_notification_channel_name">Appupdates</string>
     <string name="update_notification_channel_desc">Benachrichtigungen bei neuen App-Updates</string>
     <string name="update_notification_title">Update verfügbar</string>
-    <string name="update_notification_text">ArchiveTune %s ist jetzt verfügbar</string>
+    <string name="update_notification_text">YumaPlayer %s ist jetzt verfügbar</string>
     <string name="download">Herunterladen</string>
     <string name="permissions_title">Erlaube YumaPlayer am Besten zu funktionieren</string>
     <string name="permissions_subtitle">Wir verwenden einige Berechtigungen um deine Musik zuverlässig zu spielen und verwalten. Diese kannst du jederzeit in den Systemeinstellungen verändern.</string>

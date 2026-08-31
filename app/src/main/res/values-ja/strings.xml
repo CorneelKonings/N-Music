@@ -838,7 +838,7 @@
     <string name="updates_nightly_title">Nightly配信</string>
     <string name="updates_nightly_description">Nightlyビルドは最新の開発コミットを追跡し、未完成の変更を含む場合がある。</string>
     <string name="updates_nightly_hosting_description">自動生成された開発ビルドは、成功したGitHub Actions実行から利用できる。</string>
-    <string name="updates_channel_warning_intro">ArchiveTuneはビルド用に2つのダウンロードチャンネルを提供:</string>
+    <string name="updates_channel_warning_intro">YumaPlayerはビルド用に2つのダウンロードチャンネルを提供:</string>
     <string name="updates_channel_warning_stable_title">安定版ビルド</string>
     <string name="updates_channel_warning_stable_source">公式GitHub Releases経由で配布。</string>
     <string name="updates_channel_warning_stable_desc">これらのバージョンはテスト済みで、ほとんどのユーザーにおすすめ。</string>
@@ -879,13 +879,13 @@ Dailyビルドは最新の開発ブランチから毎日自動公開される。
     <string name="onboarding_permissions_title">権限を確認</string>
     <string name="onboarding_permissions_subtitle">今許可したいものだけ許可してね。続行して後で許可することもできる。</string>
     <string name="onboarding_community_title">つながりを保つ</string>
-    <string name="onboarding_community_subtitle">開発をフォロー、問題を報告、またはArchiveTuneを応援。</string>
+    <string name="onboarding_community_subtitle">開発をフォロー、問題を報告、またはYumaPlayerを応援。</string>
     <string name="onboarding_finish">聴き始める</string>
     <string name="onboarding_gms_variant">GMS版</string>
     <string name="onboarding_foss_variant">FOSS版</string>
     <string name="onboarding_version_label">バージョン %1$s</string>
     <string name="onboarding_empty_title">セットアップは利用不可</string>
-    <string name="onboarding_empty_subtitle">ArchiveTuneへ進む。</string>
+    <string name="onboarding_empty_subtitle">YumaPlayerへ進む。</string>
     <string name="onboarding_error_generic">セットアップを読み込めなかった</string>
     <string name="onboarding_permission_allowed_by_install">インストールで許可済み</string>
     <string name="onboarding_permission_unavailable">利用不可</string>
@@ -896,11 +896,11 @@ Dailyビルドは最新の開発ブランチから毎日自動公開される。
     <string name="onboarding_permission_network_title">ネットワークアクセス</string>
     <string name="onboarding_permission_network_desc">音楽をストリーミングし、アートワークを読み込み、オンラインのアプリコンテンツを確認。</string>
     <string name="onboarding_permission_playback_service_title">バックグラウンド再生</string>
-    <string name="onboarding_permission_playback_service_desc">ArchiveTuneがバックグラウンドにあっても音楽を安定して再生。</string>
+    <string name="onboarding_permission_playback_service_desc">YumaPlayerがバックグラウンドにあっても音楽を安定して再生。</string>
     <string name="onboarding_permission_audio_settings_title">音声設定とバイブレーション</string>
     <string name="onboarding_permission_audio_settings_desc">再生音声の動作を調整し、軽い触覚フィードバックを提供。</string>
     <string name="onboarding_permission_app_installation_title">アプリインストール</string>
-    <string name="onboarding_permission_app_installation_desc">ArchiveTuneからダウンロードしたAPK更新をインストール。</string>
+    <string name="onboarding_permission_app_installation_desc">YumaPlayerからダウンロードしたAPK更新をインストール。</string>
     <string name="onboarding_permission_bluetooth_scan_title">Bluetoothスキャン</string>
     <string name="onboarding_permission_bluetooth_scan_desc">キャスト端末や近くの再生端末を検出。</string>
     <string name="onboarding_community_github_desc">リポジトリにスターしてリリースをフォロー。</string>
@@ -914,7 +914,7 @@ Dailyビルドは最新の開発ブランチから毎日自動公開される。
     <string name="playlist_suggestion_source_title">プレイリストタイトル</string>
     <string name="playlist_suggestion_source_content">プレイリスト内容</string>
     <string name="playlist_suggestion_source_both">プレイリストタイトルと内容</string>
-    <string name="music_together">ArchiveTune Music Together</string>
+    <string name="music_together">YumaPlayer Music Together</string>
     <string name="together_display_name">表示名</string>
     <string name="together_display_name_placeholder">あなたの名前</string>
     <string name="together_port">セッションポート</string>
@@ -990,7 +990,7 @@ Dailyビルドは最新の開発ブランチから毎日自動公開される。
     <string name="together_welcome_title">YumaPlayer Music Togetherへようこそ</string>
     <string name="together_welcome_body">Music Togetherでは、複数の端末で同期キューと再生を共有するライブセッションが使える。</string>
     <string name="together_welcome_host_title">セッションをホスト</string>
-    <string name="together_welcome_host_body">「セッションを開始」をタップしてセッションリンクを共有。ホスト中はArchiveTuneをバックグラウンドで開いたままにしてね。</string>
+    <string name="together_welcome_host_body">「セッションを開始」をタップしてセッションリンクを共有。ホスト中はYumaPlayerをバックグラウンドで開いたままにしてね。</string>
     <string name="together_welcome_join_title">別の端末から参加</string>
     <string name="together_welcome_join_body">共有リンクを開くか、コードを入力して「参加」をタップ。キューと再生はホストに従う。</string>
     <string name="together_welcome_permissions_title">権限と安全</string>
@@ -1018,7 +1018,7 @@ Dailyビルドは最新の開発ブランチから毎日自動公開される。
     <string name="token_copied">トークンをクリップボードにコピーした</string>
     <string name="extracting_from_url">URLからトークンを抽出中</string>
     <string name="po_token_account_notice_title">同じアカウントを使う</string>
-    <string name="po_token_account_notice_body">POトークン生成前に、ArchiveTune内のYouTube Musicで使っているものと同じGoogleアカウントでここにログインしてね。</string>
+    <string name="po_token_account_notice_body">POトークン生成前に、YumaPlayer内のYouTube Musicで使っているものと同じGoogleアカウントでここにログインしてね。</string>
     <string name="po_token_account_notice_same_account">このWebViewで別のアカウントを使うと、生成されたトークンは正しく動作しない。</string>
     <string name="po_token_account_notice_mismatch">一致するアカウントを使い、ログインフローを完了してからyoutube.com/accountを開き、そのページからトークンを生成してね。</string>
     <string name="saved_accounts">保存済みアカウント</string>

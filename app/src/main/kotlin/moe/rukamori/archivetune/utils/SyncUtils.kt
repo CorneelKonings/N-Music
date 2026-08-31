@@ -772,8 +772,9 @@ class SyncUtils
             if (!isSyncStillEnabled(gen)) return@coroutineScope
             Timber.d("syncPlaylist: Starting sync for browseId=$browseId, playlistId=$playlistId")
 
+            val cleanBrowseId = if (browseId.startsWith("VL")) browseId else "VL$browseId"
             val page =
-                YouTube.playlist(browseId).completed().getOrElse { e ->
+                YouTube.playlist(cleanBrowseId).completed().getOrElse { e ->
                     Timber.e(e, "syncPlaylist: Failed to fetch playlist from YouTube")
                     if (propagateFailures) {
                         throw e

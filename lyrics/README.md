@@ -1,11 +1,11 @@
 <div align="center">
 
-  <h1>ArchiveTune Lyrics</h1>
+  <h1>YumaPlayer Lyrics</h1>
 
   <p align="center">
     <strong>Multi-provider lyrics fetching library.</strong>
     <br />
-    <em>Standalone lyrics modules powering <a href="https://github.com/ArchiveTuneApp/ArchiveTune">ArchiveTune</a> — a high-performance, privacy-focused YouTube Music client for Android.</em>
+    <em>Standalone lyrics modules powering <a href="https://github.com/MuwMx/YumaPlayer">YumaPlayer</a> — a high-performance, privacy-focused YouTube Music client for Android. Forked from <a href="https://github.com/ArchiveTuneApp/ArchiveTune">ArchiveTune</a>.</em>
   </p>
 
   <p align="center">
@@ -28,7 +28,7 @@
 
 ## Overview
 
-This repository contains the standalone lyrics provider modules extracted from [ArchiveTune](https://github.com/ArchiveTuneApp/ArchiveTune). Each module is a self-contained Ktor-based HTTP client for a different lyrics source, designed as pure JVM libraries with no Android dependencies — the same approach as the [core](https://github.com/ArchiveTuneApp/core) submodule.
+This repository contains the standalone lyrics provider modules originally extracted from [ArchiveTune](https://github.com/ArchiveTuneApp/ArchiveTune), now maintained as part of [YumaPlayer](https://github.com/MuwMx/YumaPlayer). Each module is a self-contained Ktor-based HTTP client for a different lyrics source, designed as pure JVM libraries with no Android dependencies — the same approach as the [core](https://github.com/ArchiveTuneApp/core) submodule.
 
 ## Modules
 
@@ -52,11 +52,11 @@ This repository contains the standalone lyrics provider modules extracted from [
 
 ## Architecture
 
-The diagram below shows how these lyrics modules integrate into the ArchiveTune app.
+The diagram below shows how these lyrics modules integrate into the YumaPlayer app (originally ArchiveTune).
 
 ```mermaid
 flowchart TB
-    subgraph Android["ArchiveTune App (Android)"]
+    subgraph Android["YumaPlayer App (Android)"]
         UI["Jetpack Compose UI<br/>LyricsScreen, LyricsMenu"]
         VM["LyricsMenuViewModel"]
         LH["LyricsHelper<br/>Orchestrator & Cache"]

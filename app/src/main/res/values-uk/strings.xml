@@ -624,10 +624,10 @@
     <string name="together_error_state">Помилка</string>
     <string name="got_it">Got it</string>
     <string name="together_dont_show_again">Більше не показувати</string>
-    <string name="together_welcome_title">Ласкаво просимо до ArchiveTune Музика разом</string>
+    <string name="together_welcome_title">Ласкаво просимо до YumaPlayer Музика разом</string>
     <string name="together_welcome_body">Музика разом дозволяє кільком пристроям одночасно брати участь у сеансі в режимі реального часу завдяки синхронізованому списку відтворення та відтворенню.</string>
     <string name="together_welcome_host_title">Провести сесію</string>
-    <string name="together_welcome_host_body">Натисніть «Почати сеанс», а потім поділіться посиланням на сеанс. Під час проведення сеансу залиште ArchiveTune відкритим у фоновому режимі.</string>
+    <string name="together_welcome_host_body">Натисніть «Почати сеанс», а потім поділіться посиланням на сеанс. Під час проведення сеансу залиште YumaPlayer відкритим у фоновому режимі.</string>
     <string name="together_welcome_join_title">Доєднатися з іншого пристрою</string>
     <string name="together_welcome_join_body">Відкрийте спільне посилання або введіть код і натисніть «Приєднатися». Ваша черга та відтворення будуть синхронізовані з організатором.</string>
     <string name="together_welcome_permissions_title">Дозволи та безпека</string>
@@ -653,7 +653,7 @@
     <string name="token_copied">Токен скопійовано до буфера обміну</string>
     <string name="extracting_from_url">Витягування токенів з URL-адреси…</string>
     <string name="po_token_account_notice_title">Використовуйте той самий обліковий запис</string>
-    <string name="po_token_account_notice_body">Перш ніж створити токен PO, увійдіть сюди за допомогою того самого облікового запису Google, який ви вже використовуєте для YouTube Music у програмі ArchiveTune.</string>
+    <string name="po_token_account_notice_body">Перш ніж створити токен PO, увійдіть сюди за допомогою того самого облікового запису Google, який ви вже використовуєте для YouTube Music у програмі YumaPlayer.</string>
     <string name="po_token_account_notice_same_account">Якщо цей WebView використовує інший обліковий запис, згенерований токен не працюватиме належним чином.</string>
     <string name="po_token_account_notice_mismatch">Використовуйте відповідний обліковий запис, завершіть процедуру входу, а потім відкрийте сторінку youtube.com/account і створіть токен на цій сторінці.</string>
     <string name="removed_song_from_queue">Вилучено \"%s\" із черги</string>

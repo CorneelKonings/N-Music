@@ -708,10 +708,10 @@
     <string name="together_error_state">Kesalahan</string>
     <string name="got_it">Mengerti</string>
     <string name="together_dont_show_again">Jangan tampilkan ini lagi</string>
-    <string name="together_welcome_title">Selamat datang di ArchiveTune Musik Bersama</string>
+    <string name="together_welcome_title">Selamat datang di YumaPlayer Musik Bersama</string>
     <string name="together_welcome_body">Music Together memungkinkan beberapa perangkat berbagi sesi langsung dengan antrean dan pemutaran yang disinkronkan.</string>
     <string name="together_welcome_host_title">Selenggarakan sesi</string>
-    <string name="together_welcome_host_body">Ketuk Mulai sesi, lalu bagikan tautan sesi. Biarkan ArchiveTune tetap terbuka di latar belakang saat menghosting.</string>
+    <string name="together_welcome_host_body">Ketuk Mulai sesi, lalu bagikan tautan sesi. Biarkan YumaPlayer tetap terbuka di latar belakang saat menghosting.</string>
     <string name="together_welcome_join_title">Bergabunglah dari perangkat lain</string>
     <string name="together_welcome_join_body">Buka tautan yang dibagikan, atau masukkan kode dan ketuk Gabung. Antrian dan pemutaran Kowe akan mengikuti host.</string>
     <string name="together_welcome_permissions_title">Idin dan keamanan</string>
@@ -739,7 +739,7 @@
     <string name="token_copied">Token disalin ke papan klip</string>
     <string name="extracting_from_url">Mengekstrak token dari URL…</string>
     <string name="po_token_account_notice_title">Gunakan akun yang sama</string>
-    <string name="po_token_account_notice_body">Mlebu di sini dengan akun Google yang sama yang sudah Kowe gunakan untuk YouTube Music di dalam ArchiveTune sebelum membuat token PO.</string>
+    <string name="po_token_account_notice_body">Mlebu di sini dengan akun Google yang sama yang sudah Kowe gunakan untuk YouTube Music di dalam YumaPlayer sebelum membuat token PO.</string>
     <string name="po_token_account_notice_same_account">Jika WebView ini menggunakan akun lain, token yang dihasilkan tidak akan berfungsi dengan benar.</string>
     <string name="po_token_account_notice_mismatch">Gunakan akun yang cocok, selesaikan alur masuk, lalu buka youtube.com/account dan buat token dari halaman tersebut.</string>
     <string name="saved_accounts">Akun yang disimpan</string>

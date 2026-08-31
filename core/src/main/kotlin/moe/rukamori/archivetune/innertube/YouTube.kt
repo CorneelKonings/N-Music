@@ -534,7 +534,8 @@ object YouTube {
         album: AlbumItem? = null,
     ): Result<List<SongItem>> =
         runCatching {
-            var response = innerTube.browse(WEB_REMIX, "VL$playlistId").body<BrowseResponse>()
+            val cleanBrowseId = if (playlistId.startsWith("VL")) playlistId else "VL$playlistId"
+            var response = innerTube.browse(WEB_REMIX, cleanBrowseId).body<BrowseResponse>()
             val songs = linkedMapOf<String, SongItem>()
 
             fun appendSongs(
@@ -852,11 +853,12 @@ object YouTube {
 
     suspend fun playlist(playlistId: String): Result<PlaylistPage> =
         runCatching {
+            val cleanBrowseId = if (playlistId.startsWith("VL")) playlistId else "VL$playlistId"
             val response =
                 innerTube
                     .browse(
                         client = WEB_REMIX,
-                        browseId = "VL$playlistId",
+                        browseId = cleanBrowseId,
                         setLogin = true,
                     ).body<BrowseResponse>()
             val primarySection =

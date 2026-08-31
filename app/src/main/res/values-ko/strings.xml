@@ -788,7 +788,7 @@
     <string name="discord_platform_embedded">임베디드</string>
     <string name="recently_played">최근 재생한 음악</string>
     <string name="library_playlists_subtitle">모든 재생목록을 한눈에</string>
-    <string name="widget_tap_to_open">탭하여 ArchiveTune 열기</string>
+    <string name="widget_tap_to_open">탭하여 YumaPlayer 열기</string>
     <string name="discord_refresh_failed">Discord Rich Presence 새로고침 실패</string>
     <string name="top_artist_badge">인기 아티스트</string>
     <string name="your_playlists">내 재생목록</string>

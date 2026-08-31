@@ -1,11 +1,11 @@
 <div align="center">
 
-  <h1>ArchiveTune Core</h1>
+  <h1>YumaPlayer Core</h1>
 
   <p align="center">
     <strong>InnerTube API client for YouTube Music.</strong>
     <br />
-    <em>The core library powering <a href="https://github.com/ArchiveTuneApp/ArchiveTune">ArchiveTune</a> — a high-performance, privacy-focused YouTube Music client for Android.</em>
+    <em>The core library powering <a href="https://github.com/MuwMx/YumaPlayer">YumaPlayer</a> — a high-performance, privacy-focused YouTube Music client for Android. Forked from <a href="https://github.com/ArchiveTuneApp/ArchiveTune">ArchiveTune</a>.</em>
   </p>
 
   <p align="center">
@@ -28,7 +28,7 @@
 
 ## Overview
 
-This is the standalone InnerTube API core extracted from [ArchiveTune](https://github.com/ArchiveTuneApp/ArchiveTune). It provides a complete Ktor-based HTTP client for interacting with YouTube Music's InnerTube API, including request signing, response parsing, proxy rotation, and playback authentication.
+This is the standalone InnerTube API core originally extracted from [ArchiveTune](https://github.com/ArchiveTuneApp/ArchiveTune), now maintained as part of [YumaPlayer](https://github.com/MuwMx/YumaPlayer). It provides a complete Ktor-based HTTP client for interacting with YouTube Music's InnerTube API, including request signing, response parsing, proxy rotation, and playback authentication.
 
 ## Features
 
@@ -42,11 +42,11 @@ This is the standalone InnerTube API core extracted from [ArchiveTune](https://g
 
 ## Architecture
 
-The diagram below shows how this library fits into the ArchiveTune app and how data flows through the layers.
+The diagram below shows how this library fits into the YumaPlayer app (originally ArchiveTune) and how data flows through the layers.
 
 ```mermaid
 flowchart TB
-    subgraph Android["ArchiveTune App (Android)"]
+    subgraph Android["YumaPlayer App (Android)"]
         UI["Jetpack Compose UI<br/>Screens & Components"]
         VM["ViewModels<br/>State holders"]
         SVC["Services<br/>MusicService, Player"]
@@ -99,7 +99,7 @@ flowchart TB
 ```
 
 **Data flow:**
-1. User interacts with ArchiveTune's Compose UI
+1. User interacts with YumaPlayer's Compose UI
 2. ViewModels & Services call `YouTube.*` methods
 3. `YouTube` delegates to `InnerTube` via the `MusicBackend` interface
 4. `InnerTube` builds signed requests, sends them via Ktor to YouTube Music's InnerTube API

@@ -971,11 +971,11 @@
     <string name="onboarding_permission_network_title">גישה לרשת</string>
     <string name="onboarding_permission_network_desc">הזרמת מוזיקה, טעינת גרפיקה ובדיקת תוכן אפליקציה מקוונת.</string>
     <string name="onboarding_permission_playback_service_title">השמעה ברקע</string>
-    <string name="onboarding_permission_playback_service_desc">שמרו על השמעת מוזיקה בצורה אמינה כאשר ArchiveTune פועל ברקע.</string>
+    <string name="onboarding_permission_playback_service_desc">שמרו על השמעת מוזיקה בצורה אמינה כאשר YumaPlayer פועל ברקע.</string>
     <string name="onboarding_permission_audio_settings_title">הגדרות שמע ורטט</string>
     <string name="onboarding_permission_audio_settings_desc">התאם את התנהגות השמעה ומתן משוב מגע קל.</string>
     <string name="onboarding_permission_app_installation_title">התקנת אפליקציה</string>
-    <string name="onboarding_permission_app_installation_desc">התקן עדכוני APK שהורדת מ-ArchiveTune.</string>
+    <string name="onboarding_permission_app_installation_desc">התקן עדכוני APK שהורדת מ-YumaPlayer.</string>
     <string name="onboarding_permission_bluetooth_scan_title">סריקת Bluetooth</string>
     <string name="onboarding_permission_bluetooth_scan_desc">גלה שידור ומכשירי הפעלה בקרבת מקום.</string>
     <string name="onboarding_community_github_desc">סמנו את המאגר בכוכב ועקוב אחר גרסאות.</string>
