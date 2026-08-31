@@ -119,6 +119,7 @@ fun Song.toMediaMetadata() =
                 )
             },
         isrc = song.isrc,
+        explicit = song.explicit,
     )
 
 fun SongItem.toMediaMetadata() =

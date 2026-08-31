@@ -93,6 +93,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -3599,7 +3600,11 @@ class MusicService :
             return
         }
 
-        scope.launch(SilentHandler) {
+        scope.launch(
+            CoroutineExceptionHandler { _, throwable ->
+                Timber.e(throwable, "Failed to start radio seamlessly")
+            },
+        ) {
             val radioQueue =
                 YouTubeQueue(
                     endpoint = WatchEndpoint(videoId = currentMediaId),
@@ -3631,6 +3636,10 @@ class MusicService :
                 }
 
                 player.addMediaItems(currentIndex + 1, radioItems)
+            } else {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MusicService, getString(R.string.no_results_found), Toast.LENGTH_SHORT).show()
+                }
             }
 
             currentQueue = radioQueue

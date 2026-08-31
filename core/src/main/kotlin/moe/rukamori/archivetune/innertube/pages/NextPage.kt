@@ -29,6 +29,7 @@ data class NextResult(
 object NextPage {
     fun fromPlaylistPanelVideoRenderer(renderer: PlaylistPanelVideoRenderer): SongItem? {
         val longByLineRuns = renderer.longBylineText?.runs?.splitBySeparator() ?: return null
+        val thumbnail = renderer.thumbnail.thumbnails.lastOrNull() ?: return null
         return SongItem(
             id = renderer.videoId ?: return null,
             title =
@@ -61,14 +62,12 @@ object NextPage {
                     ?.firstOrNull()
                     ?.text
                     ?.parseTime() ?: return null,
-            thumbnail =
-                renderer.thumbnail.thumbnails
-                    .lastOrNull()
-                    ?.url ?: return null,
+            thumbnail = thumbnail.normalizedUrl,
             explicit =
                 renderer.badges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null,
+            endpoint = renderer.navigationEndpoint.anyWatchEndpoint,
         )
     }
 }

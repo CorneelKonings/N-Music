@@ -36,26 +36,34 @@ private fun MediaItem.Builder.setCacheKeyIfRemote(mediaId: String): MediaItem.Bu
     return this
 }
 
-fun Song.toMediaItem() =
-    MediaItem
+fun Song.toMediaItem(): MediaItem {
+    val metadata = toMediaMetadata()
+    return MediaItem
         .Builder()
         .setMediaId(song.id)
         .setUri(song.id)
         .setCacheKeyIfRemote(song.id)
-        .setTag(toMediaMetadata())
+        .setTag(metadata)
         .setMediaMetadata(
             androidx.media3.common.MediaMetadata
                 .Builder()
                 .setTitle(song.title)
                 .setSubtitle(artists.joinToString { it.name })
                 .setArtist(artists.joinToString { it.name })
-                .setArtworkUri(song.thumbnailUrl.toNotificationArtworkUri())
+                .setArtworkUri(
+                    if (metadata.isMusicVideo) {
+                        buildYTThumbnailUrl(song.id, YTThumbQuality.HQ).toUri()
+                    } else {
+                        song.thumbnailUrl.toNotificationArtworkUri()
+                    },
+                )
                 .setAlbumTitle(song.albumName)
                 .setIsPlayable(true)
                 .setMediaType(MEDIA_TYPE_MUSIC)
-                .setExtras(Bundle().apply { putBoolean(ExtraIsMusicVideo, false) })
+                .setExtras(Bundle().apply { putBoolean(ExtraIsMusicVideo, metadata.isMusicVideo) })
                 .build(),
         ).build()
+}
 
 fun SongItem.toMediaItem() =
     MediaItem
