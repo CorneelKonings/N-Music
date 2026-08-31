@@ -49,6 +49,11 @@ jobs:
             distributionName: Gms
             deviceName: Mobile
             abi: arm64
+          - device: mobile
+            distribution: gms
+            distributionName: Gms
+            deviceName: Mobile
+            abi: universal
 #          - device: mobile
 #            distribution: gms
 #            distributionName: Gms
@@ -64,11 +69,6 @@ jobs:
 #            distributionName: Gms
 #            deviceName: Mobile
 #            abi: x86_64
-#          - device: mobile
-#            distribution: gms
-#            distributionName: Gms
-#            deviceName: Mobile
-#            abi: universal
 #          - device: tv
 #            distribution: gms
 #            distributionName: Gms
