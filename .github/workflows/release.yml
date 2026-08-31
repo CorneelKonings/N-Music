@@ -453,15 +453,52 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - name: Download all APKs
+      - name: Download APKs from current build (fallback)
         uses: actions/download-artifact@v8
         with:
-          path: downloaded_artifacts/
+          path: downloaded_artifacts_current/
+
+      - name: Try to reuse TG artifacts (same commit)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set +e
+          mkdir -p downloaded_artifacts
+          # Try to find last successful Build APKs run for this commit SHA
+          SHA="${{ github.sha }}"
+          echo "Looking for Build APKs artifacts for SHA $SHA"
+          RUN_ID=$(gh run list --workflow="Build APKs" --status=success --limit 20 --json databaseId,headSha,conclusion --jq ".[] | select(.headSha==\"$SHA\") | .databaseId" | head -n 1)
+          if [ -n "$RUN_ID" ]; then
+            echo "Found TG run $RUN_ID, downloading artifacts..."
+            gh run download "$RUN_ID" --dir downloaded_artifacts --pattern "app-*-release" 2>&1 || echo "download pattern failed, trying all"
+            # fallback: download all if pattern missed
+            if [ -z "$(find downloaded_artifacts -name "*.apk" 2>/dev/null)" ]; then
+              gh run download "$RUN_ID" --dir downloaded_artifacts 2>&1 || true
+            fi
+            # handle merge-multiple case: artifacts may be nested
+            find downloaded_artifacts -name "*.apk" | head -n 20 || true
+          else
+            echo "No TG run found for SHA $SHA"
+          fi
+          # If reuse succeeded, prefer it; else fallback to current build artifacts
+          if [ -n "$(find downloaded_artifacts -name "*.apk" 2>/dev/null | head -n 1)" ]; then
+            echo "Using TG artifacts (same build as Telegram)"
+          else
+            echo "Fallback: using current build artifacts"
+            mkdir -p downloaded_artifacts
+            cp -r downloaded_artifacts_current/* downloaded_artifacts/ 2>/dev/null || true
+            # handle nested structure from download-artifact v4+
+            find downloaded_artifacts_current -name "*.apk" -exec cp {} downloaded_artifacts/ \; 2>/dev/null || true
+          fi
+          echo "Final artifacts:"
+          find downloaded_artifacts -name "*.apk" -ls || echo "no apks found!"
 
       - name: Resolve changelog range
         id: changelog_range
@@ -510,6 +547,7 @@ jobs:
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANGELOG: ${{ steps.build_changelog.outputs.changelog }}
         run: |
           APKS=$(find downloaded_artifacts -name "*.apk" | tr '\n' ' ')
   
@@ -522,9 +560,9 @@ jobs:
           echo "Creating release for tag: $TAG"
           echo "APKs: $APKS"
 
-          # Use generated changelog, fallback to simple notes
-          if [ -n "${{ steps.build_changelog.outputs.changelog }}" ]; then
-            echo "${{ steps.build_changelog.outputs.changelog }}" > release_notes.md
+          # Use generated changelog, fallback to simple notes (via env to avoid shell parsing issues with '(' etc.)
+          if [ -n "$CHANGELOG" ]; then
+            printf '%s' "$CHANGELOG" > release_notes.md
           else
             cat > release_notes.md <<EOF
           # Changelog
