@@ -141,7 +141,7 @@ No subscriptions. No advertisements. Zero telemetry, crash reporters, or third-p
 
 ## 🌍 Globalization & Localization
 
-YumaPlayer is localized into multiple languages thanks to community contributions.
+YumaPlayer is localized into multiple languages thanks to community contributions (Thanks Archivetune!).
 
 <div align="center">
   <img src="https://img.shields.io/badge/Translations-Community_Driven-6366f1?style=for-the-badge&logo=weblate&labelColor=1e1e2e" alt="Translation Status" />
