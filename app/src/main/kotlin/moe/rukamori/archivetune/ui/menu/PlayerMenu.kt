@@ -126,7 +126,6 @@ import moe.rukamori.archivetune.playback.EqProfile
 import moe.rukamori.archivetune.playback.EqProfilesPayload
 import moe.rukamori.archivetune.playback.EqualizerJson
 import moe.rukamori.archivetune.playback.ExoDownloadService
-import moe.rukamori.archivetune.playback.queues.YouTubeQueue
 import moe.rukamori.archivetune.ui.component.BottomSheetState
 import moe.rukamori.archivetune.ui.component.ListDialog
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
@@ -476,7 +475,7 @@ fun PlayerMenu(
                                         },
                                         text = stringResource(R.string.start_radio),
                                         onClick = {
-                                            playerConnection.playQueue(YouTubeQueue.radio(mediaMetadata))
+                                            playerConnection.startRadioSeamlessly()
                                             onDismiss()
                                         },
                                     ),
