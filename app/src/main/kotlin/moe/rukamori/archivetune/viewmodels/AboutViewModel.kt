@@ -184,7 +184,7 @@ class AboutViewModel @Inject constructor(
                 id = "telegram",
                 iconResId = R.drawable.ic_telegram,
                 labelResId = R.string.about_content_desc_telegram,
-                url = "https://t.me/spot_app_player",
+                url = "https://t.me/yumaplayer",
             ),
             AboutLinkUiModel(
                 id = "github",

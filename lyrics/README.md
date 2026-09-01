@@ -5,22 +5,22 @@
   <p align="center">
     <strong>Multi-provider lyrics fetching library.</strong>
     <br />
-    <em>Standalone lyrics modules powering <a href="https://github.com/MuwMx/YumaPlayer">YumaPlayer</a> — a high-performance, privacy-focused YouTube Music client for Android. Forked from <a href="https://github.com/ArchiveTuneApp/ArchiveTune">ArchiveTune</a>.</em>
+    <em>Standalone lyrics modules powering <a href="https://github.com/MuwMx/YumaPlayer">YumaPlayer</a> — a high-performance, privacy-focused YouTube Music client for Android. Forked from <a href="https://github.com/rukamori/ArchiveTune">ArchiveTune</a>.</em>
   </p>
 
   <p align="center">
     <img src="https://img.shields.io/badge/Lyrics%20Sources-6-6366f1?style=for-the-badge&labelColor=1e1e2e" alt="6 Lyrics Sources" />
-    <img src="https://img.shields.io/github/license/ArchiveTuneApp/lyrics?style=for-the-badge&color=6366f1&labelColor=1e1e2e" alt="License" />
+    <img src="https://img.shields.io/github/license/MuwMx/YumaPlayer?style=for-the-badge&color=6366f1&labelColor=1e1e2e" alt="License" />
     <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff?style=for-the-badge&logo=kotlin&color=6366f1&labelColor=1e1e2e" alt="Kotlin" />
     <img src="https://img.shields.io/badge/Runtime-JVM-6366f1?style=for-the-badge&logo=openjdk&labelColor=1e1e2e" alt="JVM" />
-    <img src="https://img.shields.io/github/stars/ArchiveTuneApp/lyrics?style=for-the-badge&color=6366f1&labelColor=1e1e2e&logo=github" alt="Stars" />
+    <img src="https://img.shields.io/github/stars/MuwMx/YumaPlayer?style=for-the-badge&color=6366f1&labelColor=1e1e2e&logo=github" alt="Stars" />
   </p>
 
-  <a href="https://star-history.com/#ArchiveTuneApp/lyrics&ArchiveTuneApp/ArchiveTune&Date">
+  <a href="https://star-history.com/#MuwMx/YumaPlayer&Date">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ArchiveTuneApp/lyrics,ArchiveTuneApp/ArchiveTune&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ArchiveTuneApp/lyrics,ArchiveTuneApp/ArchiveTune&type=Date" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ArchiveTuneApp/lyrics,ArchiveTuneApp/ArchiveTune&type=Date" width="600" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=MuwMx/YumaPlayer&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=MuwMx/YumaPlayer&type=Date" />
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=MuwMx/YumaPlayer&type=Date" width="600" />
     </picture>
   </a>
 
@@ -28,7 +28,7 @@
 
 ## Overview
 
-This repository contains the standalone lyrics provider modules originally extracted from [ArchiveTune](https://github.com/ArchiveTuneApp/ArchiveTune), now maintained as part of [YumaPlayer](https://github.com/MuwMx/YumaPlayer). Each module is a self-contained Ktor-based HTTP client for a different lyrics source, designed as pure JVM libraries with no Android dependencies — the same approach as the [core](https://github.com/ArchiveTuneApp/core) submodule.
+This repository contains the standalone lyrics provider modules originally extracted from [ArchiveTune](https://github.com/rukamori/ArchiveTune), now maintained as part of [YumaPlayer](https://github.com/MuwMx/YumaPlayer). Each module is a self-contained Ktor-based HTTP client for a different lyrics source, designed as pure JVM libraries with no Android dependencies — the same approach as the [core](https://github.com/rukamori/ArchiveTune) submodule.
 
 ## Modules
 

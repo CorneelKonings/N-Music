@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 object TogetherOnlineEndpoint {
     private const val EndpointSourceUrl =
-        "https://raw.githubusercontent.com/ArchiveTuneApp/ArchiveTune/refs/heads/dev/ArchiveTuneKoiverseServer.txt"
+        "https://raw.githubusercontent.com/MuwMx/YumaPlayer/refs/heads/dev/ArchiveTuneKoiverseServer.txt" // TODO: legacy server file not yet migrated; falls back to cached value if 404
 
     private const val CacheTtlMs: Long = 6 * 60 * 60 * 1000L
 

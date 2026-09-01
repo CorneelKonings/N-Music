@@ -52,9 +52,9 @@ class DiscordRPC(
 ) {
     companion object {
         private const val PAUSE_IMAGE_URL =
-            "https://raw.githubusercontent.com/ArchiveTuneApp/ArchiveTune/main/fastlane/metadata/android/en-US/images/RPC/pause_icon.png"
+            "https://raw.githubusercontent.com/MuwMx/YumaPlayer/main/assets/ic_launcher.webp" // legacy pause icon not yet migrated
         private const val APP_ICON_URL =
-            "https://raw.githubusercontent.com/ArchiveTuneApp/ArchiveTune/main/fastlane/metadata/android/en-US/images/icon.png"
+            "https://raw.githubusercontent.com/MuwMx/YumaPlayer/main/assets/ic_launcher.webp" // legacy icon
         private const val TAG = "DiscordRPC"
     }
 

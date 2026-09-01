@@ -149,7 +149,7 @@ class BuildOnboardingUiStateUseCase
                         titleResId = R.string.onboarding_community_telegram_title,
                         descriptionResId = R.string.onboarding_community_telegram_desc,
                         iconResId = R.drawable.telegram,
-                        url = "https://t.me/spot_app_player",
+                        url = "https://t.me/yumaplayer",
                     ),
                     OnboardingCommunityActionUiModel(
                         id = "donate",

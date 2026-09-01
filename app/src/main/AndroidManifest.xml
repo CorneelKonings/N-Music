@@ -81,6 +81,9 @@
                 <data
                     android:host="together"
                     android:scheme="archivetune" />
+                <data
+                    android:host="together"
+                    android:scheme="yumaplayer" />
             </intent-filter>
 
             <!-- Youtube filter -->
