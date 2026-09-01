@@ -200,7 +200,7 @@ class AboutViewModel @Inject constructor(
             ),
         ),
         leadDeveloper = TeamMember(
-            avatarUrl = "https://avatars.githubusercontent.com/u/138480557?v=4", // 👈 ЗАМЕНИ НА СВОЙ ID
+            avatarUrl = "https://avatars.githubusercontent.com/u/138480557?v=4&s=512", // 👈 ЗАМЕНИ НА СВОЙ ID
             name = "MuwMix", // 👈 ТВОЙ НИКНЕЙМ
             positionResId = R.string.about_position_lead_dev,
             profileUrl = "https://github.com/MuwMx",

@@ -1372,7 +1372,7 @@ private fun TeamMemberListItem(
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(member.avatarUrl)
-                        .size(128, 128)
+                        .size(512)
                         .allowHardware(false)
                         .build(),
                     contentDescription = member.name,
