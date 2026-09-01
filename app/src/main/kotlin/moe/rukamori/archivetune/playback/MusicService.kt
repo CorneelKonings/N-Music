@@ -9,6 +9,7 @@
 package moe.rukamori.archivetune.playback
 
 import android.app.ActivityManager
+import android.app.ForegroundServiceStartNotAllowedException
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -865,6 +866,10 @@ class MusicService :
                 startForeground(NOTIFICATION_ID, notification)
             }
             hasCalledStartForeground = true
+        } catch (e: ForegroundServiceStartNotAllowedException) {
+            reportException(e)
+        } catch (e: IllegalStateException) {
+            reportException(e)
         } catch (e: Exception) {
             reportException(e)
         }
@@ -1037,6 +1042,7 @@ class MusicService :
                 smallIconResId = R.drawable.small_icon,
             ),
         )
+        if (!hasCalledStartForeground) ensureStartedAsForeground()
 
         updateNotification()
         player.repeatMode = REPEAT_MODE_OFF
@@ -8100,8 +8106,29 @@ class MusicService :
     ) {
         val keepInForeground = startInForegroundRequired || hasResumablePlaybackNotification()
         if (keepInForeground) ensureStartedAsForeground()
-        runCatching { super.onUpdateNotification(session, keepInForeground) }
-            .onFailure { reportException(it) }
+        try {
+            super.onUpdateNotification(session, keepInForeground)
+        } catch (e: ForegroundServiceStartNotAllowedException) {
+            try {
+                val fallbackNotification =
+                    NotificationCompat
+                        .Builder(this, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.small_icon)
+                        .setContentTitle(getString(R.string.music_player))
+                        .setContentText(getString(R.string.app_name))
+                        .setOngoing(false)
+                        .setOnlyAlertOnce(true)
+                        .build()
+                getSystemService(NotificationManager::class.java)?.notify(NOTIFICATION_ID, fallbackNotification)
+            } catch (_: Exception) {
+            }
+            reportException(e)
+        } catch (e: IllegalStateException) {
+            reportException(e)
+            return
+        } catch (e: Exception) {
+            reportException(e)
+        }
     }
 
     // ── Widget Support ────────────────────────────────────────────────────────────
