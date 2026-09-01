@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import moe.rukamori.archivetune.data.repository.SettingsRepository
+import moe.rukamori.archivetune.extensions.metadata
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.lyrics.LyricsHelper
@@ -337,11 +338,15 @@ class PlayerViewModel @Inject constructor(
                     if (connection != null) {
                         combine(
                             connection.queueWindows,
-                            connection.currentWindowIndex
-                        ) { windows, index ->
+                            connection.currentWindowIndex,
+                            connection.queueTitle
+                        ) { windows, index, title ->
                             QueueUiState(
                                 queueWindows = windows,
-                                currentWindowIndex = index
+                                currentWindowIndex = index,
+                                title = title,
+                                songCount = windows.size,
+                                queueDurationMs = windows.sumOf { (it.mediaItem.metadata?.duration ?: 0).toLong() } * 1000L
                             )
                         }
                     } else {

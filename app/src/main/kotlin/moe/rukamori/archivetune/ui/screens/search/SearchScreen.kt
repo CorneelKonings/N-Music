@@ -69,11 +69,13 @@ import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.extensions.togglePlayPause
+import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.innertube.models.AlbumItem
 import moe.rukamori.archivetune.innertube.models.ArtistItem
 import moe.rukamori.archivetune.innertube.models.SongItem
 import moe.rukamori.archivetune.innertube.models.WatchEndpoint
 import moe.rukamori.archivetune.models.toMediaMetadata
+import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.playback.queues.YouTubeQueue
 import moe.rukamori.archivetune.search.SearchDiscoveryUiModel
 import moe.rukamori.archivetune.ui.component.LocalMenuState
@@ -453,8 +455,9 @@ private fun SuggestedSongsSection(
     val isPlaying by playerConnection.isPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
+    val sectionTitle = stringResource(R.string.stats_unique_songs)
     SectionContainer(
-        title = stringResource(R.string.stats_unique_songs),
+        title = sectionTitle,
         modifier = modifier,
     ) {
         val visibleSongs = remember(songs) { songs.take(6) }
@@ -485,12 +488,23 @@ private fun SuggestedSongsSection(
                                     if (song.id == mediaMetadata?.id) {
                                         playerConnection.player.togglePlayPause()
                                     } else {
-                                        playerConnection.playQueue(
-                                            YouTubeQueue(
-                                                endpoint = song.endpoint ?: WatchEndpoint(videoId = song.id),
-                                                preloadItem = song.toMediaMetadata(),
-                                            ),
-                                        )
+                                        val idx = visibleSongs.indexOfFirst { it.id == song.id }
+                                        if (idx != -1 && visibleSongs.size > 1) {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = sectionTitle,
+                                                    items = visibleSongs.map { it.toMediaItem() },
+                                                    startIndex = idx
+                                                )
+                                            )
+                                        } else {
+                                            playerConnection.playQueue(
+                                                YouTubeQueue(
+                                                    endpoint = song.endpoint ?: WatchEndpoint(videoId = song.id),
+                                                    preloadItem = song.toMediaMetadata(),
+                                                ),
+                                            )
+                                        }
                                     }
                                 },
                                 onLongClick = {

@@ -56,7 +56,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Text
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
@@ -69,6 +72,7 @@ import moe.rukamori.archivetune.extensions.metadata
 import moe.rukamori.archivetune.ui.component.MediaMetadataListItem
 import moe.rukamori.archivetune.ui.player.player_0.buttons.PlayerAction
 import moe.rukamori.archivetune.ui.state.QueueUiState
+import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberPreference
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -192,6 +196,26 @@ fun QueueScreen(
                 },
         contentPadding = contentPadding,
     ) {
+        item(
+            key = "queue_header",
+            contentType = "queue_header",
+        ) {
+            val count = state.songCount.takeIf { it != 0 } ?: state.queueWindows.size
+            val durationMs = state.queueDurationMs.takeIf { it != 0L } ?: state.queueWindows.sumOf { (it.mediaItem.metadata?.duration ?: 0).toLong() } * 1000L
+            val titleText = state.title?.takeIf { it.isNotBlank() } ?: stringResource(R.string.queue)
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                Text(
+                    text = titleText,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = pluralStringResource(R.plurals.n_song, count, count) + "  •  " + makeTimeString(durationMs),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         itemsIndexed(
             items = mutableQueueWindows,
             key = { _, window -> window.queueItemKey },

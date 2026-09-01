@@ -7,4 +7,7 @@ import androidx.media3.common.Timeline
 data class QueueUiState(
     val queueWindows: List<Timeline.Window> = emptyList(),
     val currentWindowIndex: Int = -1,
+    val title: String? = null,
+    val songCount: Int = 0,
+    val queueDurationMs: Long = 0L,
 )

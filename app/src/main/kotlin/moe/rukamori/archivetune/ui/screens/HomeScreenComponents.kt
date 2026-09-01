@@ -1213,6 +1213,9 @@ fun SimilarRecommendationsSection(
                 menuState = menuState,
                 haptic = haptic,
                 scope = scope,
+                visibleItems = recommendation.items,
+                clickedIndex = index,
+                sectionTitle = recommendation.title.title,
             )
         }
     }
@@ -1255,6 +1258,9 @@ fun HomePageSectionContent(
                 menuState = menuState,
                 haptic = haptic,
                 scope = scope,
+                visibleItems = section.items,
+                clickedIndex = index,
+                sectionTitle = section.title,
             )
         }
     }
@@ -1277,6 +1283,9 @@ private fun YouTubeGridItemWrapper(
     haptic: HapticFeedback,
     scope: CoroutineScope,
     modifier: Modifier = Modifier,
+    visibleItems: List<YTItem>? = null,
+    clickedIndex: Int = -1,
+    sectionTitle: String? = null,
 ) {
     YouTubeGridItem(
         item = item,
@@ -1291,12 +1300,28 @@ private fun YouTubeGridItemWrapper(
                     onClick = {
                         when (item) {
                             is SongItem -> {
-                                playerConnection.playQueue(
-                                    YouTubeQueue(
-                                        item.endpoint ?: WatchEndpoint(videoId = item.id),
-                                        item.toMediaMetadata(),
-                                    ),
-                                )
+                                val visibleSongs = visibleItems?.filterIsInstance<SongItem>()
+                                val idx = when {
+                                    visibleSongs != null && visibleSongs.any { it.id == item.id } -> visibleSongs.indexOfFirst { it.id == item.id }
+                                    clickedIndex != -1 -> clickedIndex
+                                    else -> -1
+                                }
+                                if (visibleSongs != null && visibleSongs.size > 1 && idx != -1) {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = sectionTitle,
+                                            items = visibleSongs.map { it.toMediaItem() },
+                                            startIndex = idx
+                                        )
+                                    )
+                                } else {
+                                    playerConnection.playQueue(
+                                        YouTubeQueue(
+                                            item.endpoint ?: WatchEndpoint(videoId = item.id),
+                                            item.toMediaMetadata(),
+                                        ),
+                                    )
+                                }
                             }
 
                             is AlbumItem -> {

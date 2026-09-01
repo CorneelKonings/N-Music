@@ -76,7 +76,9 @@ import moe.rukamori.archivetune.innertube.models.SongItem
 import moe.rukamori.archivetune.innertube.models.WatchEndpoint
 import moe.rukamori.archivetune.innertube.models.YTItem
 import moe.rukamori.archivetune.innertube.pages.SearchSummary
+import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.models.toMediaMetadata
+import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.playback.queues.YouTubeQueue
 import moe.rukamori.archivetune.ui.component.ChipsRow
 import moe.rukamori.archivetune.ui.component.EmptyPlaceholder
@@ -226,12 +228,35 @@ fun OnlineSearchResult(
                                     if (item.id == mediaMetadata?.id) {
                                         playerConnection.player.togglePlayPause()
                                     } else {
-                                        playerConnection.playQueue(
-                                            YouTubeQueue(
-                                                WatchEndpoint(videoId = item.id),
-                                                item.toMediaMetadata(),
-                                            ),
-                                        )
+                                        val section = allModeSections.find { s -> s.items.any { it.id == item.id } }
+                                        val visibleSongs: List<SongItem>?
+                                        val sectionTitle: String?
+                                        if (section != null) {
+                                            val sorted = viewModel.sortedItems(section.items, searchSort)
+                                            visibleSongs = sorted.filterIsInstance<SongItem>()
+                                            sectionTitle = section.title
+                                        } else {
+                                            val sorted = viewModel.sortedItems(itemsPage?.items.orEmpty().distinctBy { it.id }, searchSort)
+                                            visibleSongs = sorted.filterIsInstance<SongItem>()
+                                            sectionTitle = searchFilter?.value ?: "Search"
+                                        }
+                                        val idx = visibleSongs?.indexOfFirst { it.id == item.id } ?: -1
+                                        if (visibleSongs != null && visibleSongs.size > 1 && idx != -1) {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = sectionTitle,
+                                                    items = visibleSongs.map { it.toMediaItem() },
+                                                    startIndex = idx
+                                                )
+                                            )
+                                        } else {
+                                            playerConnection.playQueue(
+                                                YouTubeQueue(
+                                                    WatchEndpoint(videoId = item.id),
+                                                    item.toMediaMetadata(),
+                                                ),
+                                            )
+                                        }
                                     }
                                 }
 
