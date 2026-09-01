@@ -1370,11 +1370,7 @@ private fun TeamMemberListItem(
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(member.avatarUrl)
-                        .size(512)
-                        .allowHardware(false)
-                        .build(),
+                    model = member.avatarUrl,
                     contentDescription = member.name,
                     onSuccess = { success ->
                         if (onAvatarPixelsReady != null) {
