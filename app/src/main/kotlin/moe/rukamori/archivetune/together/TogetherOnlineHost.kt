@@ -18,6 +18,7 @@ import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -26,7 +27,9 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import moe.rukamori.archivetune.utils.reportException
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 @Immutable
@@ -87,7 +90,7 @@ class TogetherOnlineHost(
         var pending: Boolean,
     )
 
-    private val guests = LinkedHashMap<String, Guest>()
+    private val guests = ConcurrentHashMap<String, Guest>()
 
     @Volatile
     private var lastParticipants: List<TogetherParticipant> = emptyList()
@@ -215,43 +218,49 @@ class TogetherOnlineHost(
         participantId: String,
         approved: Boolean,
     ) {
-        val guest = guests[participantId] ?: return
-        if (!guest.pending) return
+        try {
+            val guest = guests[participantId] ?: return
+            if (!guest.pending) return
 
-        if (!approved) {
+            if (!approved) {
+                runCatching {
+                    session?.send(
+                        TogetherJson.json.encodeToString(
+                            TogetherMessage.serializer(),
+                            JoinDecision(sessionId = sessionId, participantId = participantId, approved = false),
+                        ),
+                    )
+                }
+                guest.pending = false
+                return
+            }
+
+            guest.pending = false
             runCatching {
                 session?.send(
                     TogetherJson.json.encodeToString(
                         TogetherMessage.serializer(),
-                        JoinDecision(sessionId = sessionId, participantId = participantId, approved = false),
+                        JoinDecision(sessionId = sessionId, participantId = participantId, approved = true),
                     ),
                 )
             }
-            guest.pending = false
-            return
-        }
-
-        guest.pending = false
-        runCatching {
-            session?.send(
-                TogetherJson.json.encodeToString(
-                    TogetherMessage.serializer(),
-                    JoinDecision(sessionId = sessionId, participantId = participantId, approved = true),
+            onEvent?.invoke(
+                TogetherServerEvent.ParticipantJoined(
+                    TogetherParticipant(
+                        id = participantId,
+                        name = guest.name,
+                        isHost = false,
+                        isPending = false,
+                        isConnected = true,
+                    ),
                 ),
             )
+            rebuildParticipantsSnapshot()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            reportException(e)
         }
-        onEvent?.invoke(
-            TogetherServerEvent.ParticipantJoined(
-                TogetherParticipant(
-                    id = participantId,
-                    name = guest.name,
-                    isHost = false,
-                    isPending = false,
-                    isConnected = true,
-                ),
-            ),
-        )
-        rebuildParticipantsSnapshot()
     }
 
     suspend fun kickParticipant(

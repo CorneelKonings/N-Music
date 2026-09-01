@@ -8105,27 +8105,13 @@ class MusicService :
         startInForegroundRequired: Boolean,
     ) {
         val keepInForeground = startInForegroundRequired || hasResumablePlaybackNotification()
-        if (keepInForeground) ensureStartedAsForeground()
+        if (keepInForeground && !hasCalledStartForeground) {
+            ensureStartedAsForeground()
+        }
         try {
             super.onUpdateNotification(session, keepInForeground)
-        } catch (e: ForegroundServiceStartNotAllowedException) {
-            try {
-                val fallbackNotification =
-                    NotificationCompat
-                        .Builder(this, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.small_icon)
-                        .setContentTitle(getString(R.string.music_player))
-                        .setContentText(getString(R.string.app_name))
-                        .setOngoing(false)
-                        .setOnlyAlertOnce(true)
-                        .build()
-                getSystemService(NotificationManager::class.java)?.notify(NOTIFICATION_ID, fallbackNotification)
-            } catch (_: Exception) {
-            }
-            reportException(e)
         } catch (e: IllegalStateException) {
             reportException(e)
-            return
         } catch (e: Exception) {
             reportException(e)
         }
