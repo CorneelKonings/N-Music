@@ -36,6 +36,7 @@ import android.media.audiofx.Equalizer
 import android.media.audiofx.LoudnessEnhancer
 import android.media.audiofx.Virtualizer
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -123,6 +124,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import moe.rukamori.archivetune.MainActivity
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.cast.CastMediaItemResolver
@@ -6855,7 +6857,15 @@ class MusicService :
             }
         }
 
-        val lowDataModeActive = isLowDataModeActive()
+        val lowDataEnabled = moe.rukamori.archivetune.utils.PreferenceStore.get(moe.rukamori.archivetune.constants.LowDataModeKey)
+            ?: runBlocking(Dispatchers.IO) {
+                withTimeoutOrNull(1500) {
+                    dataStore.data.first()[moe.rukamori.archivetune.constants.LowDataModeKey]
+                }
+            } ?: true
+        val isMeteredConnection = connectivityManager.isActiveNetworkMetered ||
+            (connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true)
+        val shouldBypassFlac = lowDataEnabled && isMeteredConnection
         if (preferredStreamClient == PlayerStreamClient.ARCHIVETUNE_EXTRACTOR) {
             return resolveArchiveTuneExtractorDataSpec(
                 dataSpec = dataSpec,
@@ -6865,7 +6875,7 @@ class MusicService :
 
         val authFingerprint = YouTube.currentPlaybackAuthState().fingerprint
         playbackUrlCache[mediaId]
-            ?.takeUnless { lowDataModeActive }
+            ?.takeUnless { shouldBypassFlac }
             ?.takeIf {
                 it.isValidFor(
                     authFingerprint = authFingerprint,
@@ -6888,7 +6898,7 @@ class MusicService :
             }
 
         val playbackSource = dataStore.get(moe.rukamori.archivetune.constants.PlaybackSourceKey, moe.rukamori.archivetune.constants.PlaybackSource.YT_MUSIC.name).toEnum(moe.rukamori.archivetune.constants.PlaybackSource.YT_MUSIC)
-        val losslessResult = if (!lowDataModeActive && playbackSource == moe.rukamori.archivetune.constants.PlaybackSource.FLAC) {
+        val losslessResult = if (!shouldBypassFlac && playbackSource == moe.rukamori.archivetune.constants.PlaybackSource.FLAC) {
             val cachedLossless = if (enableMemoryCache) losslessUrlCache.get(mediaId) else null
             val isOffline = connectivityManager.activeNetwork == null
             val hasLocalCache = runCatching {
@@ -6947,7 +6957,7 @@ class MusicService :
                 }
             }
         } else {
-            Timber.tag("FLAC_PLAYBACK").d("Bypassed FLAC due to lowDataModeActive")
+            Timber.tag("FLAC_PLAYBACK").d("Bypassed FLAC due to shouldBypassFlac=$shouldBypassFlac (lowDataEnabled=$lowDataEnabled, isMetered=$isMeteredConnection)")
             null
         }
 
@@ -6987,10 +6997,10 @@ class MusicService :
                 retryWithoutPlaybackLoginContext {
                     YTPlayerUtils.playerResponseForPlayback(
                         mediaId,
-                        audioQuality = if (lowDataModeActive) AudioQuality.LOW else audioQuality,
+                        audioQuality = if (shouldBypassFlac) AudioQuality.LOW else audioQuality,
                         connectivityManager = connectivityManager,
                         preferredStreamClient = preferredStreamClient,
-                        networkMetered = lowDataModeActive,
+                        networkMetered = isMeteredConnection,
                     )
                 }.recoverCatching { youtubeFailure ->
                     if (youtubeFailure !is YTPlayerUtils.BotDetectionPlaybackException) throw youtubeFailure
@@ -7127,7 +7137,7 @@ class MusicService :
 
         val trackingExpiryMs = System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
 
-        if (!lowDataModeActive) {
+        if (!shouldBypassFlac) {
             playbackUrlCache[mediaId] =
                 AuthScopedCacheValue(
                     url = streamUrl,
