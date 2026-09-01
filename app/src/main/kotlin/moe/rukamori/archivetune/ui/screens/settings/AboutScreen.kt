@@ -1370,31 +1370,46 @@ private fun TeamMemberListItem(
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(
-                    model = member.avatarUrl,
+                    model = coil3.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                        .data(member.avatarUrl)
+                        .crossfade(true)
+                        .allowHardware(true)
+                        .build(),
                     contentDescription = member.name,
+                    contentScale = ContentScale.Crop,
                     onSuccess = { success ->
                         if (onAvatarPixelsReady != null) {
                             try {
-                                val bmp = success.result.image.toBitmap()
-                                val softwareBmp = if (bmp.config == android.graphics.Bitmap.Config.HARDWARE) {
-                                    bmp.copy(android.graphics.Bitmap.Config.ARGB_8888, false) ?: bmp
-                                } else bmp
-                                val w = softwareBmp.width
-                                val h = softwareBmp.height
-                                if (w > 0 && h > 0) {
+                                val originalBmp = success.result.image.toBitmap()
+                                val softwareBmp = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && originalBmp.config == android.graphics.Bitmap.Config.HARDWARE) {
+                                    originalBmp.copy(android.graphics.Bitmap.Config.ARGB_8888, false)
+                                } else {
+                                    originalBmp
+                                }
+                                softwareBmp?.let { sBmp ->
+                                    val scaled = if (sBmp.width > 32 || sBmp.height > 32) {
+                                        android.graphics.Bitmap.createScaledBitmap(sBmp, 32, 32, true)
+                                    } else sBmp
+                                    val w = scaled.width
+                                    val h = scaled.height
                                     val pixels = IntArray(w * h)
-                                    softwareBmp.getPixels(pixels, 0, w, 0, 0, w, h)
+                                    scaled.getPixels(pixels, 0, w, 0, 0, w, h)
                                     onAvatarPixelsReady(pixels)
-                                    if (softwareBmp !== bmp) softwareBmp.recycle()
+                                    if (scaled !== sBmp) scaled.recycle()
+                                    if (sBmp !== originalBmp) sBmp.recycle()
                                 }
                             } catch (_: Exception) {}
                         }
                     },
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .shadow(elevation = 4.dp, shape = CircleShape, clip = false)
+                        .clip(CircleShape)
+                        .border(
+                            width = 1.5.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            shape = CircleShape
+                        )
                 )
             }
         },
