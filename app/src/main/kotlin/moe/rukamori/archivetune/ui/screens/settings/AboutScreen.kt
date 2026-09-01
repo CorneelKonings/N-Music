@@ -1374,14 +1374,20 @@ private fun TeamMemberListItem(
                     contentDescription = member.name,
                     onSuccess = { success ->
                         if (onAvatarPixelsReady != null) {
-                            val bmp = success.result.image.toBitmap()
-                            val w = bmp.width
-                            val h = bmp.height
-                            if (w > 0 && h > 0) {
-                                val pixels = IntArray(w * h)
-                                bmp.getPixels(pixels, 0, w, 0, 0, w, h)
-                                onAvatarPixelsReady(pixels)
-                            }
+                            try {
+                                val bmp = success.result.image.toBitmap()
+                                val softwareBmp = if (bmp.config == android.graphics.Bitmap.Config.HARDWARE) {
+                                    bmp.copy(android.graphics.Bitmap.Config.ARGB_8888, false) ?: bmp
+                                } else bmp
+                                val w = softwareBmp.width
+                                val h = softwareBmp.height
+                                if (w > 0 && h > 0) {
+                                    val pixels = IntArray(w * h)
+                                    softwareBmp.getPixels(pixels, 0, w, 0, 0, w, h)
+                                    onAvatarPixelsReady(pixels)
+                                    if (softwareBmp !== bmp) softwareBmp.recycle()
+                                }
+                            } catch (_: Exception) {}
                         }
                     },
                     modifier =
