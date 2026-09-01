@@ -57,6 +57,7 @@ import moe.rukamori.archivetune.constants.PauseOnDeviceMuteKey
 import moe.rukamori.archivetune.constants.PlaybackSource
 import moe.rukamori.archivetune.constants.PlaybackSourceKey
 import moe.rukamori.archivetune.constants.SkipSilenceKey
+import moe.rukamori.archivetune.constants.LowDataModeKey
 import moe.rukamori.archivetune.constants.WakelockKey
 import moe.rukamori.archivetune.ui.component.CrossfadeSliderPreference
 import moe.rukamori.archivetune.ui.component.EditTextPreference
@@ -92,6 +93,10 @@ fun PlayerSettings(navController: NavController) {
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         AudioQualityKey,
         defaultValue = AudioQuality.AUTO,
+    )
+    val (lowDataMode, onLowDataModeChange) = rememberPreference(
+        LowDataModeKey,
+        defaultValue = true,
     )
     val (skipSilence, onSkipSilenceChange) = rememberPreference(
         SkipSilenceKey,
@@ -388,6 +393,15 @@ fun PlayerSettings(navController: NavController) {
                         icon = { Icon(painterResource(R.drawable.lock), null) },
                         checked = wakelockEnabled,
                         onCheckedChange = onWakelockChange,
+                    )
+                }
+                item {
+                    SwitchPreference(
+                        title = { Text(stringResource(R.string.low_data_mode_title)) },
+                        description = stringResource(R.string.low_data_mode_description),
+                        icon = { Icon(painterResource(R.drawable.android_cell), null) },
+                        checked = lowDataMode,
+                        onCheckedChange = onLowDataModeChange,
                     )
                 }
             }
