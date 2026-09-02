@@ -148,6 +148,7 @@ import moe.rukamori.archivetune.constants.EnableDiscordRPCKey
 import moe.rukamori.archivetune.constants.EnableLastFMScrobblingKey
 import moe.rukamori.archivetune.constants.FlacQuality
 import moe.rukamori.archivetune.constants.FlacStreamingQualityKey
+import moe.rukamori.archivetune.constants.LowDataModeKey
 import moe.rukamori.archivetune.constants.PlaybackSource
 import moe.rukamori.archivetune.constants.PlaybackSourceKey
 import moe.rukamori.archivetune.extensions.toEnum
@@ -370,9 +371,23 @@ class MusicService :
     )
     private val playbackUrlCache = ConcurrentHashMap<String, AuthScopedCacheValue>()
     private val losslessUrlCache = moe.rukamori.archivetune.playback.resolvers.StreamUrlCache()
+    @Volatile
+    private var currentPlaybackSource: PlaybackSource = PlaybackSource.YT_MUSIC
+    @Volatile
+    private var isLowDataEnabled: Boolean = true
     private val extractorPlaybackUrlCache = ConcurrentHashMap<String, AuthScopedCacheValue>()
     private val remotePlaybackTrackingUrlCache = ConcurrentHashMap<String, String>()
     private val contentLengthCache = ConcurrentHashMap<String, Long>()
+    private fun invalidatePlaybackUrlCache(mediaId: String) {
+        playbackUrlCache.remove(mediaId)
+        playbackUrlCache.remove("${mediaId}_${PlaybackSource.YT_MUSIC.name}")
+        playbackUrlCache.remove("${mediaId}_${PlaybackSource.FLAC.name}")
+    }
+    private fun invalidateLosslessUrlCache(mediaId: String) {
+        losslessUrlCache.remove(mediaId)
+        losslessUrlCache.remove("${mediaId}_${PlaybackSource.YT_MUSIC.name}")
+        losslessUrlCache.remove("${mediaId}_${PlaybackSource.FLAC.name}")
+    }
     private val streamingExtractionManager by lazy {
         StreamingExtractionManager(
             bearerToken = moe.rukamori.archivetune.BuildConfig.EXTRACTOR_BEARER,
@@ -1081,6 +1096,13 @@ class MusicService :
                     }
                 }
             }
+        }
+
+        scope.launch {
+            dataStore.data.map { it[PlaybackSourceKey]?.toEnum(PlaybackSource.YT_MUSIC) ?: PlaybackSource.YT_MUSIC }.collect { currentPlaybackSource = it }
+        }
+        scope.launch {
+            dataStore.data.map { it[LowDataModeKey] ?: true }.collect { isLowDataEnabled = it }
         }
 
         combine(playerVolume, normalizeFactor, audioFocusVolumeFactor) { playerVolume, normalizeFactor, audioFocusVolumeFactor ->
@@ -3217,7 +3239,7 @@ class MusicService :
         val requestProfile = StreamClientUtils.resolveRequestProfile(failedUrl)
         val authFingerprint = YouTube.currentPlaybackAuthState().fingerprint
         val extractorAuthFingerprint = ArchiveTuneExtractorCacheFingerprintPrefix + authFingerprint
-        val cachedFailedUrl = playbackUrlCache[mediaId]?.takeIf { it.url == failedUrl }
+        val cachedFailedUrl = (playbackUrlCache[mediaId] ?: playbackUrlCache["${mediaId}_${PlaybackSource.YT_MUSIC.name}"] ?: playbackUrlCache["${mediaId}_${PlaybackSource.FLAC.name}"])?.takeIf { it.url == failedUrl }
         val cachedExtractorFailedUrl = extractorPlaybackUrlCache[mediaId]?.takeIf { it.url == failedUrl }
         val failedExpiredUrl =
             YTPlayerUtils.isExpiredOrNearExpiredStreamUrl(failedUrl) ||
@@ -3238,7 +3260,7 @@ class MusicService :
                     } == true
                 )
 
-        playbackUrlCache.remove(mediaId)
+        invalidatePlaybackUrlCache(mediaId)
         extractorPlaybackUrlCache.remove(mediaId)
         YTPlayerUtils.invalidateCachedStreamUrls(mediaId)
         if (!failedExpiredUrl && cachedExtractorFailedUrl == null && requestProfile.clientKey.isNotEmpty()) {
@@ -6565,7 +6587,7 @@ class MusicService :
                 isFullyCachedMedia,
             )
 
-            playbackUrlCache.remove(currentMediaId)
+            invalidatePlaybackUrlCache(currentMediaId)
             extractorPlaybackUrlCache.remove(currentMediaId)
             YTPlayerUtils.invalidateCachedStreamUrls(currentMediaId)
 
@@ -6599,7 +6621,7 @@ class MusicService :
         }
 
         if (!isLocalMedia && !isFullyCachedMedia && YTPlayerUtils.isBotDetectionException(error)) {
-            playbackUrlCache.remove(currentMediaId)
+            invalidatePlaybackUrlCache(currentMediaId)
             extractorPlaybackUrlCache.remove(currentMediaId)
             YTPlayerUtils.invalidateCachedStreamUrls(currentMediaId)
             YTPlayerUtils.clearPlaybackAuthCaches()
@@ -6611,7 +6633,7 @@ class MusicService :
         }
 
         if (!isLocalMedia && !isFullyCachedMedia && YTPlayerUtils.isBadStreamPlayerResponseException(error)) {
-            playbackUrlCache.remove(currentMediaId)
+            invalidatePlaybackUrlCache(currentMediaId)
             extractorPlaybackUrlCache.remove(currentMediaId)
             YTPlayerUtils.invalidateCachedStreamUrls(currentMediaId)
             if (playbackStreamRecoveryTracker.registerRetryAttempt(currentMediaId)) {
@@ -6641,7 +6663,7 @@ class MusicService :
         }
 
         if (!isLocalMedia && !isFullyCachedMedia && isRetryableRemoteParserFailure(error)) {
-            playbackUrlCache.remove(currentMediaId)
+            invalidatePlaybackUrlCache(currentMediaId)
             extractorPlaybackUrlCache.remove(currentMediaId)
             YTPlayerUtils.invalidateCachedStreamUrls(currentMediaId)
             if (playbackStreamRecoveryTracker.registerRetryAttempt(currentMediaId)) {
@@ -6857,15 +6879,13 @@ class MusicService :
             }
         }
 
-        val lowDataEnabled = moe.rukamori.archivetune.utils.PreferenceStore.get(moe.rukamori.archivetune.constants.LowDataModeKey)
-            ?: runBlocking(Dispatchers.IO) {
-                withTimeoutOrNull(1500) {
-                    dataStore.data.first()[moe.rukamori.archivetune.constants.LowDataModeKey]
-                }
-            } ?: true
+        val lowDataEnabled = isLowDataEnabled
         val isMeteredConnection = connectivityManager.isActiveNetworkMetered ||
             (connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true)
         val shouldBypassFlac = lowDataEnabled && isMeteredConnection
+        val currentSource = currentPlaybackSource
+        val effectiveSource = if (shouldBypassFlac) PlaybackSource.YT_MUSIC else currentSource
+        val cacheKey = "${mediaId}_${effectiveSource.name}"
         if (preferredStreamClient == PlayerStreamClient.ARCHIVETUNE_EXTRACTOR) {
             return resolveArchiveTuneExtractorDataSpec(
                 dataSpec = dataSpec,
@@ -6874,8 +6894,7 @@ class MusicService :
         }
 
         val authFingerprint = YouTube.currentPlaybackAuthState().fingerprint
-        playbackUrlCache[mediaId]
-            ?.takeUnless { shouldBypassFlac }
+        playbackUrlCache[cacheKey]
             ?.takeIf {
                 it.isValidFor(
                     authFingerprint = authFingerprint,
@@ -6897,9 +6916,8 @@ class MusicService :
                 } ?: resolvedDataSpec
             }
 
-        val playbackSource = dataStore.get(moe.rukamori.archivetune.constants.PlaybackSourceKey, moe.rukamori.archivetune.constants.PlaybackSource.YT_MUSIC.name).toEnum(moe.rukamori.archivetune.constants.PlaybackSource.YT_MUSIC)
-        val losslessResult = if (!shouldBypassFlac && playbackSource == moe.rukamori.archivetune.constants.PlaybackSource.FLAC) {
-            val cachedLossless = if (enableMemoryCache) losslessUrlCache.get(mediaId) else null
+        val losslessResult = if (!shouldBypassFlac && currentSource == PlaybackSource.FLAC) {
+            val cachedLossless = if (enableMemoryCache) losslessUrlCache.get(cacheKey) else null
             val isOffline = connectivityManager.activeNetwork == null
             val hasLocalCache = runCatching {
                 playerCache.getCachedSpans(mediaId).isNotEmpty() || downloadCache.getCachedSpans(mediaId).isNotEmpty()
@@ -6937,22 +6955,22 @@ class MusicService :
 
                         if (result != null) {
                             Timber.tag("FLAC_PLAYBACK").i("FLAC resolved successfully: origin=${result.origin}, url=${result.url}")
-                            if (enableMemoryCache) losslessUrlCache.put(mediaId, result)
+                            if (enableMemoryCache) losslessUrlCache.put(cacheKey, result)
                         } else {
                             Timber.tag("FLAC_PLAYBACK").w("FLAC resolver returned NULL for $mediaId")
-                            losslessUrlCache.remove(mediaId)
+                            losslessUrlCache.remove(cacheKey)
                         }
                         result
                     }
                 } catch (e: InterruptedException) {
                     Timber.tag("FLAC_PLAYBACK").d("FLAC resolving interrupted by player skip")
-                    losslessUrlCache.remove(mediaId)
+                    losslessUrlCache.remove(cacheKey)
                     null
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Throwable) {
                     Timber.tag("FLAC_PLAYBACK").e(e, "FLAC resolve failed")
-                    losslessUrlCache.remove(mediaId)
+                    losslessUrlCache.remove(cacheKey)
                     null
                 }
             }
@@ -7138,7 +7156,7 @@ class MusicService :
         val trackingExpiryMs = System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
 
         if (!shouldBypassFlac) {
-            playbackUrlCache[mediaId] =
+            playbackUrlCache[cacheKey] =
                 AuthScopedCacheValue(
                     url = streamUrl,
                     expiresAtMs = trackingExpiryMs,

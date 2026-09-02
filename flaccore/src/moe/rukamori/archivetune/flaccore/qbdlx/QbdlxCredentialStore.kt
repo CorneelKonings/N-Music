@@ -35,7 +35,7 @@ private data class PoolEntry(val token: String, val country: String, val appId: 
 class QbdlxCredentialStore(
     private val config: FlacConfig,
     private val kvStore: FlacKvStore,
-    poolProvider: QbdlxPoolProvider,
+    private val poolProvider: QbdlxPoolProvider,
 ) : QbdlxSigningResolver {
     private val pastedTokenKey = "pasted_token"
     private val pinnedTokenKey = "pinned_token"
@@ -91,11 +91,15 @@ class QbdlxCredentialStore(
 
     private suspend fun poolAppId(token: String): String? = pool().firstOrNull { it.token == token }?.appId
 
+    private var overriddenPoolRaw: String? = null
     /**
      * Test seam: the raw `token:country,token:country` pool. Defaults to the
      * decrypted BuildConfig blob (via [QbdlxPoolProvider]); tests override it.
+     * Dynamic: each [pool] call reads fresh from [poolProvider] unless overridden.
      */
-    internal var poolRaw: String = poolProvider.rawPool()
+    internal var poolRaw: String
+        get() = overriddenPoolRaw ?: poolProvider.rawPool()
+        set(value) { overriddenPoolRaw = value }
 
     /** Injectable clock (epoch ms) for the dead-token cooldown; overridable in tests. */
     internal var clock: () -> Long = { System.currentTimeMillis() }
