@@ -3,6 +3,8 @@ package moe.rukamori.archivetune.ui.player.player_0
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -63,7 +65,7 @@ internal fun MiniPlayerContentInternal(
         modifier = modifier
             .fillMaxWidth()
             .height(MiniPlayerHeight)
-            .background(animatedBgColor)
+            .background(Color(0xFF101010))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
@@ -77,14 +79,14 @@ internal fun MiniPlayerContentInternal(
         // 1. ЛЕВАЯ ЧАСТЬ: Обложка
         // ==========================================
         val albumArtModifier = Modifier
-            .size(42.dp)
+            .size(44.dp)
             .graphicsLayer {
                 val fraction = expansionFractionProvider()
-                scaleX = lerp(1.07f, 1f, fraction)
-                scaleY = lerp(1.07f, 1f, fraction)
-                rotationZ = rotation.value
+                scaleX = lerp(1.05f, 1f, fraction)
+                scaleY = lerp(1.05f, 1f, fraction)
             }
-            .clip(CircleShape)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+            .border(1.dp, Color(0xFF262626), androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
 
         val context = androidx.compose.ui.platform.LocalContext.current
 

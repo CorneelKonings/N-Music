@@ -94,7 +94,7 @@ class FlacDownloadWorker(
             savedPath = file.uri.path ?: fileName
         } else {
             val musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
-            val yumaDir = File(musicDir, "YumaPlayer")
+            val yumaDir = File(musicDir, "N Music")
             val artistDir = File(yumaDir, sanitizeFileName(artist))
             val albumDir = File(artistDir, sanitizeFileName(album))
             if (!albumDir.exists()) {

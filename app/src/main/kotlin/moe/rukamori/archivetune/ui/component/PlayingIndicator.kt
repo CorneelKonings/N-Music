@@ -39,35 +39,38 @@ import kotlin.random.Random
 
 @Composable
 fun PlayingIndicator(
-    color: Color,
+    color: Color = Color(0xFFFFC700),
     modifier: Modifier = Modifier,
     bars: Int = 3,
-    barWidth: Dp = 4.dp,
-    cornerRadius: Dp = ThumbnailCornerRadius,
+    barWidth: Dp = 3.dp,
+    cornerRadius: Dp = 1.dp,
     isActive: Boolean = true,
 ) {
     val animatables =
         remember {
             List(bars) {
-                Animatable(0.1f)
+                Animatable(0.2f)
             }
         }
 
     LaunchedEffect(isActive) {
         if (!isActive) return@LaunchedEffect
-        delay(300)
+        delay(200)
         animatables.forEach { animatable ->
             launch {
                 while (true) {
-                    animatable.animateTo(Random.nextFloat() * 0.9f + 0.1f)
-                    delay(50)
+                    animatable.animateTo(
+                        targetValue = Random.nextFloat() * 0.8f + 0.2f,
+                        animationSpec = tween(durationMillis = 150)
+                    )
+                    delay(30)
                 }
             }
         }
     }
 
     Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
         verticalAlignment = Alignment.Bottom,
         modifier = modifier,
     ) {

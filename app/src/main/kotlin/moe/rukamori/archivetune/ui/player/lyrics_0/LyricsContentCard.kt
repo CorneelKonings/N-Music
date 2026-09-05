@@ -167,7 +167,7 @@ fun LyricsContentCard(
                                 .size(68.dp)
                                 .clip(CircleShape)
                                 .drawBehind {
-                                    drawCircle(animatedAccentColor)
+                                    drawCircle(if (state.isPlaying) Color(0xFFD71921) else Color.White)
                                 }
                                 .padding(0.dp),
                             contentAlignment = Alignment.Center,
@@ -175,14 +175,14 @@ fun LyricsContentCard(
                             if (state.isLoading) {
                                 CircularWavyProgressIndicator(
                                     modifier = Modifier.size(42.dp),
-                                    color = Color(0xFF121212),
+                                    color = if (state.isPlaying) Color.White else Color(0xFF121212),
                                 )
                             } else {
                                 Image(
                                     painter = rememberVectorPainter(playPauseIcon),
                                     contentDescription = "Play/Pause",
                                     modifier = Modifier.size(48.dp),
-                                    colorFilter = ColorFilter.tint(Color(0xFF121212)),
+                                    colorFilter = ColorFilter.tint(if (state.isPlaying) Color.White else Color(0xFF121212)),
                                 )
                             }
                         }

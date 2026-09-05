@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
@@ -58,8 +59,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialShapes
+import moe.rukamori.archivetune.ui.component.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -375,7 +375,7 @@ private fun RecognitionTaskState(
             RecognitionPhaseUi.Processing -> R.drawable.cached
             null -> R.drawable.mic
         }
-    val heroShape = MaterialShapes.Cookie9Sided.toShape()
+    val heroShape = CircleShape
 
     Column(
         modifier =
@@ -664,7 +664,7 @@ private fun ResultIdentity(
     artworkSize: Dp,
     modifier: Modifier = Modifier,
 ) {
-    val artworkShape = MaterialShapes.Cookie4Sided.toShape()
+    val artworkShape = RoundedCornerShape(16.dp)
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,

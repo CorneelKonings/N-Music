@@ -33,7 +33,7 @@ sealed class Screens(
     )
 
     object Library : Screens(
-        titleId = R.string.filter_library,
+        titleId = R.string.library,
         iconIdInactive = R.drawable.ic_library_outline,
         iconIdActive = R.drawable.ic_library,
         route = "library",

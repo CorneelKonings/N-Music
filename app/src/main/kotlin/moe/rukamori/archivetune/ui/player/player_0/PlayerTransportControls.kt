@@ -79,19 +79,30 @@ fun PlayerTransportControls(
     val playPauseIcon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
 
     val isShuffleActive = state.shuffleState != "off"
-    val shuffleColor = if (isShuffleActive) animatedAccentColor else Color.White.copy(alpha = 0.5f)
+    val shuffleColor = if (isShuffleActive) Color(0xFFD71921) else Color.White.copy(alpha = 0.5f)
     val shuffleIcon = when (state.shuffleState) {
         "smart" -> R.drawable.ic_shuffle_mix
         else -> R.drawable.ic_shuffle
     }
 
     val isRepeatActive = state.repeatState != "off"
-    val repeatColor = if (isRepeatActive) animatedAccentColor else Color.White.copy(alpha = 0.5f)
+    val repeatColor = if (isRepeatActive) Color(0xFFD71921) else Color.White.copy(alpha = 0.5f)
     val repeatIcon = when (state.repeatState) {
         "one" -> R.drawable.ic_repeat_one
         "all", "on" -> R.drawable.ic_repeat_on
         else -> R.drawable.ic_repeat
     }
+
+    val playPauseButtonColor by animateColorAsState(
+        targetValue = if (isPlaying) Color(0xFFD71921) else Color.White,
+        animationSpec = tween(300),
+        label = "PlayPauseBg"
+    )
+    val playPauseIconColor by animateColorAsState(
+        targetValue = if (isPlaying) Color.White else Color(0xFF101010),
+        animationSpec = tween(300),
+        label = "PlayPauseIcon"
+    )
 
     Box(
         modifier = modifier
@@ -133,17 +144,9 @@ fun PlayerTransportControls(
                     .padding(horizontal = CapsuleMarginHoriz)
                     .height(CapsuleHeight)
                     .clip(CircleShape)
-                    .background(animatedAccentColor.copy(alpha = 0.12f))
+                    .background(Color(0xFF141414))
                     .border(
-                        BorderStroke(
-                            CapsuleBorderWidth,
-                            Brush.verticalGradient(
-                                listOf(
-                                    animatedAccentColor.copy(alpha = 0.18f),
-                                    animatedAccentColor.copy(alpha = 0.08f),
-                                ),
-                            ),
-                        ),
+                        BorderStroke(1.dp, Color(0xFF262626)),
                         CircleShape,
                     )
                     .padding(horizontal = CapsulePadHorizontal),
@@ -176,21 +179,21 @@ fun PlayerTransportControls(
                         .size(CenterButtonSize)
                         .clip(CircleShape)
                         .drawBehind {
-                            drawCircle(animatedAccentColor)
+                            drawCircle(playPauseButtonColor)
                         },
                     contentAlignment = Alignment.Center,
                 ) {
                     if (state.isLoading) {
                         CircularWavyProgressIndicator(
                             modifier = Modifier.size(CenterIconSize - 12.dp),
-                            color = Color(0xFF121212),
+                            color = playPauseIconColor,
                         )
                     } else {
                         Image(
                             painter = rememberVectorPainter(playPauseIcon),
                             contentDescription = "Play/Pause",
                             modifier = Modifier.size(CenterIconSize),
-                            colorFilter = ColorFilter.tint(Color(0xFF121212)),
+                            colorFilter = ColorFilter.tint(playPauseIconColor),
                         )
                     }
                 }

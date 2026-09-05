@@ -1748,31 +1748,16 @@ fun ExpressiveRowIcon(
     tint: Color,
     emphasized: Boolean = false,
 ) {
-    val iconShape = rememberPreferenceIconShape(title)
-    val bgColor = if (emphasized) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        tint.copy(alpha = 0.18f).compositeOver(MaterialTheme.colorScheme.surfaceContainerHigh)
-    }
-    val iconTint = if (emphasized) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        tint
-    }
-
-    Surface(
+    Box(
         modifier = Modifier.size(RowIconSize),
-        shape = iconShape,
-        color = bgColor,
+        contentAlignment = Alignment.Center,
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            Icon(
-                painter = icon,
-                contentDescription = null,
-                modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
-                tint = iconTint,
-            )
-        }
+        Icon(
+            painter = icon,
+            contentDescription = null,
+            modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
+            tint = Color.White,
+        )
     }
 }
 

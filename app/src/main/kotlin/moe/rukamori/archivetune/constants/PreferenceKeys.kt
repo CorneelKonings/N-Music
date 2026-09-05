@@ -23,6 +23,8 @@ val LastDarkMutedColorKey = intPreferencesKey("lastDarkMutedColor")
 val LastGradientColorKey = intPreferencesKey("lastGradientColor")
 
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
+val NothingBackgroundDotsKey = booleanPreferencesKey("nothingBackgroundDots")
+val NothingMatrixArtworkKey = booleanPreferencesKey("nothingMatrixArtwork")
 val CustomThemeColorKey = stringPreferencesKey("customThemeColor")
 val RandomThemeOnStartupKey = booleanPreferencesKey("randomThemeOnStartup")
 val DarkModeKey = stringPreferencesKey("darkMode")

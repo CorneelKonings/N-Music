@@ -1,5 +1,5 @@
 package moe.rukamori.archivetune.ui.screens
-import moe.rukamori.archivetune.ui.screens.HomeSectionHeader
+import moe.rukamori.archivetune.ui.component.LoadingIndicator
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -443,7 +443,7 @@ private fun HomeStatePane(
             modifier = Modifier.padding(32.dp),
         ) {
             if (showLoadingIndicator) {
-                androidx.compose.material3.LoadingIndicator()
+                LoadingIndicator()
             } else {
                 iconResId?.let {
                     Icon(

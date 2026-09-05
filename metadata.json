@@ -1,0 +1,6 @@
+{
+  "name": "N Music",
+  "description": "Nothing OS-inspired music player featuring dot-matrix artwork, pure monochrome foundation, and industrial typography",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

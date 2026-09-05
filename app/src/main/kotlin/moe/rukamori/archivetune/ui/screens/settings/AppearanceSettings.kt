@@ -73,6 +73,8 @@ import moe.rukamori.archivetune.constants.DarkModeKey
 import moe.rukamori.archivetune.constants.DefaultOpenTabKey
 import moe.rukamori.archivetune.constants.DisableAnimationsKey
 import moe.rukamori.archivetune.constants.DynamicThemeKey
+import moe.rukamori.archivetune.constants.NothingBackgroundDotsKey
+import moe.rukamori.archivetune.constants.NothingMatrixArtworkKey
 import moe.rukamori.archivetune.constants.FontPreferenceKey
 import moe.rukamori.archivetune.constants.ForceHighRefreshRateKey
 import moe.rukamori.archivetune.constants.HomeBackgroundBrightnessKey
@@ -125,6 +127,16 @@ fun AppearanceSettings(navController: NavController) {
             defaultValue = DarkMode.AUTO,
         )
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
+    val (nothingBackgroundDots, onNothingBackgroundDotsChange) =
+        rememberPreference(
+            NothingBackgroundDotsKey,
+            defaultValue = true,
+        )
+    val (nothingMatrixArtwork, onNothingMatrixArtworkChange) =
+        rememberPreference(
+            NothingMatrixArtworkKey,
+            defaultValue = true,
+        )
     val (disableAnimations, onDisableAnimationsChange) =
         rememberPreference(
             DisableAnimationsKey,
@@ -325,6 +337,26 @@ fun AppearanceSettings(navController: NavController) {
                         icon = { Icon(painterResource(R.drawable.animation), null, modifier = Modifier.size(24.dp)) },
                         checked = disableAnimations,
                         onCheckedChange = onDisableAnimationsChange,
+                    )
+                }
+
+                item {
+                    SwitchPreference(
+                        title = { Text("Background dots") },
+                        description = "Subtle Nothing dot-matrix ambient grid",
+                        icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(24.dp)) },
+                        checked = nothingBackgroundDots,
+                        onCheckedChange = onNothingBackgroundDotsChange,
+                    )
+                }
+
+                item {
+                    SwitchPreference(
+                        title = { Text("Matrix artwork") },
+                        description = "Monochrome dot-matrix album art treatment",
+                        icon = { Icon(painterResource(R.drawable.album), null, modifier = Modifier.size(24.dp)) },
+                        checked = nothingMatrixArtwork,
+                        onCheckedChange = onNothingMatrixArtworkChange,
                     )
                 }
 

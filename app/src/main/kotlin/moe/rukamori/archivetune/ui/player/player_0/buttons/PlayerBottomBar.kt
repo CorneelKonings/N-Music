@@ -3,6 +3,8 @@ package moe.rukamori.archivetune.ui.player.player_0.buttons
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -109,19 +111,20 @@ private fun AiryIconButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.85f else 1f,
+        targetValue = if (isPressed) 0.88f else 1f,
         animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium),
         label = "AiryButtonBounce"
     )
 
-    Column(
+    Box(
         modifier = Modifier
             .size(ButtonClickAreaSize)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .clip(CircleShape)
+            .background(Color(0xFF141414), CircleShape)
+            .border(1.dp, Color(0xFF262626), CircleShape)
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(id = iconRes),

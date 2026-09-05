@@ -139,7 +139,7 @@ fun PlayerSeekBar(
                         .drawBehind {
                             val fillWidth = size.width * fraction
                             drawRoundRect(
-                                color = if (isInteracting) animatedAccentColor else Color.White,
+                                color = if (isInteracting) Color(0xFFD71921) else Color.White,
                                 size = Size(fillWidth, size.height),
                                 cornerRadius = CornerRadius(
                                     x = size.height / 2f,
@@ -185,9 +185,10 @@ fun PlayerSeekBar(
         ) {
             Text(
                 text = currentSecText,
-                color = Color(0x80FFFFFF),
-                fontFamily = GoogleSans,
-                fontSize = 12.sp,
+                color = Color(0xB3FFFFFF),
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontSize = 11.sp,
+                letterSpacing = 0.5.sp,
                 modifier = Modifier.align(Alignment.CenterStart)
             )
             
@@ -202,13 +203,14 @@ fun PlayerSeekBar(
                     exit = fadeOut(tween(300))
                 ) {
                     Text(
-                        text = codecInfo,
-                        color = Color(0x80FFFFFF),
-                        fontFamily = GoogleSans,
+                        text = codecInfo.uppercase(),
+                        color = Color(0xB3FFFFFF),
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
                         fontSize = 10.sp,
+                        letterSpacing = 0.8.sp,
                         modifier = Modifier
-                            .background(Color(0x1AFFFFFF), CircleShape)
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                            .background(Color(0xFF1E1E1E), androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
 
@@ -226,9 +228,10 @@ fun PlayerSeekBar(
 
             Text(
                 text = durationSecText,
-                color = Color(0x80FFFFFF),
-                fontFamily = GoogleSans,
-                fontSize = 12.sp,
+                color = Color(0xB3FFFFFF),
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontSize = 11.sp,
+                letterSpacing = 0.5.sp,
                 modifier = Modifier.align(Alignment.CenterEnd)
             )
         }

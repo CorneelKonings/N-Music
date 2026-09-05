@@ -19,6 +19,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -72,6 +73,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -150,9 +153,9 @@ inline fun ListItem(
     isActive: Boolean = false,
 ) {
     val yumaColors = moe.rukamori.archivetune.ui.theme.LocalYumaColors.current
-    val titleColor = if (isActive) yumaColors.textPrimary else yumaColors.textPrimary.copy(alpha = 0.85f)
-    val subtitleContentColor = if (isActive) yumaColors.textPrimary.copy(alpha = 0.75f) else yumaColors.textSecondary
-    val trailingContentColor = if (isActive) yumaColors.textPrimary else yumaColors.textSecondary
+    val titleColor = if (isActive) Color(0xFFD71921) else yumaColors.textPrimary
+    val subtitleContentColor = if (isActive) yumaColors.textPrimary.copy(alpha = 0.85f) else yumaColors.textSecondary
+    val trailingContentColor = if (isActive) Color(0xFFD71921) else yumaColors.textSecondary
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -164,8 +167,9 @@ inline fun ListItem(
                 .then(
                     if (isActive) {
                         Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(yumaColors.glassBorder.copy(alpha = 0.2f))
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFF141414))
+                            .border(1.dp, Color(0xFFD71921).copy(alpha = 0.45f), RoundedCornerShape(8.dp))
                     } else {
                         Modifier
                     },
@@ -299,21 +303,24 @@ fun GridItem(
 ) = GridItem(
     modifier = modifier,
     title = {
-        MarqueeText(
+        Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
         )
     },
     subtitle = {
-        MarqueeText(
+        Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth(),
         )
     },
     thumbnailContent = thumbnailContent,
@@ -984,13 +991,6 @@ fun LibraryPlaylistFeatureCard(
                 modifier =
                     Modifier
                         .size(thumbnailSize)
-                        .shadow(
-                            elevation = LibraryCardGlowElevation,
-                            shape = thumbnailShape,
-                            clip = false,
-                            ambientColor = glowColor.copy(alpha = LibraryCardGlowAmbientAlpha),
-                            spotColor = glowColor.copy(alpha = LibraryCardGlowSpotAlpha),
-                        ),
             ) {
                 PlaylistThumbnail(
                     thumbnails = playlist.thumbnails,
@@ -1101,13 +1101,6 @@ fun LibraryAlbumSpotlightCard(
                 modifier =
                     Modifier
                         .size(LibraryCardThumbnailSize)
-                        .shadow(
-                            elevation = LibraryCardGlowElevation,
-                            shape = RoundedCornerShape(18.dp),
-                            clip = false,
-                            ambientColor = glowColor.copy(alpha = LibraryCardGlowAmbientAlpha),
-                            spotColor = glowColor.copy(alpha = LibraryCardGlowSpotAlpha),
-                        ),
             ) {
                 LocalThumbnail(
                     thumbnailUrl = album.album.thumbnailUrl,
@@ -1407,11 +1400,12 @@ fun YouTubeGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = {
-        MarqueeText(
+        Text(
             text = item.title,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
-            modifier = Modifier,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth(),
         )
     },
     subtitle = {
@@ -1423,11 +1417,13 @@ fun YouTubeGridItem(
                 is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
             }
         if (subtitle != null) {
-            MarqueeText(
+            Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
-                maxLines = 2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     },
@@ -1630,6 +1626,7 @@ fun ItemThumbnail(
                     model = request,
                     contentDescription = null,
                     contentScale = if (shouldApplySquareCrop) ContentScale.Crop else ContentScale.Fit,
+                    colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }),
                     modifier =
                         Modifier
                             .fillMaxSize()
@@ -1746,6 +1743,7 @@ fun LocalThumbnail(
             model = request,
             contentDescription = null,
             contentScale = if (shouldApplySquareCrop) ContentScale.Crop else ContentScale.Fit,
+            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }),
             modifier = Modifier.fillMaxSize().let { if (shouldApplySquareCrop) it.aspectRatio(1f) else it },
         )
 

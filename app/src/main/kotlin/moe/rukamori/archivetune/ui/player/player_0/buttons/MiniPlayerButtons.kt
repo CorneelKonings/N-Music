@@ -87,11 +87,12 @@ fun MiniPlayerButtons(
 
         // ── Play / Pause ──────────────────────────────────────────────────────
         val playPauseIcon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
+        val playPauseBg = if (state.isPlaying) Color(0xFFD71921) else Color.White
+        val playPauseIconTint = if (state.isPlaying) Color.White else Color(0xFF111111)
         Box(
             modifier = Modifier
                 .size(centerBoxSize)
-                .background(Color.White.copy(alpha = CenterBgAlpha), CircleShape)
-                .border(1.dp, Color.White.copy(alpha = CenterBorderAlpha), CircleShape)
+                .background(playPauseBg, CircleShape)
                 .clip(CircleShape)
                 .bounceClick(pressedScale = PressedScale) {
                     onAction(PlayerAction.PlayPause)
@@ -104,7 +105,7 @@ fun MiniPlayerButtons(
                 modifier = Modifier
                     .size(centerIconSize)
                     .offset(x = playOffset),
-                colorFilter = ColorFilter.tint(Color.White),
+                colorFilter = ColorFilter.tint(playPauseIconTint),
             )
         }
 

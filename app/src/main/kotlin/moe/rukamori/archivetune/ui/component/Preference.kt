@@ -51,7 +51,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ProvideTextStyle
@@ -125,10 +124,10 @@ private val PreferenceEntryVerticalPadding = SettingsDimensions.RowVerticalPaddi
 fun rememberPreferenceIconShape(key: Any? = LocalPreferenceItemIndex.current): Shape {
     val seed = kotlin.math.abs(key?.hashCode() ?: 0)
     return when (seed % 4) {
-        0 -> MaterialShapes.Ghostish.toShape()
-        1 -> MaterialShapes.Clover4Leaf.toShape()
-        2 -> MaterialShapes.Cookie9Sided.toShape()
-        else -> MaterialShapes.Pill.toShape()
+        0 -> RoundedCornerShape(10.dp)
+        1 -> RoundedCornerShape(14.dp)
+        2 -> RoundedCornerShape(8.dp)
+        else -> CircleShape
     }
 }
 
@@ -253,24 +252,12 @@ fun PreferenceEntry(
                 )
         ) {
             if (icon != null) {
-                val iconShape = rememberPreferenceIconShape()
-                val effectiveAccent = MaterialTheme.colorScheme.primary
-                val iconContentCandidate = contentColorFor(effectiveAccent)
-                val iconContentColor =
-                    if (iconContentCandidate.isSpecified) {
-                        iconContentCandidate
-                    } else {
-                        MaterialTheme.colorScheme.surface
-                    }
-
                 Box(
                     modifier = Modifier
-                        .size(SettingsDimensions.SegmentedIconBoxSize)
-                        .clip(iconShape)
-                        .background(effectiveAccent),
+                        .size(SettingsDimensions.SegmentedIconBoxSize),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CompositionLocalProvider(LocalContentColor provides iconContentColor) {
+                    CompositionLocalProvider(LocalContentColor provides Color.White) {
                         Box(
                             modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
                             contentAlignment = Alignment.Center

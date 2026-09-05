@@ -85,7 +85,6 @@ import androidx.compose.ui.text.font.FontFamily
 import coil3.compose.AsyncImage
 import moe.rukamori.archivetune.ui.component.MarqueeText
 import moe.rukamori.archivetune.ui.component.LocalPreferenceItemIndex
-import moe.rukamori.archivetune.ui.component.rememberPreferenceIconShape
 import moe.rukamori.archivetune.ui.theme.LocalYumaColors
 import moe.rukamori.archivetune.ui.theme.yumaClickable
 import moe.rukamori.archivetune.ui.theme.yumaGlassCard
@@ -305,15 +304,9 @@ fun SettingsRow(
                     ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val iconShape = rememberPreferenceIconShape(item.title)
             Box(
                 modifier = Modifier
-                    .size(SettingsDimensions.RowIconSize)
-                    .clip(iconShape)
-                    .background(
-                        color = effectiveAccent.copy(alpha = SettingsDimensions.RowIconBgAlpha),
-                        shape = iconShape,
-                    ),
+                    .size(SettingsDimensions.RowIconSize),
                 contentAlignment = Alignment.Center,
             ) {
                 if (item.showUpdateIndicator) {
@@ -328,7 +321,7 @@ fun SettingsRow(
                         Icon(
                             painter = item.icon,
                             contentDescription = null,
-                            tint = effectiveAccent,
+                            tint = Color.White,
                             modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                         )
                     }
@@ -336,7 +329,7 @@ fun SettingsRow(
                     Icon(
                         painter = item.icon,
                         contentDescription = null,
-                        tint = effectiveAccent,
+                        tint = Color.White,
                         modifier = Modifier.size(SettingsDimensions.RowIconInnerSize),
                     )
                 }
@@ -491,13 +484,10 @@ fun SettingsSegmentedItem(
                     ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val iconShape = rememberPreferenceIconShape(item.title)
             Box(
                 modifier =
                     Modifier
-                        .size(SettingsDimensions.SegmentedIconBoxSize)
-                        .clip(iconShape)
-                        .background(effectiveAccent),
+                        .size(SettingsDimensions.SegmentedIconBoxSize),
                 contentAlignment = Alignment.Center,
             ) {
                 if (item.showUpdateIndicator) {
@@ -512,7 +502,7 @@ fun SettingsSegmentedItem(
                         Icon(
                             painter = item.icon,
                             contentDescription = null,
-                            tint = iconContentColor,
+                            tint = Color.White,
                             modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
                         )
                     }
@@ -520,7 +510,7 @@ fun SettingsSegmentedItem(
                     Icon(
                         painter = item.icon,
                         contentDescription = null,
-                        tint = iconContentColor,
+                        tint = Color.White,
                         modifier = Modifier.size(SettingsDimensions.SegmentedIconSize),
                     )
                 }

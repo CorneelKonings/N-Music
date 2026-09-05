@@ -9,6 +9,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -45,6 +46,10 @@ import coil3.request.ImageRequest
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
+import moe.rukamori.archivetune.constants.NothingMatrixArtworkKey
+import moe.rukamori.archivetune.ui.component.MatrixCoverArtwork
+import moe.rukamori.archivetune.utils.rememberPreference
+
 @Composable
 fun PlayerCoverCard(
     coverUrl: String? = null,
@@ -57,6 +62,8 @@ fun PlayerCoverCard(
     onPrevious: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val (matrixPrefEnabled) = rememberPreference(NothingMatrixArtworkKey, defaultValue = true)
+    var isMatrixModeLocal by remember(coverUrl, matrixPrefEnabled) { mutableStateOf(matrixPrefEnabled) }
     val shadowColor = MaterialTheme.colorScheme.scrim
     val surfaceColor: Color = MaterialTheme.colorScheme.surface
     val outlineColor: Color = MaterialTheme.colorScheme.outlineVariant
@@ -106,24 +113,18 @@ fun PlayerCoverCard(
         label = "CoverGlowColor"
     )
     
+    val coverShape = RoundedCornerShape(12.dp)
+    
     Box(
         modifier = modifier
             .aspectRatio(1f, matchHeightConstraintsFirst = true)
             .graphicsLayer {
                 translationX = offsetX.value
-                if (isAlbumCoverGlowEnabled) {
-                    shadowElevation = 48.dp.toPx()
-                    shape = RoundedCornerShape(24.dp)
-                    clip = false
-                    ambientShadowColor = animatedVibrantColor.copy(alpha = 0.8f)
-                    spotShadowColor = animatedVibrantColor
-                } else {
-                    shadowElevation = 24.dp.toPx()
-                    shape = RoundedCornerShape(24.dp)
-                    clip = false
-                    ambientShadowColor = shadowColor
-                    spotShadowColor = shadowColor.copy(alpha = 0.6f)
-                }
+                shadowElevation = 8.dp.toPx()
+                shape = coverShape
+                clip = false
+                ambientShadowColor = Color.Black.copy(alpha = 0.5f)
+                spotShadowColor = Color.Black.copy(alpha = 0.8f)
             }
             .then(
                 if (gestureEnabled) {
@@ -180,31 +181,21 @@ fun PlayerCoverCard(
                     Modifier
                 }
             )
-            .clip(RoundedCornerShape(24.dp))
-            .background(surfaceColor)
-            .border(BorderStroke(1.dp, outlineColor), RoundedCornerShape(24.dp)),
+            .clip(coverShape)
+            .background(Color(0xFF141414))
+            .border(BorderStroke(1.dp, Color(0xFF262626)), coverShape),
         contentAlignment = Alignment.Center
     ) {
-        androidx.compose.animation.Crossfade(
-            targetState = currentPainter,
-            animationSpec = tween(500),
-            label = "CoverCrossfade"
-        ) { targetPainter ->
-            if (targetPainter == null) {
-                androidx.compose.foundation.Image(
-                    painter = painterResource(id = placeholderResId),
-                    contentDescription = "Album Art Large",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                androidx.compose.foundation.Image(
-                    painter = targetPainter,
-                    contentDescription = "Album Art Large",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-        }
+        MatrixCoverArtwork(
+            coverUrl = coverUrl,
+            placeholderResId = placeholderResId,
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable { isMatrixModeLocal = !isMatrixModeLocal },
+            cornerRadius = 12.dp,
+            borderColor = Color(0xFF262626),
+            isMatrixMode = isMatrixModeLocal,
+            contentDescription = "Album Art Large"
+        )
     }
 }

@@ -18,7 +18,7 @@ private fun buildTypography(fontFamily: FontFamily) =
     Typography(
         displayLarge =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NTypeHeadlineFontFamily else fontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 57.sp,
                 lineHeight = 64.sp,
@@ -26,7 +26,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         displayMedium =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NTypeHeadlineFontFamily else fontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 45.sp,
                 lineHeight = 52.sp,
@@ -34,7 +34,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         displaySmall =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NTypeHeadlineFontFamily else fontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 36.sp,
                 lineHeight = 44.sp,
@@ -42,7 +42,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         headlineLarge =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NTypeHeadlineFontFamily else fontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 32.sp,
                 lineHeight = 40.sp,
@@ -50,7 +50,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         headlineMedium =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NTypeHeadlineFontFamily else fontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 28.sp,
                 lineHeight = 36.sp,
@@ -58,7 +58,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         headlineSmall =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NTypeHeadlineFontFamily else fontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 24.sp,
                 lineHeight = 32.sp,
@@ -66,7 +66,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         titleLarge =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NTypeHeadlineFontFamily else fontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
@@ -114,7 +114,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         labelLarge =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NDotFontFamily else fontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
@@ -122,7 +122,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         labelMedium =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NDotFontFamily else fontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 12.sp,
                 lineHeight = 16.sp,
@@ -130,7 +130,7 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
         labelSmall =
             TextStyle(
-                fontFamily = fontFamily,
+                fontFamily = if (fontFamily == AppFontFamily) NDotFontFamily else fontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
@@ -138,8 +138,12 @@ private fun buildTypography(fontFamily: FontFamily) =
             ),
     )
 
-val AppFontFamily = FontFamily(Font(R.font.poppins))
-val LyricsFontFamily = FontFamily(Font(R.font.sfprodisplaybold))
+val NDotFontFamily = FontFamily(Font(R.font.ndot55))
+val NTypeHeadlineFontFamily = FontFamily(Font(R.font.ntype82_headline))
+val NTypeRegularFontFamily = FontFamily(Font(R.font.ntype82_regular))
+
+val AppFontFamily = NTypeRegularFontFamily
+val LyricsFontFamily = NDotFontFamily
 val AppTypography = buildTypography(AppFontFamily)
 val SystemTypography = buildTypography(FontFamily.Default)
 

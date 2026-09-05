@@ -427,7 +427,7 @@ private fun buildCrashReport(
 
     val header =
         buildString {
-            appendLine("YumaPlayer crash report")
+            appendLine("N Music crash report")
             if (timestampText.isNotBlank()) appendLine("Time: $timestampText")
             val appVersionLabel =
                 when {

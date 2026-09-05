@@ -44,9 +44,8 @@ fun PlayerToolbar(
     colorScheme: ColorScheme = MaterialTheme.colorScheme
 ) {
 
-    val isImmersiveOrBlur = (state.isImmersiveEnabled || state.isBlurBackgroundEnabled) && !state.isLyricsVisible
-    val buttonBackground = if (isImmersiveOrBlur) Color.Black.copy(alpha = 0.2f) else Color.Transparent
-    val buttonBorderColor = if (isImmersiveOrBlur) Color.White.copy(alpha = 0.08f) else Color.Transparent
+    val buttonBackground = Color(0xFF181818)
+    val buttonBorderColor = Color(0xFF282828)
 
     val collapseInteractionSource = remember { MutableInteractionSource() }
     val collapsePressed by collapseInteractionSource.collectIsPressedAsState()
@@ -69,18 +68,28 @@ fun PlayerToolbar(
             .fillMaxWidth()
             .height(56.dp)
     ) {
-        Text(
-            text = "Now Playing",
-            color = if (isImmersiveOrBlur) Color.White else colorScheme.onSurface,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = GoogleSans,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
-                .graphicsLayer { alpha = 0.6f }
-        )
+        Row(
+            modifier = Modifier.align(Alignment.Center),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "//",
+                color = Color(0xFFFFC700),
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                letterSpacing = 1.sp
+            )
+            Text(
+                text = "NOW PLAYING",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                letterSpacing = 1.5.sp
+            )
+        }
 
         Row(
             modifier = Modifier

@@ -20,6 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.unit.dp
+import moe.rukamori.archivetune.ui.component.LoadingIndicator
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ExpressivePullToRefreshBox(
@@ -37,16 +41,17 @@ fun ExpressivePullToRefreshBox(
         modifier = modifier,
         state = state,
         indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                isRefreshing = isRefreshing,
-                state = state,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier =
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(indicatorPadding),
-            )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(indicatorPadding)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isRefreshing) {
+                    LoadingIndicator()
+                }
+            }
         },
         content = content,
     )

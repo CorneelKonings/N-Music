@@ -75,20 +75,10 @@ fun Modifier.yumaGlassCard(
     topAlpha: Float? = null,
     bottomAlpha: Float? = null,
 ): Modifier {
-    val defaultAlphas = yumaSegmentAlphas(position)
-    val resolvedTopAlpha = topAlpha ?: defaultAlphas.first
-    val resolvedBottomAlpha = bottomAlpha ?: defaultAlphas.second
-
     return this
         .clip(shape)
         .background(backgroundColor, shape)
-        .glassBorder(
-            shape = shape,
-            strokeWidth = strokeWidth,
-            topAlpha = resolvedTopAlpha,
-            bottomAlpha = resolvedBottomAlpha,
-            baseColor = borderColor
-        )
+        .border(strokeWidth, borderColor, shape)
 }
 @Composable
 fun Modifier.yumaClickable(

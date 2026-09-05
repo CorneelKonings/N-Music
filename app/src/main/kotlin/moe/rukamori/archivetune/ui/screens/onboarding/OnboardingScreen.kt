@@ -54,13 +54,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialShapes
+import moe.rukamori.archivetune.ui.component.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -133,10 +131,10 @@ private val GoogleSansFont = FontFamily(
 
 @Composable
 private fun rememberExpressiveShapes(): List<Shape> {
-    val s0 = MaterialShapes.Cookie4Sided.toShape()
-    val s1 = MaterialShapes.Clover4Leaf.toShape()
-    val s2 = MaterialShapes.Ghostish.toShape()
-    val s3 = MaterialShapes.Sunny.toShape()
+    val s0 = RoundedCornerShape(16.dp)
+    val s1 = RoundedCornerShape(20.dp)
+    val s2 = RoundedCornerShape(12.dp)
+    val s3 = RoundedCornerShape(24.dp)
     return remember(s0, s1, s2, s3) { listOf(s0, s1, s2, s3) }
 }
 
@@ -526,8 +524,8 @@ private fun GlassBottomNavigation(
                     Modifier
                         .weight(1f)
                         .yumaClickable(onClick = onNext),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(12.dp),
+                color = Color.White,
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
@@ -538,14 +536,14 @@ private fun GlassBottomNavigation(
                         text = nextLabel,
                         fontFamily = GoogleSansFont,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = Color.Black,
                         fontSize = 15.sp,
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         painter = painterResource(R.drawable.ic_arrow_right),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = Color.Black,
                         modifier = Modifier.size(18.dp),
                     )
                 }
@@ -560,7 +558,7 @@ private fun WelcomePage(
     pageIndex: Int,
 ) {
     val page = uiState.pages[pageIndex]
-    val avatarShape = MaterialShapes.Cookie4Sided.toShape()
+    val avatarShape = RoundedCornerShape(28.dp)
 
     val infiniteTransition = rememberInfiniteTransition(label = "avatarEffects")
     val rotationAngle by infiniteTransition.animateFloat(
@@ -573,30 +571,10 @@ private fun WelcomePage(
         label = "rotationAngle"
     )
 
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
-    val glassBg = LocalYumaColors.current.glassBackground
-
-    val glowBrush = remember(primaryColor) {
-        Brush.radialGradient(
-            colors = listOf(
-                primaryColor.copy(alpha = 0.45f),
-                primaryColor.copy(alpha = 0.15f),
-                Color.Transparent,
-            ),
-        )
-    }
-    val borderBrush = remember(primaryColor, tertiaryColor) {
-        Brush.sweepGradient(
-            colors = listOf(
-                primaryColor,
-                tertiaryColor,
-                primaryColor,
-            )
-        )
-    }
-    val borderStroke = remember(borderBrush) {
-        BorderStroke(width = 4.dp, brush = borderBrush)
+    val nRed = Color(0xFFD71921)
+    val glassBg = Color(0xFF141414)
+    val borderStroke = remember {
+        BorderStroke(width = 1.5.dp, color = Color(0xFF2E2E2E))
     }
 
     LazyColumn(
@@ -614,45 +592,62 @@ private fun WelcomePage(
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(260.dp),
+                    modifier = Modifier.size(240.dp),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(240.dp)
-                            .graphicsLayer { rotationZ = rotationAngle },
-                        contentAlignment = Alignment.Center,
+                    Surface(
+                        modifier = Modifier.size(220.dp),
+                        shape = avatarShape,
+                        color = glassBg,
+                        border = borderStroke,
                     ) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    brush = glowBrush,
-                                    shape = avatarShape,
-                                )
-                        )
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            // Subtle Nothing dot-matrix / turntable vinyl ring
+                            Box(
+                                modifier = Modifier
+                                    .size(180.dp)
+                                    .graphicsLayer { rotationZ = rotationAngle },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Surface(
+                                    modifier = Modifier.size(180.dp),
+                                    shape = CircleShape,
+                                    color = Color(0xFF0A0A0A),
+                                    border = BorderStroke(1.dp, Color(0xFF333333)),
+                                ) {}
+                                Surface(
+                                    modifier = Modifier.size(120.dp),
+                                    shape = CircleShape,
+                                    color = Color(0xFF161616),
+                                    border = BorderStroke(1.dp, Color(0xFF262626)),
+                                ) {}
+                                Surface(
+                                    modifier = Modifier.size(40.dp),
+                                    shape = CircleShape,
+                                    color = nRed,
+                                ) {}
+                            }
 
-                        Surface(
-                            modifier = Modifier.size(210.dp),
-                            shape = avatarShape,
-                            color = glassBg,
-                            border = borderStroke,
-                        ) {}
+                            // Center Nothing glyph or icon
+                            Icon(
+                                painter = painterResource(id = R.drawable.about_splash),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(90.dp),
+                            )
+                        }
                     }
-
-                    Icon(
-                        painter = painterResource(id = R.drawable.about_splash),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(150.dp),
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
                     text = stringResource(page.titleResId),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = Color.White,
                     fontSize = 28.sp,
+                    lineHeight = 36.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = GoogleSansFont,
                     textAlign = TextAlign.Center,
@@ -662,7 +657,7 @@ private fun WelcomePage(
 
                 Text(
                     text = stringResource(page.subtitleResId),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color(0xFF8E8E93),
                     fontSize = 15.sp,
                     fontFamily = GoogleSansFont,
                     textAlign = TextAlign.Center,
@@ -1046,7 +1041,7 @@ private fun ExpressivePageHeader(
     titleResId: Int,
     subtitleResId: Int,
 ) {
-    val headerShape = MaterialShapes.Cookie9Sided.toShape()
+    val headerShape = RoundedCornerShape(16.dp)
 
     Column(
         modifier =

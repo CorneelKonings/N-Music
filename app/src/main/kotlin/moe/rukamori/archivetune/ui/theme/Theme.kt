@@ -45,7 +45,7 @@ import moe.rukamori.archivetune.constants.AppFontPreference
 import kotlin.math.abs
 import kotlin.math.min
 
-val DefaultThemeColor = Color(0xFFED5564)
+val DefaultThemeColor = Color(0xFFFFC700)
 val LocalArchiveTuneFontPreference = staticCompositionLocalOf { AppFontPreference.DEFAULT }
 val LocalArchiveTuneFontFamily = staticCompositionLocalOf { AppFontFamily }
 val LocalDisableAnimations = staticCompositionLocalOf { false }
@@ -173,27 +173,66 @@ fun ArchiveTuneTheme(
             )
         }
 
-    val expressiveShapes =
+    val nothingShapes =
         remember {
             Shapes(
-                extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
-                small = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                medium = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                large = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-                extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(32.dp),
+                extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(4.dp),
+                small = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
+                medium = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                large = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
             )
+        }
+
+    val nothingColors =
+        remember(animatedColorScheme, darkTheme) {
+            val accentColor = animatedColorScheme.primary
+            if (darkTheme) {
+                NothingColorScheme(
+                    background = NothingTokens.PureBlack,
+                    surface = NothingTokens.DarkSurface,
+                    surfaceElevated = NothingTokens.DarkSurfaceElevated,
+                    surfaceCard = NothingTokens.DarkSurfaceCard,
+                    border = NothingTokens.DarkBorder,
+                    borderSubtle = NothingTokens.DarkBorderSubtle,
+                    divider = NothingTokens.DarkDivider,
+                    accent = accentColor,
+                    accentRed = NothingTokens.NRed,
+                    textPrimary = NothingTokens.TextPrimary,
+                    textSecondary = NothingTokens.TextSecondary,
+                    textTertiary = NothingTokens.TextTertiary,
+                    textDisabled = NothingTokens.TextDisabled,
+                )
+            } else {
+                NothingColorScheme(
+                    background = Color(0xFFFBFBFB),
+                    surface = Color(0xFFF2F2F2),
+                    surfaceElevated = Color(0xFFE8E8E8),
+                    surfaceCard = Color(0xFFEFEFEF),
+                    border = Color(0xFFD8D8D8),
+                    borderSubtle = Color(0xFFE4E4E4),
+                    divider = Color(0xFFE0E0E0),
+                    accent = accentColor,
+                    accentRed = NothingTokens.NRed,
+                    textPrimary = Color(0xFF111111),
+                    textSecondary = Color(0xFF666666),
+                    textTertiary = Color(0xFF999999),
+                    textDisabled = Color(0xFFB5B5B5),
+                )
+            }
         }
 
     CompositionLocalProvider(
         LocalArchiveTuneFontPreference provides fontPreference,
         LocalArchiveTuneFontFamily provides resolvedFontFamily,
         LocalDisableAnimations provides disableAnimations,
+        LocalNothingColors provides nothingColors,
     ) {
         MaterialExpressiveTheme(
             colorScheme = animatedColorScheme,
             motionScheme = motionScheme,
             typography = typography,
-            shapes = expressiveShapes,
+            shapes = nothingShapes,
         ) {
             YumaTheme(
                 darkTheme = darkTheme,

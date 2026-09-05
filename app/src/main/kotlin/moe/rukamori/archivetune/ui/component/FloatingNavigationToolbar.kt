@@ -63,33 +63,33 @@ import moe.rukamori.archivetune.ui.screens.Screens
 import moe.rukamori.archivetune.ui.theme.yumaCombinedClickable
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
-private val BarHeight = 68.dp
+private val BarHeight = 64.dp
 private val PillHeight = 32.dp
 private val PillWidth = 56.dp
-private val CornerRadius = 24.dp
-private val IconSize = 24.dp
-private val LabelFontSize = 11.sp
+private val CornerRadius = 14.dp
+private val IconSize = 22.dp
+private val LabelFontSize = 10.sp
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── ЦВЕТА (Готово под замену на DataStore в будущем) ───────────────────────
+// ─── ЦВЕТА (Nothing OS Palette) ──────────────────────────────────────────────
 private object NavBarColors {
     @Composable
-    fun container(pureBlack: Boolean) = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
+    fun container(pureBlack: Boolean) = Color(0xFF000000)
 
     @Composable
-    fun pill(pureBlack: Boolean) = if (pureBlack) Color.White.copy(alpha = 0.15f) else MaterialTheme.colorScheme.secondaryContainer
+    fun pill(pureBlack: Boolean) = Color(0xFF1C1C1C)
 
     @Composable
-    fun iconActive(pureBlack: Boolean) = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSecondaryContainer
+    fun iconActive(pureBlack: Boolean) = Color(0xFFD71921)
 
     @Composable
-    fun iconInactive(pureBlack: Boolean) = if (pureBlack) Color.White.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant
+    fun iconInactive(pureBlack: Boolean) = Color(0xFF888888)
 
     @Composable
-    fun labelActive(pureBlack: Boolean) = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSurface
+    fun labelActive(pureBlack: Boolean) = Color(0xFFFFFFFF)
 
     @Composable
-    fun labelInactive(pureBlack: Boolean) = if (pureBlack) Color.White.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurfaceVariant
+    fun labelInactive(pureBlack: Boolean) = Color(0xFF7A7A7A)
 }
 
 @Composable
@@ -121,12 +121,8 @@ fun FloatingNavigationToolbar(
             .clip(RoundedCornerShape(CornerRadius))
             .border(
                 width = 1.dp,
-                color = if (pureBlack) {
-                    Color.White.copy(alpha = 0.12f) // Элегантный неоновый контур для OLED
-                } else {
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f) // Мягкая граница для обычной темы
-                },
-                shape = RoundedCornerShape(CornerRadius) // Форма должна строго совпадать!
+                color = Color(0xFF262626),
+                shape = RoundedCornerShape(CornerRadius)
             )
             .background(NavBarColors.container(pureBlack)),
         contentAlignment = Alignment.Center

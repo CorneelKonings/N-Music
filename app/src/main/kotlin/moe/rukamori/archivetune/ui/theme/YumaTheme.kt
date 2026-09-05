@@ -23,23 +23,23 @@ data class YumaColorScheme(
 fun lightYumaColorScheme(
     colorScheme: ColorScheme
 ): YumaColorScheme = YumaColorScheme(
-    glassBackground = Color.White.copy(alpha = 0.65f),
-    glassBorder = colorScheme.primary.copy(alpha = 0.14f),
-    cardBackgroundOpaque = colorScheme.surfaceContainerLow,
-    textPrimary = colorScheme.onSurface,
-    textSecondary = colorScheme.onSurface.copy(alpha = 0.65f),
-    rippleColor = colorScheme.onSurface.copy(alpha = 0.12f)
+    glassBackground = Color(0xFFF5F5F5),
+    glassBorder = Color(0xFFE0E0E0),
+    cardBackgroundOpaque = Color(0xFFEEEEEE),
+    textPrimary = Color(0xFF111111),
+    textSecondary = Color(0xFF666666),
+    rippleColor = Color(0xFF111111).copy(alpha = 0.08f)
 )
 
 fun darkYumaColorScheme(
     colorScheme: ColorScheme
 ): YumaColorScheme = YumaColorScheme(
-    glassBackground = colorScheme.onSurface.copy(alpha = 0.08f),
-    glassBorder = colorScheme.primary.copy(alpha = 0.10f),
-    cardBackgroundOpaque = Color(0xFF1C1C1E),
-    textPrimary = colorScheme.onSurface,
-    textSecondary = colorScheme.onSurface.copy(alpha = 0.65f),
-    rippleColor = colorScheme.onSurface.copy(alpha = 0.16f)
+    glassBackground = Color(0xFF141414),
+    glassBorder = Color(0xFF262626),
+    cardBackgroundOpaque = Color(0xFF181818),
+    textPrimary = Color(0xFFFFFFFF),
+    textSecondary = Color(0xFFB1B3B3),
+    rippleColor = Color(0xFFFFFFFF).copy(alpha = 0.12f)
 )
 
 val LocalYumaColors = staticCompositionLocalOf<YumaColorScheme> {
